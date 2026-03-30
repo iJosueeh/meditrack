@@ -2,10 +2,7 @@ services:
   database:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: meditrack_db_server
-    deploy:
-      resources:
-        limits:
-          memory: 1500M
+    mem_limit: 1500m
     ports:
       - "1433:1433"
     environment:
@@ -13,6 +10,43 @@ services:
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Developer
       - MSSQL_TELEMETRY_ENABLED=false
+      # The following variables are used by the initialization command below
+      # to create the application database and user if they do not exist.
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    command: >
+      /bin/bash -c "
+        /opt/mssql/bin/sqlservr &
+        pid=$$!;
+        # Wait for SQL Server to become ready
+        echo 'Waiting for SQL Server to be ready...';
+        for i in $$(seq 1 30); do
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q 'SELECT 1' > /dev/null 2>&1 && break;
+          echo \"Attempt $$i: SQL Server not ready yet, retrying in 5s...\";
+          sleep 5;
+        done;
+        # Create application database if it does not exist
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q \"
+          IF DB_ID('$$DB_NAME') IS NULL
+            BEGIN
+              CREATE DATABASE [$$DB_NAME];
+            END\" || exit 1;
+        # Create login for application user if it does not exist
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q \"
+          IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = '$$DB_USER')
+            BEGIN
+              CREATE LOGIN [$$DB_USER] WITH PASSWORD='$$DB_PASSWORD';
+            END\" || exit 1;
+        # Create database user and grant db_owner if it does not exist
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -d \"$$DB_NAME\" -Q \"
+          IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$$DB_USER')
+            BEGIN
+              CREATE USER [$$DB_USER] FOR LOGIN [$$DB_USER];
+              EXEC sp_addrolemember N'db_owner', N'$$DB_USER';
+            END\" || exit 1;
+        wait $$pid
+      "
     volumes:
       - mssql_data:/var/opt/mssql
     networks:

@@ -15,10 +15,18 @@ public class Navigation {
     }
 
     public static void loadFeature(String featureName) {
-        try {
-            String fxmlPath = "/com/utp/meditrackapp/features/" + featureName + "/" + featureName.toLowerCase() + "-view.fxml";
+        if (primaryStage == null) {
+            throw new IllegalStateException("Primary stage has not been set. Call Navigation.setStage() before loading features.");
+        }
 
-            FXMLLoader loader = new FXMLLoader(Navigation.class.getResource(fxmlPath));
+        String fxmlPath = "/com/utp/meditrackapp/features/" + featureName + "/" + featureName.toLowerCase() + "-view.fxml";
+        java.net.URL resource = Navigation.class.getResource(fxmlPath);
+        if (resource == null) {
+            throw new IllegalArgumentException("FXML resource not found at path: " + fxmlPath);
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(resource);
             Parent root = loader.load();
 
             Scene scene = new Scene(root);
@@ -27,8 +35,6 @@ public class Navigation {
         } catch (IOException error) {
             System.err.println("Error: No se pudo cargar la feature '" + featureName + "'");
             error.printStackTrace();
-        } catch (NullPointerException error) {
-            System.err.println("Error: No se encontró el archivo FXML en la ruta especificada.");
         }
     }
 
