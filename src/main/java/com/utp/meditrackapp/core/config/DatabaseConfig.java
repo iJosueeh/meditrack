@@ -33,7 +33,7 @@ public class DatabaseConfig {
         return instance;
     }
 
-    public Connection getConnectionUrl() throws SQLException {
+    public Connection getConnection() throws SQLException {
         try {
             return DriverManager.getConnection(this.connectionUrl);
         } catch (SQLException error) {
