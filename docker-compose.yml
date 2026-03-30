@@ -2,10 +2,6 @@ services:
   database:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: meditrack_db_server
-    deploy:
-      resources:
-        limits:
-          memory: 1500M
     ports:
       - "1433:1433"
     environment:
@@ -13,6 +9,36 @@ services:
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Developer
       - MSSQL_TELEMETRY_ENABLED=false
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    command: >
+      /bin/bash -c "
+        /opt/mssql/bin/sqlservr &
+        pid=$$!;
+        # Espera a que SQL Server inicie
+        sleep 30;
+        # Crea la base de datos si no existe
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q \"
+          IF DB_ID('$$DB_NAME') IS NULL
+            BEGIN
+              CREATE DATABASE [$$DB_NAME];
+            END\";
+        # Crea el login del usuario si no existe
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q \"
+          IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = '$$DB_USER')
+            BEGIN
+              CREATE LOGIN [$$DB_USER] WITH PASSWORD='$$DB_PASSWORD';
+            END\";
+        # Crea el usuario en la BD y le da permisos de dueño
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -d \"$$DB_NAME\" -Q \"
+          IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$$DB_USER')
+            BEGIN
+              CREATE USER [$$DB_USER] FOR LOGIN [$$DB_USER];
+              EXEC sp_addrolemember N'db_owner', N'$$DB_USER';
+            END\";
+        wait $$pid
+      "
     volumes:
       - mssql_data:/var/opt/mssql
     networks:

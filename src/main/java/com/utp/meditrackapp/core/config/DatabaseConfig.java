@@ -14,23 +14,25 @@ public class DatabaseConfig {
     private DatabaseConfig() {
         Dotenv dotenv = Dotenv.load();
 
-        String dbHost = "localhost";
-        String dbPort = "1433";
+        String dbHost = dotenv.get("DB_HOST", "localhost");
+        String dbPort = dotenv.get("DB_PORT", "1433");
         String dbName = dotenv.get("DB_NAME");
         String dbUser = dotenv.get("DB_USER");
         String dbPassword = dotenv.get("DB_PASSWORD");
 
+        String trustCert = dotenv.get("DB_TRUST_SERVER_CERTIFICATE", "false");
+
         this.connectionUrl = String.format(
-                "jdbc:sqlserver://%s:%s;databaseName=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=true;",
-                dbHost, dbPort, dbName, dbUser, dbPassword
+                "jdbc:sqlserver://%s:%s;databaseName=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=%s;",
+                dbHost, dbPort, dbName, dbUser, dbPassword, trustCert
         );
    }
 
-   public String getConnectionUrl() {
+    public String getConnectionUrl() {
         return this.connectionUrl;
     }
 
-   public static synchronized DatabaseConfig getInstance() {
+    public static synchronized DatabaseConfig getInstance() {
         if (instance == null) {
             instance = new DatabaseConfig();
         }
