@@ -1,0 +1,36 @@
+services:
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: meditrack_db_server
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_PID=Developer
+      - MSSQL_TELEMETRY_ENABLED=false
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      - meditrack_net
+    restart: unless-stopped
+
+  admin_panel:
+    image: adminer:latest
+    container_name: meditrack_admin_ui
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - meditrack_net
+
+networks:
+  meditrack_net:
+    driver: bridge
+
+volumes:
+  mssql_data:
