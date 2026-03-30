@@ -37,7 +37,7 @@ public class DatabaseConfig {
         try {
             return DriverManager.getConnection(this.connectionUrl);
         } catch (SQLException error) {
-            System.err.println("[DB ERROR] Falló la conexión: " + e.getMessage());
+            System.err.println("[DB ERROR] Falló la conexión: " + error.getMessage());
             throw error;
         }
     }
