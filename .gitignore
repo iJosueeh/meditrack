@@ -65,6 +65,9 @@ build/
 .DS_Store
 Thumbs.db
 
+# Env
+.env
+
 # Project Specific
 database/*.db
 database/*.sqlite
