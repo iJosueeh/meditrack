@@ -26,6 +26,10 @@ public class DatabaseConfig {
         );
    }
 
+   public String getConnectionUrl() {
+        return this.connectionUrl;
+    }
+
    public static synchronized DatabaseConfig getInstance() {
         if (instance == null) {
             instance = new DatabaseConfig();
@@ -35,7 +39,7 @@ public class DatabaseConfig {
 
     public Connection getConnection() throws SQLException {
         try {
-            return DriverManager.getConnection(this.connectionUrl);
+            return DriverManager.getConnection(getConnectionUrl());
         } catch (SQLException error) {
             System.err.println("[DB ERROR] Falló la conexión: " + error.getMessage());
             throw error;
