@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="src/main/resources/com/utp/meditrackapp/images/bg-login.jpg" width="100%" height="250" style="object-fit: cover; border-radius: 16px;" alt="MediTrack Banner">
-</p>
-
 <h1 align="center">🏥 MediTrack</h1>
 <p align="center">
   <strong>Sistema Especializado de Gestión de Inventario para Postas de Salud</strong>
