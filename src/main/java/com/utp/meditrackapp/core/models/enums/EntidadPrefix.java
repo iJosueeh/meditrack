@@ -18,7 +18,6 @@ public enum EntidadPrefix {
 
     private final String prefix;
 
-    // Constructor del Enum
     EntidadPrefix(String prefix) {
         this.prefix = prefix;
     }

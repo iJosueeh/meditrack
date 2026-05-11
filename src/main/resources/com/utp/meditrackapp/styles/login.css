@@ -1,0 +1,142 @@
+/* Modern Theme for MediTrack Login (Fluent/Minimalist Style) */
+.root {
+    -fx-font-family: "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -fx-font-size: 14px;
+}
+
+.left-pane {
+    -fx-background-color: #fbfbfb;
+}
+
+.side-image {
+    -fx-opacity: 0.9;
+}
+
+.right-pane {
+    -fx-background-image: url("../images/bg-login.jpg");
+    -fx-background-repeat: no-repeat;
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+}
+
+.brand-label {
+    -fx-text-fill: #1f4e7a;
+    -fx-font-weight: 800;
+    -fx-font-size: 24px;
+    -fx-letter-spacing: -0.5px;
+}
+
+.title-label {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1a1a1a;
+}
+
+.subtitle-label {
+    -fx-text-fill: #5f6368;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 2px;
+    -fx-text-alignment: center;
+}
+
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 25, 0, 0, 10);
+    -fx-padding: 32;
+    -fx-border-color: #f0f0f0;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+/* Input Container (Unified look) */
+.input-container {
+    -fx-background-color: #fcfcfc;
+    -fx-border-color: #dcdcdc;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 0 12;
+    -fx-min-height: 42;
+}
+
+.input-container:focused-within {
+    -fx-background-color: white;
+    -fx-border-color: #1f4e7a;
+    -fx-border-width: 1.5;
+}
+
+.naked-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 10 0;
+    -fx-text-fill: #202124;
+}
+
+.naked-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.icon-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+
+/* Remove old inputs styling */
+.text-field, .password-field {
+    -fx-padding: 10 12;
+}
+
+.primary-btn {
+    -fx-background-color: #1f4e7a;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 12 20;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 10;
+}
+
+.primary-btn:hover {
+    -fx-background-color: #2b6cb0;
+}
+
+.primary-btn:pressed {
+    -fx-background-color: #1a436d;
+}
+
+.info-box {
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 12;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-color: #e8eaed;
+    -fx-border-width: 1;
+}
+
+.hyperlink {
+    -fx-text-fill: #1f4e7a;
+    -fx-font-size: 13px;
+    -fx-underline: false;
+}
+
+.hyperlink:hover {
+    -fx-underline: true;
+}
+
+.grid-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #5f6368;
+}
+
+.footer-box {
+    -fx-padding: 20 0 0 0;
+}
+
+.footer-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #9aa0a6;
+}

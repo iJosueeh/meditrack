@@ -1,8 +1,7 @@
 package com.utp.meditrackapp.core;
 
+import com.utp.meditrackapp.core.config.NavigationService;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -10,10 +9,12 @@ import java.io.IOException;
 public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-        stage.setTitle("Hello!");
-        stage.setScene(scene);
+        NavigationService.setPrimaryStage(stage);
+        stage.setWidth(1000);
+        stage.setHeight(700);
         stage.show();
+        
+        // TODO: Check if user is logged in; if so, go to dashboard; otherwise, go to login
+        NavigationService.toLogin();
     }
 }
