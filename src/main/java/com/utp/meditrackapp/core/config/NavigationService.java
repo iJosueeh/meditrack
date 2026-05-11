@@ -26,7 +26,8 @@ public class NavigationService {
     public static void toLogin() throws IOException {
         FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/login-view.fxml"));
         loginScene = new Scene(loader.load(), 1000, 700);
-        
+        applyThemeIfRequested(loginScene);
+
         if (primaryStage != null) {
             primaryStage.setScene(loginScene);
             primaryStage.setTitle("MediTrack — Iniciar Sesión");
@@ -41,11 +42,26 @@ public class NavigationService {
     public static void toDashboard() throws IOException {
         FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/dashboard-view.fxml"));
         dashboardScene = new Scene(loader.load());
-        
+        applyThemeIfRequested(dashboardScene);
+
         if (primaryStage != null) {
             primaryStage.setScene(dashboardScene);
             primaryStage.setTitle("MediTrack — Panel de Control");
             primaryStage.setMaximized(true);
+        }
+    }
+
+    private static void applyThemeIfRequested(Scene scene) {
+        // Check system property or environment variable to enable dark theme
+        String prop = System.getProperty("app.theme", "");
+        String env = System.getenv("APP_THEME");
+        boolean dark = "dark".equalsIgnoreCase(prop) || "dark".equalsIgnoreCase(env);
+        if (dark) {
+            if (!scene.getRoot().getStyleClass().contains("dark-theme")) {
+                scene.getRoot().getStyleClass().add("dark-theme");
+            }
+        } else {
+            scene.getRoot().getStyleClass().remove("dark-theme");
         }
     }
 

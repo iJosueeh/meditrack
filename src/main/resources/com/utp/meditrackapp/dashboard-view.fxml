@@ -4,14 +4,14 @@
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.dashboard.ui.DashboardController" 
-            stylesheets="@styles/dashboard.css" prefWidth="1280" prefHeight="850">
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.dashboard.ui.DashboardController" styleClass="dashboard-root" stylesheets="@styles/dashboard.css">
+    <BorderPane fx:id="rootPane" prefWidth="1280" prefHeight="850">
     
     <!-- Top Navbar (Reusable) -->
     <top>
         <HBox styleClass="navbar" alignment="CENTER_LEFT" spacing="20">
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" iconColor="#1f4e7a" />
+                <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" styleClass="brand-icon" />
                 <Label text="MediTrack" styleClass="nav-brand-text" />
             </HBox>
             
@@ -19,11 +19,14 @@
             
             <HBox alignment="CENTER_RIGHT" spacing="15">
                 <HBox spacing="5" alignment="CENTER">
-                    <Button styleClass="icon-btn-nav">
-                        <graphic><FontIcon iconLiteral="fas-user-circle" iconSize="18" iconColor="#64748b" /></graphic>
+                    <Button onAction="#onToggleTheme" styleClass="icon-btn-nav">
+                        <graphic><FontIcon fx:id="themeIcon" iconLiteral="fas-moon" iconSize="18" styleClass="secondary-icon" /></graphic>
                     </Button>
                     <Button styleClass="icon-btn-nav">
-                        <graphic><FontIcon iconLiteral="fas-cog" iconSize="18" iconColor="#64748b" /></graphic>
+                        <graphic><FontIcon iconLiteral="fas-user-circle" iconSize="18" styleClass="secondary-icon" /></graphic>
+                    </Button>
+                    <Button styleClass="icon-btn-nav">
+                        <graphic><FontIcon iconLiteral="fas-cog" iconSize="18" styleClass="secondary-icon" /></graphic>
                     </Button>
                     <Button onAction="#onLogout" styleClass="icon-btn-nav">
                         <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="18" iconColor="#ef4444" /></graphic>
@@ -134,12 +137,12 @@
                         <Label text="TOP 5 Medicamentos con Menor Stock" styleClass="dashboard-title" style="-fx-font-size: 18px;" />
                         <TableView fx:id="topDrugsTable" prefHeight="400" maxHeight="500">
                             <columns>
-                                <TableColumn fx:id="colCode" text="Código" prefWidth="120" />
-                                <TableColumn fx:id="colName" text="Medicamento" prefWidth="250" />
-                                <TableColumn fx:id="colCategory" text="Categoría" prefWidth="180" />
-                                <TableColumn fx:id="colCurrentStock" text="Stock Actual" prefWidth="120" />
-                                <TableColumn fx:id="colMinStock" text="Stock Mínimo" prefWidth="120" />
-                                <TableColumn fx:id="colStatus" text="Estado" prefWidth="150" />
+                                <TableColumn fx:id="colCode" text="Código" prefWidth="120" reorderable="false" />
+                                <TableColumn fx:id="colName" text="Medicamento" prefWidth="250" reorderable="false" />
+                                <TableColumn fx:id="colCategory" text="Categoría" prefWidth="180" reorderable="false" />
+                                <TableColumn fx:id="colCurrentStock" text="Stock Actual" prefWidth="120" reorderable="false" />
+                                <TableColumn fx:id="colMinStock" text="Stock Mínimo" prefWidth="120" reorderable="false" />
+                                <TableColumn fx:id="colStatus" text="Estado" prefWidth="150" reorderable="false" />
                             </columns>
                             <columnResizePolicy>
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -154,3 +157,4 @@
         </ScrollPane>
     </center>
 </BorderPane>
+</StackPane>
