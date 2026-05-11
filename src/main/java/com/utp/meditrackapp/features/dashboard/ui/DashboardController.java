@@ -1,19 +1,33 @@
 package com.utp.meditrackapp.features.dashboard.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
+import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
+import org.kordamp.ikonli.javafx.FontIcon;
+
 import java.io.IOException;
 
 public class DashboardController {
 
+    @FXML
+    private BorderPane rootPane;
+    @FXML
+    private FontIcon themeIcon;
+    
     @FXML
     private Label welcomeLabel;
 
@@ -38,6 +52,11 @@ public class DashboardController {
             welcomeLabel.setText("¡Bienvenido de nuevo, Usuario!");
         }
         setupTable();
+        if (rootPane != null && rootPane.getParent() instanceof StackPane) {
+            StackPane parent = (StackPane) rootPane.getParent();
+            rootPane.prefHeightProperty().bind(parent.heightProperty());
+            rootPane.prefWidthProperty().bind(parent.widthProperty());
+        }
     }
 
     private void setupTable() {
@@ -70,6 +89,33 @@ public class DashboardController {
 
     @FXML
     protected void onGoToInventory() {
+    }
+
+    @FXML
+    protected void onToggleTheme() {
+        // 1. Tomar captura del estado actual
+        WritableImage snapshot = rootPane.snapshot(new SnapshotParameters(), null);
+        ImageView tempView = new ImageView(snapshot);
+
+        // 2. Superponer la captura sobre el contenido real
+        StackPane parent = (StackPane) rootPane.getParent();
+        parent.getChildren().add(tempView);
+
+        // 3. Cambiar el tema en el fondo del root (StackPane), no solo en el BorderPane
+        if (parent.getStyleClass().contains("dark-theme")) {
+            parent.getStyleClass().remove("dark-theme");
+            themeIcon.setIconLiteral("fas-moon");
+        } else {
+            parent.getStyleClass().add("dark-theme");
+            themeIcon.setIconLiteral("fas-sun");
+        }
+
+        // 4. Animación de desvanecimiento de la captura vieja
+        FadeTransition fade = new FadeTransition(Duration.millis(400), tempView);
+        fade.setFromValue(1.0);
+        fade.setToValue(0.0);
+        fade.setOnFinished(e -> parent.getChildren().remove(tempView));
+        fade.play();
     }
 
     public static class MedicamentoResumen {
