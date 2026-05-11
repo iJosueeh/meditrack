@@ -1,67 +1,81 @@
-# 🏥 MediTrack - Sistema de Gestión Hospitalaria e Inventario Médico
+<p align="center">
+  <img src="src/main/resources/com/utp/meditrackapp/images/bg-login.jpg" width="100%" height="250" style="object-fit: cover; border-radius: 16px;" alt="MediTrack Banner">
+</p>
 
-![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)
-![JavaFX](https://img.shields.io/badge/JavaFX-21-blue?style=for-the-badge)
-![Maven](https://img.shields.io/badge/Maven-Build-green?style=for-the-badge&logo=apache-maven)
-![Build Status](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-brightgreen?style=for-the-badge&logo=github-actions)
+<h1 align="center">🏥 MediTrack</h1>
+<p align="center">
+  <strong>Sistema Especializado de Gestión de Inventario para Postas de Salud</strong>
+</p>
 
-**MediTrack** es una solución integral de escritorio diseñada para optimizar la gestión de pacientes, el control de inventario médico y la administración operativa de sedes clínicas. Con una interfaz moderna basada en **Fluent Design**, MediTrack ofrece una experiencia de usuario fluida, segura y profesional.
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk" alt="Java">
+  <img src="https://img.shields.io/badge/JavaFX-21-blue?style=for-the-badge" alt="JavaFX">
+  <img src="https://img.shields.io/badge/Maven-Build-green?style=for-the-badge&logo=apache-maven" alt="Maven">
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-brightgreen?style=for-the-badge&logo=github-actions" alt="CI/CD">
+</p>
 
 ---
 
-## ✨ Características Principales
+### 📝 Descripción
+**MediTrack** es una solución robusta diseñada específicamente para la administración eficiente de recursos médicos en **Postas de Salud**. Su objetivo es garantizar la disponibilidad constante de suministros críticos, optimizar la trazabilidad de lotes y facilitar la toma de decisiones mediante una interfaz intuitiva de alta fidelidad visual.
 
-*   **🛡️ Autenticación Segura:** Acceso controlado por roles (Administrador, Médico, Personal).
-*   **📊 Dashboard Inteligente:** Visualización en tiempo real de indicadores críticos:
-    *   Niveles de stock crítico con alertas visuales.
-    *   Monitoreo de lotes próximos a vencer.
-    *   Salud general del inventario por sede.
-*   **📦 Gestión de Inventario:** Control detallado de productos, lotes y categorías.
-*   **👥 Gestión de Pacientes:** Registro clínico y seguimiento administrativo.
-*   **📱 Diseño Responsivo:** Interfaz adaptable a diferentes resoluciones de pantalla.
-*   **📑 Reportes Avanzados:** Integración futura con JasperReports para análisis de datos.
+---
 
-## 🛠️ Stack Tecnológico
+### ✨ Características Destacadas
 
-- **Lenguaje:** Java 21 (LTS)
-- **Framework UI:** JavaFX 21 con FXML y CSS3.
-- **Iconografía:** Ikonli con FontAwesome 5.
-- **Pruebas:** JUnit 5 (Jupiter).
-- **Gestor de Dependencias:** Maven.
-- **CI/CD:** GitHub Actions.
+| Característica | Detalle |
+| :--- | :--- |
+| **📦 Control de Stock** | Monitoreo en tiempo real de niveles críticos y alertas de reabastecimiento. |
+| **⏳ Gestión de Lotes** | Seguimiento exhaustivo de fechas de vencimiento y rotación de insumos. |
+| **📊 Dashboard Dinámico** | Métricas visuales de salud de inventario y actividad general por sede. |
+| **🛡️ Seguridad Avanzada** | Control de acceso basado en roles para personal administrativo y médico. |
+| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *Fluent Design* y responsividad total. |
 
-## 🚀 Configuración y Ejecución
+---
 
-### Requisitos Previos
-- JDK 21 o superior.
-- Maven 3.8+ instalado.
+### 🛠️ Stack Tecnológico
 
-### Clonar y Ejecutar
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/tu-usuario/meditrack.git
-   cd meditrack
-   ```
-2. Compila el proyecto:
-   ```bash
-   ./mvnw clean compile
-   ```
-3. Ejecuta la aplicación:
-   ```bash
-   ./mvnw javafx:run
-   ```
+- **Core:** Java 21 (LTS)
+- **UI:** JavaFX 21 (FXML + CSS Moderno)
+- **Iconos:** Ikonli (FontAwesome 5 Packs)
+- **Testing:** JUnit 5 (JUnit Jupiter)
+- **Build & CI:** Maven + GitHub Actions
 
-## 🧪 Pruebas Unitarias
-Para asegurar la calidad del código, puedes ejecutar la suite de pruebas con:
+---
+
+### 🚀 Guía de Inicio Rápido
+
+#### Requisitos
+- [JDK 21+](https://adoptium.net/)
+- [Maven 3.8+](https://maven.apache.org/download.cgi)
+
+#### Instalación y Ejecución
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/iJosueeh/meditrack.git
+
+# 2. Compilar el proyecto
+./mvnw clean compile
+
+# 3. Ejecutar la aplicación
+./mvnw javafx:run
+```
+
+#### Ejecución de Pruebas
 ```bash
 ./mvnw test
 ```
 
-## 📂 Estructura de Documentación
-Encuentra guías detalladas para el desarrollo en la carpeta [`/docs`](./docs):
-- [Arquitectura](./docs/ARCHITECTURE.md)
-- [Guía de Estilo UI](./docs/UI_GUIDE.md)
-- [Testing y CI/CD](./docs/TESTING_CI.md)
+---
+
+### 📂 Documentación Técnica
+Para una inmersión profunda en el desarrollo, consulta nuestras guías:
+
+*   📘 [**Arquitectura**](./docs/ARCHITECTURE.md): Estructura de paquetes y flujo de navegación.
+*   🎨 [**Guía de Diseño**](./docs/UI_GUIDE.md): Paleta de colores y componentes UI.
+*   🧪 [**Testing y CI**](./docs/TESTING_CI.md): Estrategia de pruebas y automatización.
 
 ---
-Developed with ❤️ by the MediTrack Team | 2026
+<p align="center">
+  Diseñado con 💙 para la mejora de la Salud Pública | 2026
+</p>
