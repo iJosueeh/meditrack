@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.auth.ui.LoginController" stylesheets="@styles/login.css">
+    <center>
+        <HBox spacing="0">
+            <!-- Left: form card -->
+            <StackPane minWidth="450" prefWidth="520" maxWidth="650" alignment="CENTER" styleClass="left-pane">
+                <padding>
+                    <Insets left="40" right="20" />
+                </padding>
+                <VBox alignment="CENTER" spacing="20" maxWidth="360" VBox.vgrow="ALWAYS">
+                    <VBox alignment="CENTER" spacing="8">
+                        <HBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="28" iconColor="#1f4e7a" />
+                            <Label styleClass="brand-label">MediTrack</Label>
+                        </HBox>
+                        <Label styleClass="title-label">Iniciar Sesión</Label>
+                        <Label styleClass="subtitle-label" textAlignment="CENTER">Acceso exclusivo para personal administrativo y médico.</Label>
+                    </VBox>
+
+                    <VBox styleClass="card" spacing="24">
+                        <VBox spacing="16">
+                            <VBox spacing="6">
+                                <Label text="DNI / NÚMERO DE IDENTIFICACIÓN" styleClass="grid-label" />
+                                <HBox styleClass="input-container" alignment="CENTER_LEFT" spacing="10">
+                                    <FontIcon iconLiteral="fas-id-card" iconSize="16" iconColor="#9aa0a6" />
+                                    <TextField fx:id="dniField" promptText="Ingrese su DNI" HBox.hgrow="ALWAYS" styleClass="naked-input" />
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="CONTRASEÑA" styleClass="grid-label" />
+                                <HBox styleClass="input-container" alignment="CENTER_LEFT" spacing="10">
+                                    <FontIcon iconLiteral="fas-lock" iconSize="16" iconColor="#9aa0a6" />
+                                    <StackPane HBox.hgrow="ALWAYS">
+                                        <PasswordField fx:id="passwordField" promptText="••••••••" styleClass="naked-input" />
+                                        <TextField fx:id="passwordTextField" promptText="••••••••" visible="false" styleClass="naked-input" />
+                                    </StackPane>
+                                    <Button fx:id="toggleViewBtn" mnemonicParsing="false" onAction="#onTogglePasswordVisibility" styleClass="icon-btn">
+                                        <graphic>
+                                            <FontIcon fx:id="toggleIcon" iconLiteral="fas-eye" iconSize="14" iconColor="#5f6368" />
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <Button text="Iniciar Sesión  →" styleClass="primary-btn" onAction="#onLogin" maxWidth="Infinity">
+                            <graphic>
+                                <FontIcon iconLiteral="fas-sign-in-alt" iconColor="white" />
+                            </graphic>
+                        </Button>
+
+                        <HBox styleClass="info-box" alignment="CENTER_LEFT" spacing="12">
+                            <FontIcon iconLiteral="fas-info-circle" iconSize="16" iconColor="#5f6368" />
+                            <Label text="El acceso a este sistema está monitorizado. Si experimenta problemas técnicos, contacte a soporte IT interno." wrapText="true" styleClass="subtitle-label" />
+                        </HBox>
+                    </VBox>
+
+                    <HBox alignment="CENTER" spacing="5" styleClass="footer-box">
+                        <FontIcon iconLiteral="fas-copyright" iconSize="12" iconColor="#9aa0a6" />
+                        <Label text="2026 MediTrack. Todos los derechos reservados." styleClass="footer-label" />
+                    </HBox>
+                </VBox>
+            </StackPane>
+
+            <!-- Right: visual area (image background handled in CSS) -->
+            <StackPane styleClass="right-pane" alignment="CENTER" HBox.hgrow="ALWAYS">
+                <!-- Content over the background if needed -->
+            </StackPane>
+        </HBox>
+    </center>
+</BorderPane>
