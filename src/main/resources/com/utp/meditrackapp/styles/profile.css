@@ -1,0 +1,238 @@
+/* Color Palette */
+.color-primary-navy { -fx-background-color: #1B3C5F; }
+.color-accent-blue { -fx-background-color: #3B7CA8; }
+.color-background-white { -fx-background-color: #FFFFFF; }
+.color-border-lightgray { -fx-border-color: #E0E0E0; }
+.color-text-primary { -fx-text-fill: #000000; }
+.color-text-secondary { -fx-text-fill: #666666; }
+.color-status-active { -fx-background-color: #4CAF50; -fx-text-fill: #FFFFFF; }
+.color-alert-red { -fx-background-color: #F44336; -fx-text-fill: #FFFFFF; }
+.color-warning-orange { -fx-background-color: #FF9800; -fx-text-fill: #FFFFFF; }
+.color-success-green { -fx-background-color: #4CAF50; -fx-text-fill: #FFFFFF; }
+
+
+/* General */
+.profile-root {
+    -fx-background-color: #f0f2f5; /* Light grey background for the whole profile view */
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: #1B3C5F; /* Azul Navy */
+    -fx-pref-width: 120px;
+    -fx-padding: 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #FFFFFF; /* White text */
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 15px 20px;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}
+
+.nav-button .ikonli-font-icon {
+    -fx-icon-color: #FFFFFF; /* White icons */
+    -fx-icon-size: 16px;
+}
+
+.nav-button:hover {
+    -fx-background-color: #3B7CA8; /* Azul más claro */
+}
+
+.nav-button-active {
+    -fx-background-color: #3B7CA8; /* Fondo destacado para el estado activo */
+}
+
+/* Header */
+.header {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 15px 25px;
+    -fx-spacing: 20px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #E0E0E0;
+}
+
+.breadcrumb-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+}
+
+.tab-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666666;
+    -fx-font-size: 14px;
+    -fx-padding: 5px 10px;
+}
+
+.tab-button-active {
+    -fx-text-fill: #3B7CA8;
+    -fx-border-width: 0 0 2px 0;
+    -fx-border-color: #3B7CA8;
+}
+
+.icon-btn-header {
+    -fx-background-color: transparent;
+    -fx-padding: 5px;
+}
+
+.icon-btn-header .ikonli-font-icon {
+    -fx-icon-color: #666666;
+    -fx-icon-size: 18px;
+}
+
+.avatar-circle {
+    -fx-background-color: #E0E0E0; /* Light gray background for avatar */
+    -fx-background-radius: 50%;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 50%;
+    -fx-border-width: 1px;
+    -fx-pref-width: 40px;
+    -fx-pref-height: 40px;
+    -fx-alignment: CENTER;
+}
+
+/* Main Content Area */
+.content-section {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+    -fx-spacing: 15px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 5);
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+    -fx-padding: 0 0 10px 0;
+}
+
+.section-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666666;
+}
+
+/* User Info Card */
+.user-info-card {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 20px;
+    -fx-spacing: 15px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 5);
+}
+
+.info-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #666666; /* Secondary text color for labels */
+}
+
+.info-value {
+    -fx-font-size: 14px;
+    -fx-text-fill: #000000; /* Primary text color for values */
+    -fx-font-weight: bold;
+}
+
+.info-icon {
+    -fx-icon-color: #3B7CA8; /* Accent blue for icons */
+    -fx-icon-size: 16px;
+}
+
+/* Activity Summary Cards */
+.activity-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 15px;
+    -fx-spacing: 5px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-pref-width: 200px; /* Adjust as needed */
+}
+
+.activity-card-title {
+    -fx-font-size: 13px;
+    -fx-text-fill: #666666;
+}
+
+.activity-card-value {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3B7CA8; /* Accent blue for values */
+}
+
+.status-badge {
+    -fx-background-color: #4CAF50; /* Green for active */
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 12px;
+    -fx-padding: 3px 8px;
+    -fx-background-radius: 5px;
+}
+
+/* Buttons */
+.btn-primary {
+    -fx-background-color: #3B7CA8; /* Accent blue */
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.btn-primary:hover {
+    -fx-background-color: derive(#3B7CA8, -10%);
+}
+
+.btn-danger {
+    -fx-background-color: #F44336; /* Red */
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.btn-danger:hover {
+    -fx-background-color: derive(#F44336, -10%);
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1px;
+    -fx-text-fill: #000000;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #F5F5F5;
+}
+
+/* Toggles */
+.toggle-switch .track {
+    -fx-background-color: #CCCCCC; /* Light gray for inactive */
+    -fx-background-radius: 20px;
+    -fx-pref-width: 40px;
+    -fx-pref-height: 24px;
+}
+
+.toggle-switch:selected .track {
+    -fx-background-color: #3B7CA8; /* Accent blue for active */
+}
+
+.toggle-switch .thumb {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12px;
+    -fx-pref-width: 20px;
+    -fx-pref-height: 20px;
+}

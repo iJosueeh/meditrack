@@ -84,6 +84,11 @@ public class DashboardController {
     }
 
     @FXML
+    protected void onGoToProfile() throws IOException {
+        NavigationService.toProfile();
+    }
+
+    @FXML
     protected void onGoToPatients() {
     }
 

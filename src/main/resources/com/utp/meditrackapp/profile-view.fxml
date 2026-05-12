@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.profile.ui.ProfileController" styleClass="profile-root" stylesheets="@styles/profile.css">
+    <!-- Left Sidebar -->
+    <left>
+        <VBox styleClass="sidebar" alignment="TOP_CENTER">
+            <padding><Insets top="20" /></padding>
+            <Button text="Panel de Control" onAction="#onGoToDashboard" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-th-large" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+            <Button text="Atención" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-heartbeat" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+            <Button text="Inventario" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+            <Button text="Catálogo" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-book-medical" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+            <Button text="Usuarios" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-users" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+            <Button text="Reportes" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-chart-pie" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+            <Button text="Ajustes" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-cog" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <Button text="Cerrar Sesión" onAction="#onLogout" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="16" styleClass="nav-icon" /></graphic>
+            </Button>
+             <padding><Insets bottom="20" /></padding>
+        </VBox>
+    </left>
+
+    <!-- Center Content Area -->
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+            <VBox spacing="20" alignment="TOP_CENTER">
+                <!-- Header -->
+                <HBox styleClass="header" alignment="CENTER_LEFT">
+                    <VBox HBox.hgrow="ALWAYS">
+                        <HBox alignment="BOTTOM_CENTER" spacing="10">
+                            <Label text="Perfil de Usuario" styleClass="breadcrumb-label" />
+                            <Button text="Datos Personal" styleClass="tab-button tab-button-active" />
+                            <Button text="Configuración" styleClass="tab-button" />
+                        </HBox>
+                    </VBox>
+                    <HBox alignment="CENTER_RIGHT" spacing="15">
+                        <Button styleClass="icon-btn-header">
+                            <graphic><FontIcon iconLiteral="fas-bell" iconSize="18" /></graphic>
+                        </Button>
+                        <Button styleClass="icon-btn-header">
+                            <graphic><FontIcon iconLiteral="fas-question-circle" iconSize="18" /></graphic>
+                        </Button>
+                        <StackPane styleClass="avatar-circle">
+                            <FontIcon iconLiteral="fas-user" iconSize="20" />
+                        </StackPane>
+                        <MenuButton text="Usuario" styleClass="icon-btn-header">
+                            <items>
+                                <MenuItem text="Mi Cuenta" />
+                                <MenuItem text="Mi Perfil" />
+                                <MenuItem text="Configuración" />
+                                <MenuItem text="Seguridad" />
+                                <SeparatorMenuItem />
+                                <MenuItem text="Cerrar Sesión" onAction="#onLogout" />
+                            </items>
+                        </MenuButton>
+                    </HBox>
+                </HBox>
+
+                <VBox spacing="30" maxWidth="1200" style="-fx-padding: 20px;">
+                    <!-- Sección de Información Personal -->
+                    <VBox styleClass="content-section">
+                        <Label text="Información Personal" styleClass="section-title" />
+                        <HBox spacing="20" alignment="CENTER_LEFT">
+                            <StackPane styleClass="avatar-circle" prefWidth="80" prefHeight="80">
+                                <FontIcon iconLiteral="fas-user" iconSize="40" />
+                            </StackPane>
+                            <VBox>
+                                <Label text="Dr. Alejandro Rivas" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
+                                <Label text="Administrador" styleClass="info-label" />
+                                <Label text="Estado Central" styleClass="info-label" />
+                            </VBox>
+                        </HBox>
+                        <GridPane hgap="20" vgap="10" style="-fx-padding: 10px 0;">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="25" />
+                                <ColumnConstraints percentWidth="75" />
+                            </columnConstraints>
+                            <Label text="Nombre Completo:" styleClass="info-label" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                            <Label text="Alejandro Rivas Montesinos" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                            <Label text="DMI / Identificación:" styleClass="info-label" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                            <Label text="7844525D-X" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                            <Label text="Correo Electrónico:" styleClass="info-label" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                            <Label text="alejandro.rivas@meditrackystem" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            <Label text="Teléfono de Contacto:" styleClass="info-label" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                            <Label text="+34 8 1677 60560" styleClass="info-value" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        </GridPane>
+                    </VBox>
+
+                    <!-- Sección de Resumen de Actividad -->
+                    <VBox styleClass="content-section">
+                        <Label text="Resumen de Actividad" styleClass="section-title" />
+                        <FlowPane hgap="20" vgap="20" alignment="TOP_LEFT">
+                            <!-- Card 1: Últimos Accesos -->
+                            <VBox styleClass="activity-card">
+                                <Label text="Últimos Accesos" styleClass="activity-card-title" />
+                                <Label text="Hoy, 08:45 AM" styleClass="activity-card-value" />
+                            </VBox>
+                            <!-- Card 2: Reportes Generados -->
+                            <VBox styleClass="activity-card">
+                                <Label text="Reportes Gener." styleClass="activity-card-title" />
+                                <Label text="124" styleClass="activity-card-value" />
+                            </VBox>
+                            <!-- Card 3: Estado de Cuenta -->
+                            <VBox styleClass="activity-card">
+                                <Label text="Estado de Cuenta" styleClass="activity-card-title" />
+                                <Label text="ACTIVO" styleClass="status-badge" />
+                            </VBox>
+                        </FlowPane>
+                    </VBox>
+
+                    <!-- Sección de Seguridad y Acceso -->
+                    <VBox styleClass="content-section">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <FontIcon iconLiteral="fas-lock" iconSize="18" styleClass="info-icon" />
+                            <Label text="Seguridad y Acceso" styleClass="section-title" style="-fx-padding: 0;" />
+                        </HBox>
+                        <VBox spacing="10" style="-fx-padding: 10px 0;">
+                            <!-- Contraseña de Usuario -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-key" iconSize="16" styleClass="info-icon" />
+                                <Label text="Contraseña de Usuario" styleClass="info-label" HBox.hgrow="ALWAYS" />
+                                <Label text="Actualizada hace 45 días" styleClass="info-value" />
+                                <Button text="Cambiar Contraseña" styleClass="btn-primary" />
+                            </HBox>
+                            <Separator />
+                            <!-- Autenticación de Dos Factores (2FA) -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-shield-alt" iconSize="16" styleClass="info-icon" />
+                                <Label text="Autenticación de Dos Factores (2FA)" styleClass="info-label" HBox.hgrow="ALWAYS" />
+                                <Label text="Activada ayer 3:45 / App" styleClass="info-value" />
+                                <Button text="Configurar" styleClass="btn-primary" />
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Sección de Preferencias del Sistema -->
+                    <VBox styleClass="content-section">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <FontIcon iconLiteral="fas-cog" iconSize="18" styleClass="info-icon" />
+                            <Label text="Preferencias del Sistema" styleClass="section-title" style="-fx-padding: 0;" />
+                        </HBox>
+                        <VBox spacing="10" style="-fx-padding: 10px 0;">
+                            <!-- Idioma del Interfaz -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-globe" iconSize="16" styleClass="info-icon" />
+                                <Label text="Idioma del Interfaz" styleClass="info-label" HBox.hgrow="ALWAYS" />
+                                <ComboBox promptText="Español (Latinoamericano)" />
+                            </HBox>
+                            <Separator />
+                            <!-- Frecuencia de Notificaciones -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-bell" iconSize="16" styleClass="info-icon" />
+                                <Label text="Frecuencia de Notificaciones" styleClass="info-label" HBox.hgrow="ALWAYS" />
+                                <ComboBox promptText="Inmediatas" />
+                            </HBox>
+                            <Separator />
+                            <!-- Notificaciones por Correo -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-envelope" iconSize="16" styleClass="info-icon" />
+                                <Label text="Notificaciones por Correo" styleClass="info-label" HBox.hgrow="ALWAYS" />
+                                <CheckBox selected="true" styleClass="toggle-switch" />
+                            </HBox>
+                            <Separator />
+                            <!-- Modo de Alta Densidad -->
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-table" iconSize="16" styleClass="info-icon" />
+                                <Label text="Modo de Alta Densidad" styleClass="info-label" HBox.hgrow="ALWAYS" />
+                                <CheckBox styleClass="toggle-switch" />
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <!-- Sección de Acciones de Cuenta -->
+                    <VBox styleClass="content-section" style="-fx-background-color: #ffe0b2; -fx-border-color: #ff9800; -fx-border-width: 1px;">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <FontIcon iconLiteral="fas-exclamation-triangle" iconSize="18" iconColor="#FF9800" />
+                            <Label text="Acciones de Cuenta" styleClass="section-title" style="-fx-padding: 0;" />
+                        </HBox>
+                        <VBox spacing="10" style="-fx-padding: 10px 0;">
+                            <Label text="Peligro - todas las sesiones activas se pueden desactivar disponibles" styleClass="info-label" />
+                            <Button text="Cerrar Todas las Sesiones" styleClass="btn-danger" />
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

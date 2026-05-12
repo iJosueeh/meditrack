@@ -65,6 +65,19 @@ public class NavigationService {
         }
     }
 
+    private static Scene profileScene;
+
+    public static void toProfile() throws IOException {
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/profile-view.fxml"));
+        profileScene = new Scene(loader.load());
+        applyThemeIfRequested(profileScene);
+
+        if (primaryStage != null) {
+            primaryStage.setScene(profileScene);
+            primaryStage.setTitle("MediTrack — Mi Perfil");
+        }
+    }
+
     /**
      * TODO: Add methods for other views (Atención, Inventario, Catálogo, Usuarios)
      */

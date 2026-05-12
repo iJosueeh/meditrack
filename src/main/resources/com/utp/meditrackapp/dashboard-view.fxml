@@ -22,7 +22,7 @@
                     <Button onAction="#onToggleTheme" styleClass="icon-btn-nav">
                         <graphic><FontIcon fx:id="themeIcon" iconLiteral="fas-moon" iconSize="18" styleClass="secondary-icon" /></graphic>
                     </Button>
-                    <Button styleClass="icon-btn-nav">
+                    <Button onAction="#onGoToProfile" styleClass="icon-btn-nav">
                         <graphic><FontIcon iconLiteral="fas-user-circle" iconSize="18" styleClass="secondary-icon" /></graphic>
                     </Button>
                     <Button styleClass="icon-btn-nav">
