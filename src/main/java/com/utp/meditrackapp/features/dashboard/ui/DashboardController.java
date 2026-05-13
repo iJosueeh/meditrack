@@ -1,6 +1,9 @@
 package com.utp.meditrackapp.features.dashboard.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
+import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
+import com.utp.meditrackapp.core.service.InventarioService;
+import com.utp.meditrackapp.core.session.SessionContext;
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -20,8 +23,12 @@ import javafx.util.Duration;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 public class DashboardController {
+
+    private final InventarioService inventarioService = new InventarioService();
 
     @FXML
     private BorderPane rootPane;
@@ -49,9 +56,11 @@ public class DashboardController {
     @FXML
     public void initialize() {
         if (welcomeLabel != null) {
-            welcomeLabel.setText("¡Bienvenido de nuevo, Usuario!");
+            String usuarioId = SessionContext.getUsuarioId().orElse("Usuario");
+            welcomeLabel.setText("¡Bienvenido de nuevo, " + usuarioId + "!");
         }
         setupTable();
+        cargarTopMedicamentos();
         if (rootPane != null && rootPane.getParent() instanceof StackPane) {
             StackPane parent = (StackPane) rootPane.getParent();
             rootPane.prefHeightProperty().bind(parent.heightProperty());
@@ -69,12 +78,40 @@ public class DashboardController {
         colMinStock.setCellValueFactory(new PropertyValueFactory<>("minStock"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Quitamos los datos para probar el placeholder según lo solicitado
         topDrugsTable.setItems(FXCollections.observableArrayList());
+    }
+
+    private void cargarTopMedicamentos() {
+        if (topDrugsTable == null) {
+            return;
+        }
+
+        SessionContext.getSedeId().ifPresent(sedeId -> {
+            try {
+                List<StockCriticoItem> items = inventarioService.obtenerTopStockBajo(sedeId, 5);
+                ObservableList<MedicamentoResumen> filas = FXCollections.observableArrayList();
+
+                for (StockCriticoItem item : items) {
+                    filas.add(new MedicamentoResumen(
+                            item.getCodigoDigemid(),
+                            item.getNombreProducto(),
+                            item.getCategoria(),
+                            item.getStockActual(),
+                            item.getStockMinimo(),
+                            item.getEstado()
+                    ));
+                }
+
+                topDrugsTable.setItems(filas);
+            } catch (SQLException error) {
+                System.err.println("[INVENTARIO] No fue posible cargar el resumen de stock: " + error.getMessage());
+            }
+        });
     }
 
     @FXML
     protected void onLogout() throws IOException {
+        SessionContext.clear();
         NavigationService.toLogin();
     }
 
