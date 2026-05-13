@@ -1,11 +1,11 @@
 package com.utp.meditrackapp.features.auth.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
+import com.utp.meditrackapp.core.session.SessionContext;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Hyperlink;
 import org.kordamp.ikonli.javafx.FontIcon;
 import java.io.IOException;
 
@@ -52,7 +52,9 @@ public class LoginController {
 
     @FXML
     protected void onLogin() throws IOException {
-        // Redirección directa al Dashboard por ahora según lo solicitado
+        SessionContext.setUsuarioId(dniField.getText());
+        SessionContext.setSedeId(System.getProperty("app.defaultSedeId", "SED-CENTRAL"));
+        SessionContext.setRolId(System.getProperty("app.defaultRolId", "ROL-ADMIN"));
         NavigationService.toDashboard();
     }
 }

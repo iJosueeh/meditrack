@@ -53,8 +53,11 @@ git clone https://github.com/iJosueeh/meditrack.git
 # 2. Compilar el proyecto
 ./mvnw clean compile
 
-# 3. Ejecutar la aplicación
+# 3. Ejecutar la aplicación con Unix
 ./mvnw javafx:run
+
+# 4. Ejecutar la aplicación en Windows 
+mvnw.cmd javafx:run
 ```
 
 #### Ejecución de Pruebas

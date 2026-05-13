@@ -12,6 +12,11 @@ module com.utp.meditrackapp {
 
     exports com.utp.meditrackapp;
     exports com.utp.meditrackapp.core;
+    exports com.utp.meditrackapp.core.dao;
+    exports com.utp.meditrackapp.core.models.dto;
+    exports com.utp.meditrackapp.core.models.entity;
+    exports com.utp.meditrackapp.core.service;
+    exports com.utp.meditrackapp.core.session;
 
     opens com.utp.meditrackapp.core to javafx.fxml;
 }
