@@ -5,6 +5,7 @@ module com.utp.meditrackapp {
     requires java.sql;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.fontawesome5;
+    requires com.zaxxer.hikari;
 
     opens com.utp.meditrackapp to javafx.fxml;
     opens com.utp.meditrackapp.features.auth.ui to javafx.fxml;
