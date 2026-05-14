@@ -10,20 +10,20 @@ import javafx.scene.control.Hyperlink;
 import org.kordamp.ikonli.javafx.FontIcon;
 import java.io.IOException;
 
-import javafx.scene.control.Alert;
 import com.utp.meditrackapp.features.auth.Dao.UsuarioDao;
 import com.utp.meditrackapp.core.models.entity.Usuario;
 import com.utp.meditrackapp.core.config.SessionManager;
 
 public class LoginController {
-    @FXML
+
     private UsuarioDao usuarioDao;
-    public void Initialize(){
-        try{
-        usuarioDao = new UsuarioDao();
-        } catch (Exception e){
-            showAlert(Alert.AlertType.ERROR, "Error de Conexión", "No se pudo conectar a la base de datos.");
-            throw new RuntimeException("Error al inicializar UsuarioDao: " + e.getMessage());
+
+    @FXML
+    public void initialize() {
+        try {
+            usuarioDao = new UsuarioDao();
+        } catch (Exception e) {
+            System.err.println("[DB ERROR] No se pudo inicializar el DAO: " + e.getMessage());
         }
     }
 
@@ -71,8 +71,13 @@ public class LoginController {
         String dni = dniField.getText();
         String password = isPasswordVisible ? passwordTextField.getText() : passwordField.getText();
 
-        if(dni.isEmpty() || password.isEmpty()){
+        if (dni == null || dni.isEmpty() || password == null || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Campos Vacíos", "Por favor, ingrese sus credenciales.");
+            return;
+        }
+
+        if (usuarioDao == null) {
+            showAlert(Alert.AlertType.ERROR, "Error de Sistema", "La conexión a la base de datos no está disponible.");
             return;
         }
 
