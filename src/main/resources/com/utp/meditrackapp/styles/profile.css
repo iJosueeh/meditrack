@@ -1,238 +1,439 @@
-/* Color Palette */
-.color-primary-navy { -fx-background-color: #1B3C5F; }
-.color-accent-blue { -fx-background-color: #3B7CA8; }
-.color-background-white { -fx-background-color: #FFFFFF; }
-.color-border-lightgray { -fx-border-color: #E0E0E0; }
-.color-text-primary { -fx-text-fill: #000000; }
-.color-text-secondary { -fx-text-fill: #666666; }
-.color-status-active { -fx-background-color: #4CAF50; -fx-text-fill: #FFFFFF; }
-.color-alert-red { -fx-background-color: #F44336; -fx-text-fill: #FFFFFF; }
-.color-warning-orange { -fx-background-color: #FF9800; -fx-text-fill: #FFFFFF; }
-.color-success-green { -fx-background-color: #4CAF50; -fx-text-fill: #FFFFFF; }
-
+/* --- Paleta de Colores MediTrack --- */
+.root {
+    -fx-sidebar-navy: #1f4e7a;      /* Mismo azul base del dashboard */
+    -fx-sidebar-active: #2c608f;    /* Azul de ítem seleccionado */
+    -fx-bg-main: #f0f2f5;           /* Gris claro del fondo general */
+    -fx-accent-blue: #3273dc;       /* Azul para enlaces y botones secundarios */
+    -fx-text-dark: #2c3e50;         /* Texto principal */
+    -fx-text-muted: #7f8c8d;        /* Texto secundario / etiquetas */
+    -fx-border-color: #dcdde1;      /* Bordes de las tarjetas */
+    -fx-success-green: #2ecc71;     /* Verde del badge ACTIVO */
+    -fx-danger-light: #fff5f5;      /* Fondo rosado suave sección acciones */
+    -fx-danger-red: #c0392b;        /* Texto y borde de peligro */
+}
 
 /* General */
 .profile-root {
-    -fx-background-color: #f0f2f5; /* Light grey background for the whole profile view */
+    -fx-background-color: -fx-bg-main;
 }
 
-/* Sidebar */
+/* --- Sidebar --- */
 .sidebar {
-    -fx-background-color: #1B3C5F; /* Azul Navy */
-    -fx-pref-width: 120px;
-    -fx-padding: 0;
+    -fx-background-color: -fx-sidebar-navy;
+    -fx-pref-width: 240px;
+    -fx-border-color: rgba(255,255,255,0.08);
+    -fx-border-width: 0 1 0 0;
 }
 
 .nav-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #FFFFFF; /* White text */
+    -fx-text-fill: #d4e3f2;
     -fx-font-size: 14px;
     -fx-alignment: CENTER_LEFT;
-    -fx-padding: 15px 20px;
-    -fx-border-radius: 0;
+    -fx-padding: 12px 16px;
     -fx-background-radius: 0;
-}
-
-.nav-button .ikonli-font-icon {
-    -fx-icon-color: #FFFFFF; /* White icons */
-    -fx-icon-size: 16px;
+    -fx-graphic-text-gap: 12;
+    -fx-content-display: LEFT;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
 }
 
 .nav-button:hover {
-    -fx-background-color: #3B7CA8; /* Azul más claro */
+    -fx-background-color: rgba(255, 255, 255, 0.09);
+    -fx-text-fill: white;
 }
 
 .nav-button-active {
-    -fx-background-color: #3B7CA8; /* Fondo destacado para el estado activo */
+    -fx-background-color: -fx-sidebar-active;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 12px 16px;
 }
 
-/* Header */
-.header {
-    -fx-background-color: #FFFFFF;
-    -fx-padding: 15px 25px;
-    -fx-spacing: 20px;
-    -fx-alignment: CENTER_LEFT;
-    -fx-border-width: 0 0 1px 0;
-    -fx-border-color: #E0E0E0;
-}
-
-.breadcrumb-label {
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #000000;
-}
-
-.tab-button {
+/* --- Bottom sidebar buttons (Ajustes, Cerrar Sesión) --- */
+.nav-button-alt {
     -fx-background-color: transparent;
-    -fx-text-fill: #666666;
+    -fx-text-fill: #d4e3f2;
     -fx-font-size: 14px;
-    -fx-padding: 5px 10px;
-}
-
-.tab-button-active {
-    -fx-text-fill: #3B7CA8;
-    -fx-border-width: 0 0 2px 0;
-    -fx-border-color: #3B7CA8;
-}
-
-.icon-btn-header {
-    -fx-background-color: transparent;
-    -fx-padding: 5px;
-}
-
-.icon-btn-header .ikonli-font-icon {
-    -fx-icon-color: #666666;
-    -fx-icon-size: 18px;
-}
-
-.avatar-circle {
-    -fx-background-color: #E0E0E0; /* Light gray background for avatar */
-    -fx-background-radius: 50%;
-    -fx-border-color: #E0E0E0;
-    -fx-border-radius: 50%;
-    -fx-border-width: 1px;
-    -fx-pref-width: 40px;
-    -fx-pref-height: 40px;
-    -fx-alignment: CENTER;
-}
-
-/* Main Content Area */
-.content-section {
-    -fx-background-color: #FFFFFF;
-    -fx-padding: 20px;
-    -fx-spacing: 15px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 5);
-}
-
-.section-title {
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #000000;
-    -fx-padding: 0 0 10px 0;
-}
-
-.section-subtitle {
-    -fx-font-size: 13px;
-    -fx-text-fill: #666666;
-}
-
-/* User Info Card */
-.user-info-card {
-    -fx-background-color: #FFFFFF;
-    -fx-padding: 20px;
-    -fx-spacing: 15px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 5);
-}
-
-.info-label {
-    -fx-font-size: 14px;
-    -fx-text-fill: #666666; /* Secondary text color for labels */
-}
-
-.info-value {
-    -fx-font-size: 14px;
-    -fx-text-fill: #000000; /* Primary text color for values */
-    -fx-font-weight: bold;
-}
-
-.info-icon {
-    -fx-icon-color: #3B7CA8; /* Accent blue for icons */
-    -fx-icon-size: 16px;
-}
-
-/* Activity Summary Cards */
-.activity-card {
-    -fx-background-color: #FFFFFF;
-    -fx-border-color: #E0E0E0;
-    -fx-border-width: 1px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-padding: 15px;
-    -fx-spacing: 5px;
     -fx-alignment: CENTER_LEFT;
-    -fx-pref-width: 200px; /* Adjust as needed */
+    -fx-padding: 12px 16px;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent transparent transparent;
+    -fx-border-width: 0;
+    -fx-graphic-text-gap: 12;
+    -fx-content-display: LEFT;
 }
 
-.activity-card-title {
+.nav-button-alt:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.09);
+    -fx-text-fill: white;
+}
+
+/* --- Cards (Tarjetas blancas con bordes suaves) --- */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e8eaed;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.0, 0, 1);
+}
+
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -fx-text-dark;
+}
+
+/* --- Inputs (TextFields) --- */
+.flat-text-field {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 4;
+    -fx-padding: 10 12;
+    -fx-text-fill: -fx-text-dark;
     -fx-font-size: 13px;
-    -fx-text-fill: #666666;
 }
 
-.activity-card-value {
-    -fx-font-size: 18px;
+.input-label {
+    -fx-text-fill: -fx-text-dark;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+/* --- Badge de Estado (ACTIVO) --- */
+.status-badge-active {
+    -fx-background-color: #e8f8f0;
+    -fx-text-fill: -fx-success-green;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-text-fill: #3B7CA8; /* Accent blue for values */
+    -fx-padding: 2 8;
+    -fx-background-radius: 4;
 }
 
-.status-badge {
-    -fx-background-color: #4CAF50; /* Green for active */
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 12px;
-    -fx-padding: 3px 8px;
-    -fx-background-radius: 5px;
+/* --- Sección de Acciones de Cuenta (Roja) --- */
+.card-danger {
+    -fx-background-color: -fx-danger-light;
+    -fx-border-color: #fab1a0;
+    -fx-border-radius: 4;
+    -fx-padding: 15;
 }
 
-/* Buttons */
-.btn-primary {
-    -fx-background-color: #3B7CA8; /* Accent blue */
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 14px;
-    -fx-padding: 8px 16px;
-    -fx-background-radius: 4px;
-    -fx-border-radius: 4px;
-}
-
-.btn-primary:hover {
-    -fx-background-color: derive(#3B7CA8, -10%);
+.card-title-danger {
+    -fx-text-fill: -fx-danger-red;
+    -fx-font-weight: 700;
+    -fx-font-size: 16px;
 }
 
 .btn-danger {
-    -fx-background-color: #F44336; /* Red */
-    -fx-text-fill: #FFFFFF;
-    -fx-font-size: 14px;
-    -fx-padding: 8px 16px;
-    -fx-background-radius: 4px;
-    -fx-border-radius: 4px;
+    -fx-background-color: white;
+    -fx-border-color: -fx-danger-red;
+    -fx-text-fill: -fx-danger-red;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
 }
 
 .btn-danger:hover {
-    -fx-background-color: derive(#F44336, -10%);
+    -fx-background-color: -fx-danger-red;
+    -fx-text-fill: white;
 }
 
+/* Botones de acción como "Cambiar Contraseña" */
 .btn-secondary {
     -fx-background-color: transparent;
-    -fx-border-color: #E0E0E0;
-    -fx-border-width: 1px;
-    -fx-text-fill: #000000;
-    -fx-font-size: 14px;
-    -fx-padding: 8px 16px;
-    -fx-background-radius: 4px;
-    -fx-border-radius: 4px;
+    -fx-text-fill: -fx-sidebar-navy;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 4 8;
 }
 
 .btn-secondary:hover {
-    -fx-background-color: #F5F5F5;
+    -fx-underline: true;
 }
 
-/* Toggles */
-.toggle-switch .track {
-    -fx-background-color: #CCCCCC; /* Light gray for inactive */
-    -fx-background-radius: 20px;
-    -fx-pref-width: 40px;
-    -fx-pref-height: 24px;
+/* --- Header / Top bar --- */
+.header-bar {
+    -fx-background-color: white;
+    -fx-padding: 12 20;
+    -fx-border-color: transparent transparent #eef2f5 transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-.toggle-switch:selected .track {
-    -fx-background-color: #3B7CA8; /* Accent blue for active */
+.header-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -fx-text-dark;
 }
 
-.toggle-switch .thumb {
-    -fx-background-color: #FFFFFF;
-    -fx-background-radius: 12px;
-    -fx-pref-width: 20px;
-    -fx-pref-height: 20px;
+.header-breadcrumb {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-muted;
 }
+
+/* --- Search and header icons --- */
+.search-field {
+    -fx-pref-width: 260px;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16;
+    -fx-border-color: #e6edf3;
+    -fx-padding: 6 12;
+    -fx-effect: dropshadow(gaussian, rgba(27,40,51,0.04), 6, 0, 0, 2);
+}
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+    -fx-text-fill: -fx-text-dark;
+}
+
+.icon-button:hover {
+    -fx-background-color: rgba(0,0,0,0.03);
+    -fx-background-radius: 6;
+}
+
+/* --- Avatars and profile card --- */
+.avatar-large {
+    -fx-fill: linear-gradient(from 0% 0% to 100% 100%, #f5f7fb 0%, #e6eefb 100%);
+    -fx-stroke: white;
+    -fx-stroke-width: 3;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 4);
+}
+
+.avatar-mini {
+    -fx-fill: linear-gradient(from 0% 0% to 100% 100%, #f5f7fb 0%, #e6eefb 100%);
+    -fx-stroke: white;
+    -fx-stroke-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 8, 0, 0, 2);
+}
+
+.btn-camera-edit {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);
+    -fx-border-color: transparent;
+}
+
+.btn-camera-edit:hover {
+    -fx-background-color: #f0f4f9;
+}
+
+.user-name-large {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -fx-text-dark;
+}
+
+.user-role-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-muted;
+}
+
+.location-badge {
+    -fx-background-color: #f5f8fb;
+    -fx-padding: 6 10;
+    -fx-background-radius: 16;
+    -fx-alignment: CENTER;
+    -fx-spacing: 6;
+    -fx-text-fill: -fx-text-muted;
+}
+
+/* --- Profile column specific --- */
+.profile-card {
+    -fx-alignment: CENTER;
+    -fx-padding: 25;
+}
+
+/* --- Card tweaks to match image proportions --- */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e8eaed;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.0, 0, 1);
+}
+
+/* --- Inputs focused state --- */
+.flat-text-field:focused {
+    -fx-border-color: -fx-accent-blue;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(50,115,220,0.15), 6, 0.0, 0, 1);
+}
+
+/* --- List item rows --- */
+.list-item-row {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.row-icon {
+    -fx-text-fill: -fx-accent-blue;
+    -fx-icon-color: -fx-accent-blue;
+    -fx-min-width: 28;
+    -fx-alignment: CENTER;
+}
+
+.row-main-text {
+    -fx-font-weight: 600;
+    -fx-text-fill: -fx-text-dark;
+}
+
+.row-sub-text {
+    -fx-text-fill: -fx-text-muted;
+    -fx-font-size: 12px;
+}
+
+.row-sub-text-active {
+    -fx-text-fill: -fx-success-green;
+    -fx-font-size: 12px;
+}
+
+/* --- Card danger subtle background and button alignment --- */
+.card-danger {
+    -fx-background-color: #fef3f3;
+    -fx-border-color: #f5d4d4;
+    -fx-border-radius: 8;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.0, 0, 1);
+}
+
+/* --- Misc small helpers --- */
+.user-name-small {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.user-role-small {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fx-text-muted;
+}
+
+.content-scroll {
+    -fx-background-color: transparent;
+}
+
+/* --- Sidebar logo and icons --- */
+.sidebar-logo {
+    -fx-text-fill: white;
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+    -fx-padding: 2 0 0 18;
+    -fx-letter-spacing: 0.5;
+}
+
+.sidebar-sublogo {
+    -fx-text-fill: rgba(255,255,255,0.72);
+    -fx-font-size: 11px;
+    -fx-padding: 0 0 20 18;
+    -fx-font-weight: 600;
+}
+
+.font-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: #d4e3f2;
+    -fx-icon-color: #d4e3f2;
+}
+
+.nav-button .font-icon {
+    -fx-padding: 0;
+    -fx-text-fill: #d4e3f2;
+    -fx-icon-color: #d4e3f2;
+    -fx-font-size: 14px;
+    -fx-icon-size: 14px;
+    -fx-min-width: 16;
+    -fx-pref-width: 16;
+    -fx-max-width: 16;
+}
+
+.nav-button:hover .font-icon {
+    -fx-text-fill: white;
+    -fx-icon-color: white;
+}
+
+.nav-button-active .font-icon {
+    -fx-text-fill: white;
+    -fx-icon-color: white;
+}
+
+.nav-button-alt .font-icon {
+    -fx-padding: 0;
+    -fx-text-fill: #d4e3f2;
+    -fx-icon-color: #d4e3f2;
+    -fx-font-size: 14px;
+    -fx-icon-size: 14px;
+    -fx-min-width: 16;
+    -fx-pref-width: 16;
+    -fx-max-width: 16;
+}
+
+.nav-button-alt:hover .font-icon {
+    -fx-text-fill: white;
+    -fx-icon-color: white;
+}
+
+/* --- ComboBox --- */
+.combo-box {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 4;
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+
+.combo-box:focused {
+    -fx-border-color: -fx-accent-blue;
+    -fx-effect: dropshadow(gaussian, rgba(50,115,220,0.15), 6, 0.0, 0, 1);
+}
+
+/* --- Activity labels and values --- */
+.activity-label {
+    -fx-text-fill: -fx-text-muted;
+    -fx-font-size: 13px;
+}
+
+.activity-value {
+    -fx-text-fill: -fx-text-dark;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+/* --- Toggle buttons (Notificaciones, Modo de Alta Densidad) --- */
+.toggle-button {
+    -fx-background-color: #e8e8e8;
+    -fx-text-fill: #666;
+    -fx-padding: 3 6;
+    -fx-border-radius: 12;
+    -fx-cursor: hand;
+}
+
+.toggle-button:selected {
+    -fx-background-color: -fx-accent-blue;
+    -fx-text-fill: white;
+}
+
+/* --- Icons in card titles --- */
+.card-title .font-icon {
+    -fx-font-size: 18px;
+    -fx-text-fill: -fx-accent-blue;
+    -fx-icon-color: -fx-accent-blue;
+}
+
+.card .font-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-accent-blue;
+    -fx-icon-color: -fx-accent-blue;
+}
+
+.sidebar-footer {
+    -fx-padding: 10 0 0 0;
+    -fx-border-color: rgba(255,255,255,0.11) transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
