@@ -1,12 +1,21 @@
 package com.utp.meditrackapp.features.auth.Dao;
 
+import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.entity.Usuario;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UsuarioDaoIntegrationTest {
 
     private final UsuarioDao usuarioDao = new UsuarioDao();
+
+    @BeforeEach
+    public void setUp() {
+        Assumptions.assumeTrue(DatabaseConfig.getInstance().isReachable(), 
+            "Abortando test: Base de datos no disponible");
+    }
 
     @Test
     public void testLoginSuccess() {

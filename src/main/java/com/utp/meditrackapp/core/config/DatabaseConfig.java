@@ -12,7 +12,9 @@ public class DatabaseConfig {
     private final HikariDataSource dataSource;
 
     private DatabaseConfig() {
-        Dotenv dotenv = Dotenv.load();
+        Dotenv dotenv = Dotenv.configure()
+                .ignoreIfMissing()
+                .load();
 
         String dbHost = dotenv.get("DB_HOST", "localhost");
         String dbPort = dotenv.get("DB_PORT", "1433");
@@ -29,9 +31,10 @@ public class DatabaseConfig {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setMaximumPoolSize(5);
-        config.setConnectionTimeout(30000);
+        config.setConnectionTimeout(2000);
         config.setIdleTimeout(600000);
         config.setPoolName("MediTrackPool");
+        config.setInitializationFailTimeout(-1);
         
         this.dataSource = new HikariDataSource(config);
     }
@@ -49,6 +52,18 @@ public class DatabaseConfig {
         } catch (SQLException error) {
             System.err.println("[DB ERROR] Falló la conexión: " + error.getMessage());
             throw error;
+        }
+    }
+
+    /**
+     * Verifica si la base de datos está disponible.
+     * Útil para saltar tests de integración si no hay un servidor activo.
+     */
+    public boolean isReachable() {
+        try (Connection conn = getConnection()) {
+            return conn.isValid(2);
+        } catch (Exception e) {
+            return false;
         }
     }
 }

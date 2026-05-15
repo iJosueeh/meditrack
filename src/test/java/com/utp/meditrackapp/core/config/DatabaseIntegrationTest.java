@@ -1,5 +1,7 @@
 package com.utp.meditrackapp.core.config;
 
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -7,6 +9,12 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DatabaseIntegrationTest {
+
+    @BeforeEach
+    public void setUp() {
+        Assumptions.assumeTrue(DatabaseConfig.getInstance().isReachable(), 
+            "Abortando test: Base de datos no disponible");
+    }
 
     @Test
     public void testConnection() {
