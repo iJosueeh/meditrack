@@ -1,46 +1,28 @@
 package com.utp.meditrackapp.core.models.entity;
 
-public class Usuario {
+public class Paciente {
     private String id;
-    private String sedeId;
-    private String rolId;
     private String tipoDocumento;
     private String numeroDocumento;
     private String nombres;
     private String apellidos;
-    private String password;
-    private String sedeNombre;
-    private String rolNombre;
+    private String telefono;
     private int isActivo;
 
-    public Usuario() {}
+    public Paciente() {}
 
-    public Usuario(String id, String sedeId, String rolId, String tipoDocumento, String numeroDocumento, String nombres, String apellidos, String password, int isActivo) {
+    public Paciente(String id, String tipoDocumento, String numeroDocumento, String nombres, String apellidos, String telefono, int isActivo) {
         this.id = id;
-        this.sedeId = sedeId;
-        this.rolId = rolId;
         this.tipoDocumento = tipoDocumento;
         this.numeroDocumento = numeroDocumento;
         this.nombres = nombres;
         this.apellidos = apellidos;
-        this.password = password;
+        this.telefono = telefono;
         this.isActivo = isActivo;
     }
 
-    public String getSedeNombre() { return sedeNombre; }
-    public void setSedeNombre(String sedeNombre) { this.sedeNombre = sedeNombre; }
-
-    public String getRolNombre() { return rolNombre; }
-    public void setRolNombre(String rolNombre) { this.rolNombre = rolNombre; }
-
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-
-    public String getSedeId() { return sedeId; }
-    public void setSedeId(String sedeId) { this.sedeId = sedeId; }
-
-    public String getRolId() { return rolId; }
-    public void setRolId(String rolId) { this.rolId = rolId; }
 
     public String getTipoDocumento() { return tipoDocumento; }
     public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
@@ -54,8 +36,8 @@ public class Usuario {
     public String getApellidos() { return apellidos; }
     public void setApellidos(String apellidos) { this.apellidos = apellidos; }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 
     public int getIsActivo() { return isActivo; }
     public void setIsActivo(int isActivo) { this.isActivo = isActivo; }

@@ -10,11 +10,12 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         NavigationService.setPrimaryStage(stage);
-        stage.setWidth(1000);
-        stage.setHeight(700);
+        
+        // Iniciamos la ventana maximizada
+        stage.setMaximized(true);
+        stage.setTitle("MediTrack - Gestión de Inventario Médico");
         stage.show();
         
-        // TODO: Check if user is logged in; if so, go to dashboard; otherwise, go to login
         NavigationService.toLogin();
     }
 }

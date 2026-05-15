@@ -1,173 +1,31 @@
-/* --- Paleta de Colores MediTrack --- */
-.root {
-    -fx-sidebar-navy: #1f4e7a;      /* Mismo azul base del dashboard */
-    -fx-sidebar-active: #2c608f;    /* Azul de ítem seleccionado */
-    -fx-bg-main: #f0f2f5;           /* Gris claro del fondo general */
-    -fx-accent-blue: #3273dc;       /* Azul para enlaces y botones secundarios */
-    -fx-text-dark: #2c3e50;         /* Texto principal */
-    -fx-text-muted: #7f8c8d;        /* Texto secundario / etiquetas */
-    -fx-border-color: #dcdde1;      /* Bordes de las tarjetas */
-    -fx-success-green: #2ecc71;     /* Verde del badge ACTIVO */
-    -fx-danger-light: #fff5f5;      /* Fondo rosado suave sección acciones */
-    -fx-danger-red: #c0392b;        /* Texto y borde de peligro */
-}
+/* Profile Specific Styles */
 
 /* General */
 .profile-root {
-    -fx-background-color: -fx-bg-main;
+    -fx-background-color: -fx-bg-color;
 }
 
-/* --- Sidebar --- */
-.sidebar {
-    -fx-background-color: -fx-sidebar-navy;
-    -fx-pref-width: 240px;
-    -fx-border-color: rgba(255,255,255,0.08);
-    -fx-border-width: 0 1 0 0;
+.main-content {
+    -fx-background-color: -fx-bg-color;
 }
 
-.nav-button {
+.content-scroll {
+    -fx-background: -fx-bg-color; /* Fix crítico: el ScrollPane tiene un fondo blanco interno por defecto */
     -fx-background-color: transparent;
-    -fx-text-fill: #d4e3f2;
-    -fx-font-size: 14px;
-    -fx-alignment: CENTER_LEFT;
-    -fx-padding: 12px 16px;
-    -fx-background-radius: 0;
-    -fx-graphic-text-gap: 12;
-    -fx-content-display: LEFT;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
 }
 
-.nav-button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.09);
-    -fx-text-fill: white;
-}
-
-.nav-button-active {
-    -fx-background-color: -fx-sidebar-active;
-    -fx-text-fill: white;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-padding: 12px 16px;
-}
-
-/* --- Bottom sidebar buttons (Ajustes, Cerrar Sesión) --- */
-.nav-button-alt {
-    -fx-background-color: transparent;
-    -fx-text-fill: #d4e3f2;
-    -fx-font-size: 14px;
-    -fx-alignment: CENTER_LEFT;
-    -fx-padding: 12px 16px;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent transparent transparent transparent;
-    -fx-border-width: 0;
-    -fx-graphic-text-gap: 12;
-    -fx-content-display: LEFT;
-}
-
-.nav-button-alt:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.09);
-    -fx-text-fill: white;
-}
-
-/* --- Cards (Tarjetas blancas con bordes suaves) --- */
-.card {
-    -fx-background-color: white;
-    -fx-background-radius: 8;
-    -fx-border-color: #e8eaed;
-    -fx-border-width: 1;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.0, 0, 1);
-}
-
-.card-title {
-    -fx-font-size: 16px;
-    -fx-font-weight: 700;
-    -fx-text-fill: -fx-text-dark;
-}
-
-/* --- Inputs (TextFields) --- */
-.flat-text-field {
-    -fx-background-color: #f8f9fa;
-    -fx-border-color: #e0e0e0;
-    -fx-border-radius: 4;
-    -fx-padding: 10 12;
-    -fx-text-fill: -fx-text-dark;
-    -fx-font-size: 13px;
-}
-
-.input-label {
-    -fx-text-fill: -fx-text-dark;
-    -fx-font-weight: 600;
-    -fx-font-size: 13px;
-}
-
-/* --- Badge de Estado (ACTIVO) --- */
-.status-badge-active {
-    -fx-background-color: #e8f8f0;
-    -fx-text-fill: -fx-success-green;
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-padding: 2 8;
-    -fx-background-radius: 4;
-}
-
-/* --- Sección de Acciones de Cuenta (Roja) --- */
-.card-danger {
-    -fx-background-color: -fx-danger-light;
-    -fx-border-color: #fab1a0;
-    -fx-border-radius: 4;
-    -fx-padding: 15;
-}
-
-.card-title-danger {
-    -fx-text-fill: -fx-danger-red;
-    -fx-font-weight: 700;
-    -fx-font-size: 16px;
-}
-
-.btn-danger {
-    -fx-background-color: white;
-    -fx-border-color: -fx-danger-red;
-    -fx-text-fill: -fx-danger-red;
-    -fx-background-radius: 4;
-    -fx-padding: 8 16;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
-    -fx-cursor: hand;
-}
-
-.btn-danger:hover {
-    -fx-background-color: -fx-danger-red;
-    -fx-text-fill: white;
-}
-
-/* Botones de acción como "Cambiar Contraseña" */
-.btn-secondary {
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-sidebar-navy;
-    -fx-font-weight: 600;
-    -fx-font-size: 13px;
-    -fx-cursor: hand;
-    -fx-padding: 4 8;
-}
-
-.btn-secondary:hover {
-    -fx-underline: true;
-}
-
-/* --- Header / Top bar --- */
+/* --- Header Bar --- */
 .header-bar {
-    -fx-background-color: white;
-    -fx-padding: 12 20;
-    -fx-border-color: transparent transparent #eef2f5 transparent;
+    -fx-min-height: 80;
+    -fx-background-color: -fx-surface-color;
+    -fx-border-color: -fx-border-color-var;
     -fx-border-width: 0 0 1 0;
 }
 
 .header-title {
-    -fx-font-size: 18px;
-    -fx-font-weight: 600;
-    -fx-text-fill: -fx-text-dark;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -fx-text-primary;
 }
 
 .header-breadcrumb {
@@ -175,139 +33,10 @@
     -fx-text-fill: -fx-text-muted;
 }
 
-/* --- Search and header icons --- */
-.search-field {
-    -fx-pref-width: 260px;
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 16;
-    -fx-border-color: #e6edf3;
-    -fx-padding: 6 12;
-    -fx-effect: dropshadow(gaussian, rgba(27,40,51,0.04), 6, 0, 0, 2);
-}
-
-.icon-button {
-    -fx-background-color: transparent;
-    -fx-padding: 6;
-    -fx-cursor: hand;
-    -fx-text-fill: -fx-text-dark;
-}
-
-.icon-button:hover {
-    -fx-background-color: rgba(0,0,0,0.03);
-    -fx-background-radius: 6;
-}
-
-/* --- Avatars and profile card --- */
-.avatar-large {
-    -fx-fill: linear-gradient(from 0% 0% to 100% 100%, #f5f7fb 0%, #e6eefb 100%);
-    -fx-stroke: white;
-    -fx-stroke-width: 3;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 4);
-}
-
-.avatar-mini {
-    -fx-fill: linear-gradient(from 0% 0% to 100% 100%, #f5f7fb 0%, #e6eefb 100%);
-    -fx-stroke: white;
-    -fx-stroke-width: 2;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 8, 0, 0, 2);
-}
-
-.btn-camera-edit {
-    -fx-background-color: white;
-    -fx-background-radius: 20;
-    -fx-padding: 6;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);
-    -fx-border-color: transparent;
-}
-
-.btn-camera-edit:hover {
-    -fx-background-color: #f0f4f9;
-}
-
-.user-name-large {
-    -fx-font-size: 16px;
-    -fx-font-weight: 600;
-    -fx-text-fill: -fx-text-dark;
-}
-
-.user-role-label {
-    -fx-font-size: 12px;
-    -fx-text-fill: -fx-text-muted;
-}
-
-.location-badge {
-    -fx-background-color: #f5f8fb;
-    -fx-padding: 6 10;
-    -fx-background-radius: 16;
-    -fx-alignment: CENTER;
-    -fx-spacing: 6;
-    -fx-text-fill: -fx-text-muted;
-}
-
-/* --- Profile column specific --- */
-.profile-card {
-    -fx-alignment: CENTER;
-    -fx-padding: 25;
-}
-
-/* --- Card tweaks to match image proportions --- */
-.card {
-    -fx-background-color: white;
-    -fx-background-radius: 8;
-    -fx-border-color: #e8eaed;
-    -fx-border-width: 1;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.0, 0, 1);
-}
-
-/* --- Inputs focused state --- */
-.flat-text-field:focused {
-    -fx-border-color: -fx-accent-blue;
-    -fx-background-color: white;
-    -fx-effect: dropshadow(gaussian, rgba(50,115,220,0.15), 6, 0.0, 0, 1);
-}
-
-/* --- List item rows --- */
-.list-item-row {
-    -fx-alignment: CENTER_LEFT;
-}
-
-.row-icon {
-    -fx-text-fill: -fx-accent-blue;
-    -fx-icon-color: -fx-accent-blue;
-    -fx-min-width: 28;
-    -fx-alignment: CENTER;
-}
-
-.row-main-text {
-    -fx-font-weight: 600;
-    -fx-text-fill: -fx-text-dark;
-}
-
-.row-sub-text {
-    -fx-text-fill: -fx-text-muted;
-    -fx-font-size: 12px;
-}
-
-.row-sub-text-active {
-    -fx-text-fill: -fx-success-green;
-    -fx-font-size: 12px;
-}
-
-/* --- Card danger subtle background and button alignment --- */
-.card-danger {
-    -fx-background-color: #fef3f3;
-    -fx-border-color: #f5d4d4;
-    -fx-border-radius: 8;
-    -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.0, 0, 1);
-}
-
-/* --- Misc small helpers --- */
 .user-name-small {
+    -fx-font-weight: 700;
+    -fx-text-fill: -fx-text-primary;
     -fx-font-size: 13px;
-    -fx-font-weight: 600;
 }
 
 .user-role-small {
@@ -315,125 +44,255 @@
     -fx-text-fill: -fx-text-muted;
 }
 
-.content-scroll {
-    -fx-background-color: transparent;
+.avatar-mini {
+    -fx-fill: -fx-surface-hover;
+    -fx-stroke: -fx-border-color-var;
 }
 
-/* --- Sidebar logo and icons --- */
-.sidebar-logo {
-    -fx-text-fill: white;
-    -fx-font-size: 22px;
+/* --- Cards --- */
+.card {
+    -fx-background-color: -fx-surface-color;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 10, 0.0, 0, 2);
+}
+
+.card-title {
+    -fx-font-size: 16px;
     -fx-font-weight: 700;
-    -fx-padding: 2 0 0 18;
-    -fx-letter-spacing: 0.5;
+    -fx-text-fill: -fx-text-primary;
 }
 
-.sidebar-sublogo {
-    -fx-text-fill: rgba(255,255,255,0.72);
-    -fx-font-size: 11px;
-    -fx-padding: 0 0 20 18;
-    -fx-font-weight: 600;
-}
-
-.font-icon {
-    -fx-font-size: 14px;
-    -fx-text-fill: #d4e3f2;
-    -fx-icon-color: #d4e3f2;
-}
-
-.nav-button .font-icon {
-    -fx-padding: 0;
-    -fx-text-fill: #d4e3f2;
-    -fx-icon-color: #d4e3f2;
-    -fx-font-size: 14px;
-    -fx-icon-size: 14px;
-    -fx-min-width: 16;
-    -fx-pref-width: 16;
-    -fx-max-width: 16;
-}
-
-.nav-button:hover .font-icon {
-    -fx-text-fill: white;
-    -fx-icon-color: white;
-}
-
-.nav-button-active .font-icon {
-    -fx-text-fill: white;
-    -fx-icon-color: white;
-}
-
-.nav-button-alt .font-icon {
-    -fx-padding: 0;
-    -fx-text-fill: #d4e3f2;
-    -fx-icon-color: #d4e3f2;
-    -fx-font-size: 14px;
-    -fx-icon-size: 14px;
-    -fx-min-width: 16;
-    -fx-pref-width: 16;
-    -fx-max-width: 16;
-}
-
-.nav-button-alt:hover .font-icon {
-    -fx-text-fill: white;
-    -fx-icon-color: white;
-}
-
-/* --- ComboBox --- */
-.combo-box {
-    -fx-background-color: #f8f9fa;
-    -fx-border-color: #e0e0e0;
-    -fx-border-radius: 4;
-    -fx-padding: 8 12;
+/* --- Inputs --- */
+.flat-text-field {
+    -fx-background-color: -fx-bg-color;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-radius: 8;
+    -fx-padding: 12 15;
+    -fx-text-fill: -fx-text-primary;
     -fx-font-size: 13px;
 }
 
-.combo-box:focused {
-    -fx-border-color: -fx-accent-blue;
-    -fx-effect: dropshadow(gaussian, rgba(50,115,220,0.15), 6, 0.0, 0, 1);
+.input-label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-padding: 0 0 5 0;
 }
 
-/* --- Activity labels and values --- */
-.activity-label {
+/* --- Password Toggle Specific --- */
+.password-field-container {
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-color: -fx-bg-color;
+    -fx-background-radius: 8;
+}
+
+.password-field-container .flat-text-field {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+
+.btn-toggle-pass {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0 15 0 0;
+}
+
+.btn-toggle-pass .font-icon {
+    -fx-icon-color: -fx-text-muted;
+}
+
+/* --- Profile Specific Card Elements --- */
+.avatar-large {
+    -fx-fill: linear-gradient(to bottom right, -fx-brand-primary, #3273dc);
+    -fx-stroke: white;
+    -fx-stroke-width: 3;
+}
+
+.avatar-icon-main {
+    -fx-icon-color: white;
+}
+
+.btn-camera-edit {
+    -fx-background-color: -fx-brand-primary;
+    -fx-background-radius: 50;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-text-fill: white;
+}
+
+.user-name-large {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.user-role-label {
     -fx-text-fill: -fx-text-muted;
+    -fx-font-weight: 600;
+}
+
+.location-badge {
+    -fx-background-color: -fx-surface-hover;
+    -fx-padding: 6 12;
+    -fx-background-radius: 20;
+}
+
+.location-badge .label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 12px;
+}
+
+.location-badge .font-icon {
+    -fx-icon-color: -fx-text-muted;
+}
+
+/* --- Activity List --- */
+.activity-label {
+    -fx-text-fill: -fx-text-secondary;
     -fx-font-size: 13px;
 }
 
 .activity-value {
-    -fx-text-fill: -fx-text-dark;
-    -fx-font-weight: 600;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 700;
     -fx-font-size: 13px;
 }
 
-/* --- Toggle buttons (Notificaciones, Modo de Alta Densidad) --- */
-.toggle-button {
-    -fx-background-color: #e8e8e8;
-    -fx-text-fill: #666;
-    -fx-padding: 3 6;
-    -fx-border-radius: 12;
-    -fx-cursor: hand;
+.status-badge-active {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #16a34a;
+    -fx-padding: 4 10;
+    -fx-background-radius: 6;
+    -fx-font-weight: 800;
+    -fx-font-size: 11px;
 }
 
-.toggle-button:selected {
-    -fx-background-color: -fx-accent-blue;
-    -fx-text-fill: white;
+/* --- Buttons --- */
+.btn-secondary {
+    -fx-background-color: -fx-surface-hover;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 700;
+    -fx-padding: 8 16;
+    -fx-background-radius: 8;
+    -fx-border-color: -fx-border-color-var;
 }
 
-/* --- Icons in card titles --- */
-.card-title .font-icon {
-    -fx-font-size: 18px;
-    -fx-text-fill: -fx-accent-blue;
-    -fx-icon-color: -fx-accent-blue;
+.btn-danger {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
 }
 
-.card .font-icon {
+.dark-theme .btn-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.1);
+    -fx-border-color: rgba(239, 68, 68, 0.4);
+    -fx-text-fill: #f87171;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #fecaca;
+}
+
+.dark-theme .btn-danger:hover {
+    -fx-background-color: rgba(239, 68, 68, 0.2);
+}
+
+.card-danger {
+    -fx-background-color: #fef2f2;
+    -fx-border-color: #fee2e2;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+}
+
+.dark-theme .card-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.05);
+    -fx-border-color: rgba(239, 68, 68, 0.2);
+}
+
+.card-title-danger {
+    -fx-text-fill: #991b1b;
+    -fx-font-weight: 800;
+    -fx-font-size: 16px;
+}
+
+.dark-theme .card-title-danger {
+    -fx-text-fill: #f87171;
+}
+
+.row-main-text {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 700;
+}
+
+.row-sub-text {
+    -fx-text-fill: -fx-text-muted;
+    -fx-font-size: 12px;
+}
+
+/* --- Modal & Glassmorphism --- */
+.modal-overlay {
+    -fx-background-color: rgba(15, 23, 42, 0.7);
+}
+
+.modal-content {
+    -fx-background-color: rgba(255, 255, 255, 0.85);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 30, 0, 0, 10);
+    -fx-padding: 40;
+}
+
+.dark-theme .modal-content {
+    -fx-background-color: rgba(30, 41, 59, 0.85);
+}
+
+.modal-header {
+    -fx-padding: 0 0 30 0;
+}
+
+.modal-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.modal-subtitle {
     -fx-font-size: 14px;
-    -fx-text-fill: -fx-accent-blue;
-    -fx-icon-color: -fx-accent-blue;
+    -fx-text-fill: -fx-text-secondary;
 }
 
-.sidebar-footer {
-    -fx-padding: 10 0 0 0;
-    -fx-border-color: rgba(255,255,255,0.11) transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
+.modal-footer {
+    -fx-padding: 30 0 0 0;
 }
 
+.btn-primary {
+    -fx-background-color: linear-gradient(to right, #1f4e7a, #3273dc);
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-padding: 12 30;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.btn-primary:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(50, 115, 220, 0.4), 10, 0, 0, 3);
+}
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: 700;
+    -fx-padding: 12 25;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
