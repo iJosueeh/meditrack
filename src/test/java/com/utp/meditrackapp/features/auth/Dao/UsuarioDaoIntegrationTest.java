@@ -44,4 +44,44 @@ public class UsuarioDaoIntegrationTest {
         String actividad = usuarioDao.getUltimaActividad("USR-001");
         assertNotNull(actividad);
     }
+
+    @Test
+    public void testUpdateUser() {
+        Usuario usuario = usuarioDao.login("12345678", "admin123");
+        assertNotNull(usuario);
+
+        String originalNombres = usuario.getNombres();
+        usuario.setNombres("Nombre Editado");
+
+        boolean result = usuarioDao.updateUser(usuario);
+        assertTrue(result, "La actualización debería ser exitosa");
+
+        Usuario updated = usuarioDao.login("12345678", "admin123");
+        assertEquals("Nombre Editado", updated.getNombres());
+
+        // Limpieza: revertir cambios
+        usuario.setNombres(originalNombres);
+        usuarioDao.updateUser(usuario);
+    }
+
+    @Test
+    public void testUpdatePassword() {
+        Usuario usuario = usuarioDao.login("12345678", "admin123");
+        assertNotNull(usuario);
+
+        // Cambiar a una nueva contraseña temporal
+        String newPass = "newTempPass123";
+        String newHash = com.utp.meditrackapp.core.util.PasswordHasher.hashPassword(newPass);
+        
+        boolean result = usuarioDao.updatePassword(usuario.getId(), newHash);
+        assertTrue(result, "El cambio de contraseña debería ser exitoso");
+
+        // Verificar login con nueva contraseña
+        Usuario updated = usuarioDao.login("12345678", newPass);
+        assertNotNull(updated, "Debería poder loguearse con la nueva contraseña");
+
+        // Revertir a contraseña original (admin123)
+        String originalHash = com.utp.meditrackapp.core.util.PasswordHasher.hashPassword("admin123");
+        usuarioDao.updatePassword(usuario.getId(), originalHash);
+    }
 }

@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport
+    xmlns="http://jasperreports.sourceforge.net/jasperreports"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+        http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+    name="MediTrack_Reporte_Elite"
+    pageWidth="595"
+    pageHeight="842"
+    columnWidth="555"
+    leftMargin="20"
+    rightMargin="20"
+    topMargin="20"
+    bottomMargin="20"
+    uuid="f1e2d3c4-b5a6-4789-8012-1234567890ab">
+
+    <!-- 1. Styles (Regla: Siempre primero) -->
+    <style name="Base" isDefault="true" fontName="SansSerif" fontSize="9" forecolor="#334155"/>
+    <style name="Heading1" style="Base" fontSize="24" isBold="true" forecolor="#ffffff"/>
+    <style name="CardLabel" style="Base" fontSize="8" isBold="true" forecolor="#64748b"/>
+    <style name="CardValue" style="Base" fontSize="18" isBold="true" forecolor="#0f172a"/>
+    <style name="TableHeader" style="Base" fontSize="9" isBold="true" forecolor="#ffffff" backcolor="#1e293b"/>
+    <style name="TableRow" style="Base" fontSize="9">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></conditionExpression>
+            <style backcolor="#f1f5f9"/>
+        </conditionalStyle>
+    </style>
+
+    <!-- 2. SubDatasets (Regla: Antes de Parameters) -->
+    <subDataset name="dsTendencias" uuid="c2d3e4f5-a6b7-8901-cdef-012345678902">
+        <field name="period" class="java.lang.String"/>
+        <field name="value"   class="java.lang.Number"/>
+    </subDataset>
+
+    <subDataset name="dsDistribucion" uuid="d3e4f5a6-b7c8-9012-defa-123456789003">
+        <field name="category"  class="java.lang.String"/>
+        <field name="total"     class="java.lang.Number"/>
+    </subDataset>
+
+    <!-- 3. Parameters -->
+    <parameter name="REPORT_DATE"       class="java.lang.String"/>
+    <parameter name="GENERATED_BY"      class="java.lang.String"/>
+    <parameter name="SEDE"              class="java.lang.String"/>
+    <parameter name="VALOR_INVENTARIO"  class="java.lang.String"/>
+    <parameter name="VAR_INVENTARIO"    class="java.lang.String"/>
+    <parameter name="ALERTAS_CRITICAS"  class="java.lang.String"/>
+    <parameter name="VOL_MOVIMIENTOS"   class="java.lang.String"/>
+    <parameter name="EFICIENCIA"        class="java.lang.String"/>
+    <parameter name="DS_TENDENCIAS"     class="net.sf.jasperreports.engine.JRDataSource"/>
+    <parameter name="DS_DISTRIBUCION"   class="net.sf.jasperreports.engine.JRDataSource"/>
+
+    <!-- 4. Fields -->
+    <field name="code"         class="java.lang.String"/>
+    <field name="name"         class="java.lang.String"/>
+    <field name="category"     class="java.lang.String"/>
+    <field name="currentStock" class="java.lang.Integer"/>
+    <field name="status"       class="java.lang.String"/>
+
+    <background>
+        <band height="802">
+            <!-- Sutil marca de agua -->
+            <staticText>
+                <reportElement x="0" y="700" width="555" height="102" forecolor="#f1f5f9" uuid="b2c3d4e5-f6a7-4890-bcde-f0123456789a"/>
+                <textElement textAlignment="Center" verticalAlignment="Bottom">
+                    <font size="80" isBold="true"/>
+                </textElement>
+                <text><![CDATA[MEDITRACK]]></text>
+            </staticText>
+        </band>
+    </background>
+
+    <title>
+        <band height="360">
+            <!-- Modern Header with Gradient-like effect -->
+            <rectangle>
+                <reportElement mode="Opaque" x="-20" y="-20" width="595" height="120" backcolor="#1e293b" uuid="a2b3c4d5-e6f7-4890-8012-2345678901bc"/>
+                <graphicElement><pen lineWidth="0"/></graphicElement>
+            </rectangle>
+            
+            <staticText>
+                <reportElement style="Heading1" x="0" y="10" width="250" height="35" uuid="b3c4d5e6-f7a8-4901-8012-3456789012cd"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[MediTrack 🏥]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="45" width="300" height="20" forecolor="#94a3b8" uuid="c4d5e6f7-a8b9-4012-8012-4567890123de"/>
+                <textElement>
+                    <font size="11" isItalic="true"/>
+                </textElement>
+                <text><![CDATA[Inteligencia Operativa y Control de Suministros]]></text>
+            </staticText>
+
+            <!-- Info Panel -->
+            <textField>
+                <reportElement x="355" y="10" width="200" height="20" forecolor="#f8fafc" uuid="d5e6f7a8-b9c0-4123-8012-5678901234ef"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["EMISIÓN: " + $P{REPORT_DATE}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="355" y="30" width="200" height="15" forecolor="#cbd5e1" uuid="e6f7a8b9-c0d1-4234-8012-6789012345fa"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Responsable: " + $P{GENERATED_BY}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="355" y="45" width="200" height="15" forecolor="#cbd5e1" uuid="f7a8b9c0-d1e2-4345-8012-7890123456fb"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Centro: " + $P{SEDE}]]></textFieldExpression>
+            </textField>
+
+            <!-- KPI Dashboard Row -->
+            <!-- Card 1: Valor -->
+            <rectangle radius="10">
+                <reportElement x="0" y="120" width="130" height="75" backcolor="#ffffff" uuid="a8b9c0d1-e2f3-4456-8012-8901234567fc"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#e2e8f0"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement style="CardLabel" x="10" y="130" width="110" height="12" uuid="b9c0d1e2-f3a4-4567-8012-9012345678ad"/>
+                <text><![CDATA[VALOR TOTAL]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="CardValue" x="10" y="145" width="110" height="25" uuid="c0d1e2f3-a4b5-4678-8012-0123456789be"/>
+                <textFieldExpression><![CDATA[$P{VALOR_INVENTARIO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="10" y="170" width="110" height="12" forecolor="#10b981" uuid="d1e2f3a4-b5c6-4789-8012-1234567890cf">
+                    <property name="net.sf.jasperreports.style.fontSize" value="7"/>
+                </reportElement>
+                <textElement>
+                    <font size="7" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["▲ " + $P{VAR_INVENTARIO}]]></textFieldExpression>
+            </textField>
+
+            <!-- Card 2: Alertas -->
+            <rectangle radius="10">
+                <reportElement x="141" y="120" width="130" height="75" backcolor="#fef2f2" uuid="e2f3a4b5-c6d7-4890-8012-2345678901da"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#fecaca"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement style="CardLabel" x="151" y="130" width="110" height="12" forecolor="#ef4444" uuid="f3a4b5c6-d7e8-4901-8012-3456789012eb"/>
+                <text><![CDATA[ALERTAS CRÍTICAS]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="CardValue" x="151" y="145" width="110" height="25" forecolor="#b91c1c" uuid="a4b5c6d7-e8f9-4012-8012-4567890123fc"/>
+                <textFieldExpression><![CDATA[$P{ALERTAS_CRITICAS}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="151" y="170" width="110" height="12" forecolor="#991b1b" uuid="b5c6d7e8-f9a0-4123-8012-5678901234ad"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[Acción Inmediata Requerida]]></text>
+            </staticText>
+
+            <!-- Card 3: Movimientos -->
+            <rectangle radius="10">
+                <reportElement x="282" y="120" width="130" height="75" backcolor="#f0f9ff" uuid="c6d7e8f9-a0b1-4234-8012-6789012345be"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#bae6fd"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement style="CardLabel" x="292" y="130" width="110" height="12" forecolor="#0284c7" uuid="d7e8f9a0-b1c2-4345-8012-7890123456cf"/>
+                <text><![CDATA[MOVIMIENTOS (30D)]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="CardValue" x="292" y="145" width="110" height="25" forecolor="#0c4a6e" uuid="e8f9a0b1-c2d3-4456-8012-8901234567da"/>
+                <textFieldExpression><![CDATA[$P{VOL_MOVIMIENTOS}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="292" y="170" width="110" height="12" forecolor="#075985" uuid="f9a0b1c2-d3e4-4567-8012-9012345678eb"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[Flujo de Stock Activo]]></text>
+            </staticText>
+
+            <!-- Card 4: Eficiencia -->
+            <rectangle radius="10">
+                <reportElement x="423" y="120" width="132" height="75" backcolor="#f0fdf4" uuid="a0b1c2d3-e4f5-4678-8012-0123456789fc"/>
+                <graphicElement><pen lineWidth="0.5" lineColor="#bbf7d0"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement style="CardLabel" x="433" y="130" width="110" height="12" forecolor="#16a34a" uuid="b1c2d3e4-f5a6-4789-8012-1234567890ad"/>
+                <text><![CDATA[SALUD INVENTARIO]]></text>
+            </staticText>
+            <textField>
+                <reportElement style="CardValue" x="433" y="145" width="110" height="25" forecolor="#14532d" uuid="c2d3e4f5-a6b7-4890-8012-2345678901be"/>
+                <textFieldExpression><![CDATA[$P{EFICIENCIA}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="433" y="170" width="110" height="12" forecolor="#166534" uuid="d3e4f5a6-b7c8-4901-8012-3456789012cf"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[Nivel de Disponibilidad]]></text>
+            </staticText>
+
+            <line>
+                <reportElement x="0" y="210" width="555" height="1" forecolor="#e2e8f0" uuid="e4f5a6b7-c8d9-4012-8012-4567890123da"/>
+            </line>
+
+            <!-- Visual Analysis Section -->
+            <staticText>
+                <reportElement x="0" y="225" width="555" height="20" style="Base" uuid="f5a6b7c8-d9e0-4123-8012-5678901234eb"/>
+                <textElement>
+                    <font size="12" isBold="true" forecolor="#1e293b"/>
+                </textElement>
+                <text><![CDATA[ANÁLISIS ESTRATÉGICO]]></text>
+            </staticText>
+
+            <!-- Bar Chart (Tendencias) -->
+            <barChart>
+                <chart isShowLegend="false" evaluationTime="Report">
+                    <reportElement x="0" y="250" width="270" height="110" uuid="a6b7c8d9-e0f1-4234-8012-6789012345fc"/>
+                    <box>
+                        <topPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                        <leftPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                        <bottomPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                        <rightPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                    </box>
+                </chart>
+                <categoryDataset>
+                    <dataset>
+                        <datasetRun subDataset="dsTendencias" uuid="b7c8d9e0-f1a2-4345-8012-7890123456ad">
+                            <dataSourceExpression><![CDATA[$P{DS_TENDENCIAS}]]></dataSourceExpression>
+                        </datasetRun>
+                    </dataset>
+                    <categorySeries>
+                        <seriesExpression><![CDATA["Stock"]]></seriesExpression>
+                        <categoryExpression><![CDATA[$F{period}]]></categoryExpression>
+                        <valueExpression><![CDATA[$F{value}]]></valueExpression>
+                    </categorySeries>
+                </categoryDataset>
+                <barPlot>
+                    <plot>
+                        <seriesColor seriesOrder="0" color="#3b82f6"/>
+                    </plot>
+                    <categoryAxisFormat><axisFormat/></categoryAxisFormat>
+                    <valueAxisFormat><axisFormat/></valueAxisFormat>
+                </barPlot>
+            </barChart>
+
+            <!-- Pie Chart (Categorías) -->
+            <pie3DChart>
+                <chart evaluationTime="Report">
+                    <reportElement x="285" y="250" width="270" height="110" uuid="c8d9e0f1-a2b3-4456-8012-8901234567be"/>
+                    <box>
+                        <topPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                        <leftPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                        <bottomPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                        <rightPen lineWidth="0.5" lineColor="#f1f5f9"/>
+                    </box>
+                    <chartLegend position="Right">
+                        <font size="7"/>
+                    </chartLegend>
+                </chart>
+                <pieDataset>
+                    <dataset>
+                        <datasetRun subDataset="dsDistribucion" uuid="d9e0f1a2-b3c4-4567-8012-9012345678cf">
+                            <dataSourceExpression><![CDATA[$P{DS_DISTRIBUCION}]]></dataSourceExpression>
+                        </datasetRun>
+                    </dataset>
+                    <keyExpression><![CDATA[$F{category}]]></keyExpression>
+                    <valueExpression><![CDATA[$F{total}]]></valueExpression>
+                </pieDataset>
+                <pie3DPlot depthFactor="0.1" isCircular="true">
+                    <plot/>
+                </pie3DPlot>
+            </pie3DChart>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="30">
+            <rectangle>
+                <reportElement mode="Opaque" x="0" y="5" width="555" height="25" backcolor="#1e293b" uuid="e0f1a2b3-c4d5-4678-8012-0123456789da"/>
+                <graphicElement><pen lineWidth="0"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement style="TableHeader" x="10" y="5" width="70" height="25" uuid="f1a2b3c4-d5e6-4789-8012-1234567890eb"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[CÓDIGO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="TableHeader" x="80" y="5" width="200" height="25" uuid="a2b3c4d5-e6f7-4890-8012-2345678901fc"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[PRODUCTO]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="TableHeader" x="280" y="5" width="130" height="25" uuid="b3c4d5e6-f7a8-4901-8012-3456789012ad"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[CATEGORÍA]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="TableHeader" x="410" y="5" width="60" height="25" uuid="c4d5e6f7-a8b9-4012-8012-4567890123be"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[STOCK]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="TableHeader" x="470" y="5" width="85" height="25" uuid="d5e6f7a8-b9c0-4123-8012-5678901234cf"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[ESTADO]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="30" splitType="Stretch">
+            <rectangle>
+                <reportElement style="TableRow" mode="Opaque" x="0" y="0" width="555" height="30" uuid="e6f7a8b9-c0d1-4234-8012-6789012345da"/>
+                <graphicElement><pen lineWidth="0"/></graphicElement>
+            </rectangle>
+            <textField>
+                <reportElement x="10" y="0" width="70" height="30" uuid="f7a8b9c0-d1e2-4345-8012-7890123456eb"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{code}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="80" y="0" width="200" height="30" uuid="a8b9c0d1-e2f3-4456-8012-8901234567fa"/>
+                <textElement verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="280" y="0" width="130" height="30" uuid="b9c0d1e2-f3a4-4567-8012-9012345678fb"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="410" y="0" width="60" height="30" uuid="c0d1e2f3-a4b5-4678-8012-0123456789bc"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{currentStock}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="470" y="7" width="75" height="16" uuid="d1e2f3a4-b5c6-4789-8012-1234567890cd"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="7" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <pageFooter>
+        <band height="50">
+            <rectangle>
+                <reportElement x="0" y="10" width="555" height="1" backcolor="#e2e8f0" uuid="e2f3a4b5-c6d7-4890-8012-2345678901da"/>
+                <graphicElement><pen lineWidth="0"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="0" y="20" width="400" height="20" forecolor="#94a3b8" uuid="f3a4b5c6-d7e8-4901-8012-3456789012eb"/>
+                <textElement verticalAlignment="Middle">
+                    <font size="8"/>
+                </textElement>
+                <text><![CDATA[© 2026 MediTrack Intelligence. Documento Oficial de Gestión Médica.]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="455" y="20" width="100" height="20" forecolor="#64748b" uuid="a4b5c6d7-e8f9-4012-8012-4567890123fc"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle">
+                    <font size="9" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+</jasperReport>

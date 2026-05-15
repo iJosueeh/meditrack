@@ -2,6 +2,7 @@ package com.utp.meditrackapp.features.profile.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.core.util.PasswordHasher;
 import com.utp.meditrackapp.features.auth.Dao.UsuarioDao;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
@@ -85,7 +86,16 @@ public class ProfileController {
     }
 
     // --- Modal Actions ---
-    @FXML protected void onOpenEditModal() { showModal(editModal); }
+    @FXML protected void onOpenEditModal() {
+        Usuario user = SessionManager.getInstance().getCurrentUser();
+        if (user != null) {
+            editNombresField.setText(user.getNombres());
+            editApellidosField.setText(user.getApellidos());
+            editTipoDocField.setText(user.getTipoDocumento());
+            editNumDocField.setText(user.getNumeroDocumento());
+        }
+        showModal(editModal); 
+    }
     @FXML protected void onCloseEditModal() { hideModal(editModal); }
 
     @FXML
@@ -96,7 +106,13 @@ public class ProfileController {
             user.setApellidos(editApellidosField.getText());
             user.setTipoDocumento(editTipoDocField.getText());
             user.setNumeroDocumento(editNumDocField.getText());
-            loadUserData();
+            
+            if (usuarioDao.updateUser(user)) {
+                loadUserData();
+                showAlert("Éxito", "Sus datos han sido actualizados correctamente.");
+            } else {
+                showAlert("Error", "No se pudo actualizar la información en la base de datos.");
+            }
         }
         onCloseEditModal();
     }
@@ -120,14 +136,29 @@ public class ProfileController {
             return;
         }
 
+        Usuario user = SessionManager.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        // Validar contraseña actual
+        if (!PasswordHasher.checkPassword(current, user.getPassword())) {
+            showAlert("Error de validación", "La contraseña actual es incorrecta.");
+            return;
+        }
+
         if (!newPass.equals(confirm)) {
             showAlert("Error de coincidencia", "La nueva contraseña y la confirmación no coinciden.");
             return;
         }
 
-        System.out.println("Actualizando contraseña...");
-        showAlert("Éxito", "Su contraseña ha sido actualizada correctamente.");
-        onClosePasswordModal();
+        // Hashing y Guardado
+        String newHash = PasswordHasher.hashPassword(newPass);
+        if (usuarioDao.updatePassword(user.getId(), newHash)) {
+            user.setPassword(newHash); // Actualizar en sesión
+            showAlert("Éxito", "Su contraseña ha sido actualizada correctamente.");
+            onClosePasswordModal();
+        } else {
+            showAlert("Error", "No se pudo actualizar la contraseña en el servidor.");
+        }
     }
 
     private void resetPasswordFields() {
