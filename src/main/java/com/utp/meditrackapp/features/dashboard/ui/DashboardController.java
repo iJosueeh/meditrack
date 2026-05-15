@@ -14,6 +14,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.kordamp.ikonli.javafx.FontIcon;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.io.File;
+import java.time.LocalDate;
+import javafx.stage.FileChooser;
+import com.utp.meditrackapp.features.dashboard.service.ReportService;
+import net.sf.jasperreports.engine.JRException;
 
 public class DashboardController {
 
@@ -71,17 +78,11 @@ public class DashboardController {
         colMinStock.setCellValueFactory(new PropertyValueFactory<>("minStock"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // --- MEJORAS VISUALES DE ALINEACIÓN Y DISEÑO ---
-
-        // 1. Alineación a la izquierda para texto (Default es izquierda, pero aseguramos)
         colName.setStyle("-fx-alignment: CENTER-LEFT;");
         colCategory.setStyle("-fx-alignment: CENTER-LEFT;");
         
-        // 2. Centrado para números
         colCurrentStock.setStyle("-fx-alignment: CENTER;");
         colMinStock.setStyle("-fx-alignment: CENTER;");
-
-        // 3. Custom Cell Factory para la columna ESTADO (Badges)
         colStatus.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -123,7 +124,6 @@ public class DashboardController {
             List<MedicamentoResumen> topBajoStock = dashboardDao.getTopBajoStock();
             if (topBajoStock != null) {
                 topDrugsTable.setItems(FXCollections.observableArrayList(topBajoStock));
-                // Ajustar la altura de la tabla para mostrar solo las filas necesarias
                 Platform.runLater(() -> {
                     int rowsToShow = Math.min(5, Math.max(1, topBajoStock.size()));
                     double headerApprox = 36; // espacio para encabezado y bordes
@@ -191,5 +191,53 @@ public class DashboardController {
     @FXML
     protected void onGenerateReport() {
         System.out.println("Generando reporte con JasperReports...");
+        try {
+            DashboardDao dao = new DashboardDao();
+            Map<String,Object> params = new HashMap<>();
+            
+            // Alineación con parámetros de mediTrack_reporte.jrxml
+            params.put("REPORT_DATE", LocalDate.now().toString());
+            params.put("GENERATED_BY", System.getProperty("user.name", "Usuario"));
+            params.put("SEDE", "Sede Hospital Central");
+            
+            double inventoryValue = dao.getInventoryValue();
+            params.put("VALOR_INVENTARIO", String.format("S/ %.2f", inventoryValue));
+            params.put("VAR_INVENTARIO", "+0.0% vs mes anterior"); // Placeholder
+            
+            int criticos = dao.getStockCriticoCount(10);
+            params.put("ALERTAS_CRITICAS", criticos + " Críticas");
+            
+            int movements = dao.getMovementsVolume(30);
+            params.put("VOL_MOVIMIENTOS", String.valueOf(movements));
+            
+            int eficiencia = dao.getSaludInventario();
+            params.put("EFICIENCIA", eficiencia + "%");
+
+            List<MedicamentoResumen> items = dao.getTopBajoStock();
+            List<Map<String,Object>> trend = dao.getInventoryTrendMonths(6);
+            List<Map<String,Object>> categories = dao.getCategoryDistribution();
+
+            ReportService svc = new ReportService();
+
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Guardar reporte PDF");
+            chooser.setInitialFileName("Reporte_MediTrack_" + LocalDate.now() + ".pdf");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            
+            File out = chooser.showSaveDialog(rootPane.getScene().getWindow());
+            if (out != null) {
+                svc.generateDashboardPdf(params, items, trend, categories, out);
+                Alert ok = new Alert(Alert.AlertType.INFORMATION, "Reporte generado: " + out.getAbsolutePath(), ButtonType.OK);
+                ok.showAndWait();
+            }
+        } catch (JRException e) {
+            e.printStackTrace();
+            Alert err = new Alert(Alert.AlertType.ERROR, "Error de JasperReports: " + e.getMessage(), ButtonType.OK);
+            err.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert err = new Alert(Alert.AlertType.ERROR, "Error inesperado: " + e.getMessage(), ButtonType.OK);
+            err.showAndWait();
+        }
     }
 }

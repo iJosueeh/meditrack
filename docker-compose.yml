@@ -54,6 +54,24 @@ services:
     networks:
       - meditrack_net
 
+  db_seed:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: meditrack_db_seed
+    depends_on:
+      - database
+    volumes:
+      - ./database/seed_data.sql:/seed/seed_data.sql:ro
+    entrypoint: ["/bin/bash","-c"]
+    command: >
+      "
+      sleep 15;
+      /opt/mssql-tools/bin/sqlcmd -S database -U sa -P \"${DB_PASSWORD}\" -d ${DB_NAME} -i /seed/seed_data.sql || true;
+      echo 'Seed finished';
+      "
+    networks:
+      - meditrack_net
+    restart: 'no'
+
 networks:
   meditrack_net:
     driver: bridge

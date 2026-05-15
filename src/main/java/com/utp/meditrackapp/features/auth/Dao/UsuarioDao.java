@@ -75,5 +75,40 @@ public class UsuarioDao {
         }
         return "Sin actividad reciente";
     }
+
+    public boolean updateUser(Usuario usuario) {
+        String sql = "UPDATE usuarios SET nombres = ?, apellidos = ?, tipo_documento = ?, numero_documento = ? WHERE id = ?";
+        
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, usuario.getNombres());
+            ps.setString(2, usuario.getApellidos());
+            ps.setString(3, usuario.getTipoDocumento());
+            ps.setString(4, usuario.getNumeroDocumento());
+            ps.setString(5, usuario.getId());
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[DB ERROR] Error al actualizar usuario: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updatePassword(String usuarioId, String hashedPassword) {
+        String sql = "UPDATE usuarios SET password = ? WHERE id = ?";
+        
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, hashedPassword);
+            ps.setString(2, usuarioId);
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[DB ERROR] Error al actualizar contraseña: " + e.getMessage());
+            return false;
+        }
+    }
         
 }
