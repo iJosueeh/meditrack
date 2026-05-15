@@ -1,138 +1,163 @@
 package com.utp.meditrackapp.features.profile.ui;
 
-import com.utp.meditrackapp.core.config.NavigationService;
+import com.utp.meditrackapp.core.config.SessionManager;
+import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.features.auth.Dao.UsuarioDao;
+import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-
-import java.io.IOException;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class ProfileController {
 
-    @FXML
-    private BorderPane profileRootPane; // Assuming the root BorderPane needs to be referenced
+    @FXML private BorderPane profileRootPane;
+    @FXML private Label fullNameLabel, fullNameLabelSmall, roleLabel, roleLabelSmall, sedeLabel, lastAccessValue, accountStatusValue;
+    @FXML private TextField nombresField, apellidosField, tipoDocField, numDocField;
 
-    // Labels for personal info (example for data binding later)
-    @FXML
-    private Label fullNameLabel;
-    @FXML
-    private Label roleLabel;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Label personalFullNameValue;
-    @FXML
-    private Label personalDMIValue;
-    @FXML
-    private Label personalEmailValue;
-    @FXML
-    private Label personalPhoneValue;
+    // Edit Modal
+    @FXML private VBox editModal;
+    @FXML private TextField editNombresField, editApellidosField, editTipoDocField, editNumDocField;
 
-    // Activity Summary
-    @FXML
-    private Label lastAccessValue;
-    @FXML
-    private Label reportsGeneratedValue;
-    @FXML
-    private Label accountStatusValue;
+    // Password Modal
+    @FXML private VBox passwordModal;
+    @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
+    @FXML private TextField currentPasswordTextField, newPasswordTextField, confirmPasswordTextField;
+    @FXML private FontIcon currentEyeIcon, newEyeIcon, confirmEyeIcon;
 
-    // System Preferences
-    @FXML
-    private ComboBox<String> languageComboBox;
-    @FXML
-    private ComboBox<String> notificationFrequencyComboBox;
-    @FXML
-    private CheckBox emailNotificationsToggle;
-    @FXML
-    private CheckBox highDensityModeToggle;
-
+    private boolean isCurrentVisible = false, isNewVisible = false, isConfirmVisible = false;
+    private final UsuarioDao usuarioDao = new UsuarioDao();
 
     @FXML
     public void initialize() {
-        // Initialize with dummy data for now
-        if (fullNameLabel != null) fullNameLabel.setText("Dr. Alejandro Rivas");
-        if (roleLabel != null) roleLabel.setText("Administrador");
-        if (statusLabel != null) statusLabel.setText("Estado Central");
-        if (personalFullNameValue != null) personalFullNameValue.setText("Alejandro Rivas Montesinos");
-        if (personalDMIValue != null) personalDMIValue.setText("7844525D-X");
-        if (personalEmailValue != null) personalEmailValue.setText("alejandro.rivas@meditrackystem");
-        if (personalPhoneValue != null) personalPhoneValue.setText("+34 8 1677 60560");
+        loadUserData();
+    }
 
-        if (lastAccessValue != null) lastAccessValue.setText("Hoy, 08:45 AM");
-        if (reportsGeneratedValue != null) reportsGeneratedValue.setText("124");
-        if (accountStatusValue != null) accountStatusValue.setText("ACTIVO");
+    private void loadUserData() {
+        Usuario user = SessionManager.getInstance().getCurrentUser();
+        if (user != null) {
+            String full = user.getNombres() + " " + user.getApellidos();
+            String rol = user.getRolNombre() != null ? user.getRolNombre() : "Usuario";
+            String sede = user.getSedeNombre() != null ? user.getSedeNombre() : "Sin Sede";
+            
+            fullNameLabel.setText(full);
+            fullNameLabelSmall.setText(full);
+            roleLabel.setText(rol);
+            roleLabelSmall.setText(rol + " | " + sede);
+            sedeLabel.setText(sede);
+            
+            nombresField.setText(user.getNombres());
+            apellidosField.setText(user.getApellidos());
+            tipoDocField.setText(user.getTipoDocumento());
+            numDocField.setText(user.getNumeroDocumento());
 
-        if (languageComboBox != null) {
-            languageComboBox.getItems().addAll("Español (Latinoamericano)", "English", "Português");
-            languageComboBox.getSelectionModel().select("Español (Latinoamericano)");
+            lastAccessValue.setText(usuarioDao.getUltimaActividad(user.getId()));
+            accountStatusValue.setText(user.getIsActivo() == 1 ? "ACTIVO" : "INACTIVO");
         }
-        if (notificationFrequencyComboBox != null) {
-            notificationFrequencyComboBox.getItems().addAll("Inmediatas", "Diarias", "Semanales");
-            notificationFrequencyComboBox.getSelectionModel().select("Inmediatas");
+    }
+
+    // --- Visibility Toggles ---
+    @FXML protected void onToggleCurrentVisibility() {
+        isCurrentVisible = toggleVisibility(currentPasswordField, currentPasswordTextField, currentEyeIcon, isCurrentVisible);
+    }
+    @FXML protected void onToggleNewVisibility() {
+        isNewVisible = toggleVisibility(newPasswordField, newPasswordTextField, newEyeIcon, isNewVisible);
+    }
+    @FXML protected void onToggleConfirmVisibility() {
+        isConfirmVisible = toggleVisibility(confirmPasswordField, confirmPasswordTextField, confirmEyeIcon, isConfirmVisible);
+    }
+
+    private boolean toggleVisibility(PasswordField pf, TextField tf, FontIcon icon, boolean visible) {
+        if (visible) {
+            pf.setText(tf.getText());
+            pf.setVisible(true);
+            tf.setVisible(false);
+            icon.setIconLiteral("fas-eye");
+        } else {
+            tf.setText(pf.getText());
+            tf.setVisible(true);
+            pf.setVisible(false);
+            icon.setIconLiteral("fas-eye-slash");
         }
+        return !visible;
     }
 
+    // --- Modal Actions ---
+    @FXML protected void onOpenEditModal() { showModal(editModal); }
+    @FXML protected void onCloseEditModal() { hideModal(editModal); }
 
-    // Sidebar Navigation Actions
     @FXML
-    protected void onGoToDashboard() throws IOException {
-        NavigationService.toDashboard();
+    protected void onSaveChanges() {
+        Usuario user = SessionManager.getInstance().getCurrentUser();
+        if (user != null) {
+            user.setNombres(editNombresField.getText());
+            user.setApellidos(editApellidosField.getText());
+            user.setTipoDocumento(editTipoDocField.getText());
+            user.setNumeroDocumento(editNumDocField.getText());
+            loadUserData();
+        }
+        onCloseEditModal();
     }
 
-    // Header and Sidebar Logout
-    @FXML
-    protected void onLogout() throws IOException {
-        NavigationService.toLogin(); // Assuming logout navigates to login
-    }
-
-    // Security & Access Actions
     @FXML
     protected void onChangePassword() {
-        System.out.println("Changing password...");
-        // Logic to open change password dialog/view
+        resetPasswordFields();
+        showModal(passwordModal);
     }
 
-    @FXML
-    protected void onConfigure2FA() {
-        System.out.println("Configuring 2FA...");
-        // Logic to open 2FA configuration dialog/view
-    }
+    @FXML protected void onClosePasswordModal() { hideModal(passwordModal); }
 
-    // System Preferences Actions
     @FXML
-    protected void onSelectLanguage() {
-        if (languageComboBox != null) {
-            System.out.println("Selected language: " + languageComboBox.getSelectionModel().getSelectedItem());
+    protected void onUpdatePassword() {
+        String current = isCurrentVisible ? currentPasswordTextField.getText() : currentPasswordField.getText();
+        String newPass = isNewVisible ? newPasswordTextField.getText() : newPasswordField.getText();
+        String confirm = isConfirmVisible ? confirmPasswordTextField.getText() : confirmPasswordField.getText();
+
+        if (current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
+            showAlert("Campos requeridos", "Por favor complete todos los campos.");
+            return;
         }
-    }
 
-    @FXML
-    protected void onSelectNotificationFrequency() {
-        if (notificationFrequencyComboBox != null) {
-            System.out.println("Selected notification frequency: " + notificationFrequencyComboBox.getSelectionModel().getSelectedItem());
+        if (!newPass.equals(confirm)) {
+            showAlert("Error de coincidencia", "La nueva contraseña y la confirmación no coinciden.");
+            return;
         }
+
+        System.out.println("Actualizando contraseña...");
+        showAlert("Éxito", "Su contraseña ha sido actualizada correctamente.");
+        onClosePasswordModal();
     }
 
-    @FXML
-    protected void onToggleEmailNotifications() {
-        if (emailNotificationsToggle != null) {
-            System.out.println("Email notifications toggled: " + emailNotificationsToggle.isSelected());
-        }
+    private void resetPasswordFields() {
+        currentPasswordField.clear(); currentPasswordTextField.clear();
+        newPasswordField.clear(); newPasswordTextField.clear();
+        confirmPasswordField.clear(); confirmPasswordTextField.clear();
+        
+        currentPasswordField.setVisible(true); currentPasswordTextField.setVisible(false);
+        newPasswordField.setVisible(true); newPasswordTextField.setVisible(false);
+        confirmPasswordField.setVisible(true); confirmPasswordTextField.setVisible(false);
+        
+        currentEyeIcon.setIconLiteral("fas-eye"); newEyeIcon.setIconLiteral("fas-eye"); confirmEyeIcon.setIconLiteral("fas-eye");
+        isCurrentVisible = false; isNewVisible = false; isConfirmVisible = false;
     }
 
-    @FXML
-    protected void onToggleHighDensityMode() {
-        if (highDensityModeToggle != null) {
-            System.out.println("High density mode toggled: " + highDensityModeToggle.isSelected());
-        }
+    private void showModal(VBox modal) {
+        modal.setVisible(true);
+        FadeTransition ft = new FadeTransition(Duration.millis(300), modal);
+        ft.setFromValue(0); ft.setToValue(1); ft.play();
     }
 
-    // Account Actions
-    @FXML
-    protected void onCloseAllSessions() {
-        System.out.println("Closing all active sessions...");
-        // Logic to confirm and close all sessions
+    private void hideModal(VBox modal) {
+        FadeTransition ft = new FadeTransition(Duration.millis(300), modal);
+        ft.setFromValue(1); ft.setToValue(0); ft.setOnFinished(e -> modal.setVisible(false)); ft.play();
     }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message); alert.showAndWait();
+    }
+
+    @FXML protected void onCloseAllSessions() { System.out.println("Closing sessions..."); }
 }

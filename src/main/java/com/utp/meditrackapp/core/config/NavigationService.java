@@ -15,6 +15,8 @@ public class NavigationService {
     private static Stage primaryStage;
     private static Scene loginScene;
     private static Scene dashboardScene;
+    private static Scene profileScene;
+    private static boolean darkThemeEnabled = isDarkThemeConfigured();
 
     public static void setPrimaryStage(Stage stage) {
         primaryStage = stage;
@@ -26,7 +28,7 @@ public class NavigationService {
     public static void toLogin() throws IOException {
         FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/login-view.fxml"));
         loginScene = new Scene(loader.load(), 1000, 700);
-        applyThemeIfRequested(loginScene);
+        applyTheme(loginScene);
 
         if (primaryStage != null) {
             primaryStage.setScene(loginScene);
@@ -42,7 +44,7 @@ public class NavigationService {
     public static void toDashboard() throws IOException {
         FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/dashboard-view.fxml"));
         dashboardScene = new Scene(loader.load());
-        applyThemeIfRequested(dashboardScene);
+        applyTheme(dashboardScene);
 
         if (primaryStage != null) {
             primaryStage.setScene(dashboardScene);
@@ -51,12 +53,23 @@ public class NavigationService {
         }
     }
 
-    private static void applyThemeIfRequested(Scene scene) {
-        // Check system property or environment variable to enable dark theme
+    private static boolean isDarkThemeConfigured() {
         String prop = System.getProperty("app.theme", "");
         String env = System.getenv("APP_THEME");
-        boolean dark = "dark".equalsIgnoreCase(prop) || "dark".equalsIgnoreCase(env);
-        if (dark) {
+        return "dark".equalsIgnoreCase(prop) || "dark".equalsIgnoreCase(env);
+    }
+
+    public static void setDarkThemeEnabled(boolean enabled) {
+        darkThemeEnabled = enabled;
+        System.setProperty("app.theme", enabled ? "dark" : "light");
+    }
+
+    public static boolean isDarkThemeEnabled() {
+        return darkThemeEnabled;
+    }
+
+    private static void applyTheme(Scene scene) {
+        if (darkThemeEnabled) {
             if (!scene.getRoot().getStyleClass().contains("dark-theme")) {
                 scene.getRoot().getStyleClass().add("dark-theme");
             }
@@ -65,12 +78,10 @@ public class NavigationService {
         }
     }
 
-    private static Scene profileScene;
-
     public static void toProfile() throws IOException {
         FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/profile-view.fxml"));
         profileScene = new Scene(loader.load());
-        applyThemeIfRequested(profileScene);
+        applyTheme(profileScene);
 
         if (primaryStage != null) {
             primaryStage.setScene(profileScene);
