@@ -5,6 +5,13 @@
 USE meditrack_db;
 GO
 
+-- Asegurar columna de precio_unitario en productos
+IF COL_LENGTH('productos','precio_unitario') IS NULL
+BEGIN
+	ALTER TABLE productos ADD precio_unitario decimal(18,2) DEFAULT 0;
+END
+GO
+
 -- Limpiar datos previos (opcional, cuidado con FKs)
 -- DELETE FROM atencion_detalles; DELETE FROM atenciones; DELETE FROM movimientos; DELETE FROM lotes; DELETE FROM productos; DELETE FROM categorias;
 
@@ -15,14 +22,14 @@ INSERT INTO [categorias] ([id], [nombre]) VALUES
 ('CAT-03', 'Antiinflamatorios'),
 ('CAT-04', 'Suministros Médicos');
 
--- 2. PRODUCTOS
-INSERT INTO [productos] ([id], [categoria_id], [codigo_digemid], [nombre], [detalle], [unidad_medida], [is_activo]) VALUES 
-('PRD-01', 'CAT-01', 'DIG-001', 'Paracetamol 500mg', 'Tabletas para el dolor', 'Caja x 100', 1),
-('PRD-02', 'CAT-02', 'DIG-002', 'Amoxicilina 500mg', 'Cápsulas antibióticas', 'Frasco', 1),
-('PRD-03', 'CAT-03', 'DIG-003', 'Ibuprofeno 400mg', 'Antinflamatorio potente', 'Caja x 50', 1),
-('PRD-04', 'CAT-04', 'DIG-004', 'Alcohol en Gel 70%', 'Desinfectante de manos', 'Botella 500ml', 1),
-('PRD-05', 'CAT-01', 'DIG-005', 'Aspirina 100mg', 'Protector cardiovascular', 'Caja x 30', 1),
-('PRD-06', 'CAT-02', 'DIG-006', 'Azitromicina 500mg', 'Tratamiento respiratorio', 'Caja x 3', 1);
+-- 2. PRODUCTOS (incluye precio_unitario)
+INSERT INTO [productos] ([id], [categoria_id], [codigo_digemid], [nombre], [detalle], [unidad_medida], [is_activo], [precio_unitario]) VALUES 
+('PRD-01', 'CAT-01', 'DIG-001', 'Paracetamol 500mg', 'Tabletas para el dolor', 'Caja x 100', 1, 3.50),
+('PRD-02', 'CAT-02', 'DIG-002', 'Amoxicilina 500mg', 'Cápsulas antibióticas', 'Frasco', 1, 12.00),
+('PRD-03', 'CAT-03', 'DIG-003', 'Ibuprofeno 400mg', 'Antinflamatorio potente', 'Caja x 50', 1, 5.00),
+('PRD-04', 'CAT-04', 'DIG-004', 'Alcohol en Gel 70%', 'Desinfectante de manos', 'Botella 500ml', 1, 8.00),
+('PRD-05', 'CAT-01', 'DIG-005', 'Aspirina 100mg', 'Protector cardiovascular', 'Caja x 30', 1, 2.75),
+('PRD-06', 'CAT-02', 'DIG-006', 'Azitromicina 500mg', 'Tratamiento respiratorio', 'Caja x 3', 1, 15.00);
 
 -- 3. LOTES (Aquí generamos la data dinámica para el Dashboard)
 
