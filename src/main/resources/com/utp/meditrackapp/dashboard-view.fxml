@@ -4,75 +4,17 @@
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.dashboard.ui.DashboardController" styleClass="dashboard-root" stylesheets="@styles/dashboard.css">
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.dashboard.ui.DashboardController" styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css">
     <BorderPane fx:id="rootPane" prefWidth="1280" prefHeight="850">
     
     <!-- Top Navbar (Reusable) -->
     <top>
-        <HBox styleClass="navbar" alignment="CENTER_LEFT" spacing="20">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" styleClass="brand-icon" />
-                <Label text="MediTrack" styleClass="nav-brand-text" />
-            </HBox>
-            
-            <Region HBox.hgrow="ALWAYS" />
-            
-            <HBox alignment="CENTER_RIGHT" spacing="15">
-                <HBox spacing="5" alignment="CENTER">
-                    <Button onAction="#onToggleTheme" styleClass="icon-btn-nav">
-                        <graphic><FontIcon fx:id="themeIcon" iconLiteral="fas-moon" iconSize="18" styleClass="secondary-icon" /></graphic>
-                    </Button>
-                    <Button styleClass="icon-btn-nav">
-                        <graphic><FontIcon iconLiteral="fas-user-circle" iconSize="18" styleClass="secondary-icon" /></graphic>
-                    </Button>
-                    <Button styleClass="icon-btn-nav">
-                        <graphic><FontIcon iconLiteral="fas-cog" iconSize="18" styleClass="secondary-icon" /></graphic>
-                    </Button>
-                    <Button onAction="#onLogout" styleClass="icon-btn-nav">
-                        <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="18" iconColor="#ef4444" /></graphic>
-                    </Button>
-                </HBox>
-            </HBox>
-        </HBox>
+        <fx:include source="navbar.fxml" fx:id="navbar" />
     </top>
 
     <!-- Sidebar Navigation -->
     <left>
-        <VBox styleClass="sidebar" spacing="0">
-            <!-- User Profile in Sidebar -->
-            <VBox styleClass="sidebar-profile">
-                <HBox alignment="CENTER_LEFT" spacing="15">
-                    <VBox styleClass="profile-avatar-container">
-                        <FontIcon iconLiteral="fas-user" iconSize="18" iconColor="#1f4e7a" />
-                    </VBox>
-                    <VBox alignment="CENTER_LEFT" spacing="2">
-                        <Label text="Josué Arcas" styleClass="profile-name" />
-                        <Label text="Sede Central" styleClass="profile-sede" />
-                    </VBox>
-                </HBox>
-            </VBox>
-            
-            <Separator opacity="0.1" />
-
-            <VBox spacing="2" VBox.vgrow="ALWAYS">
-                <padding><Insets top="15" /></padding>
-                <Button text="Panel de Control" styleClass="nav-button, nav-button-active" maxWidth="Infinity">
-                    <graphic><FontIcon iconLiteral="fas-th-large" iconSize="16" styleClass="nav-icon" /></graphic>
-                </Button>
-                <Button text="Gestión de Pacientes" onAction="#onGoToPatients" styleClass="nav-button" maxWidth="Infinity">
-                    <graphic><FontIcon iconLiteral="fas-user-injured" iconSize="16" styleClass="nav-icon" /></graphic>
-                </Button>
-                <Button text="Inventario Médico" onAction="#onGoToInventory" styleClass="nav-button" maxWidth="Infinity">
-                    <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
-                </Button>
-                <Button text="Control de Citas" styleClass="nav-button" maxWidth="Infinity">
-                    <graphic><FontIcon iconLiteral="fas-calendar-alt" iconSize="16" styleClass="nav-icon" /></graphic>
-                </Button>
-                <Button text="Catálogo Digital" styleClass="nav-button" maxWidth="Infinity">
-                    <graphic><FontIcon iconLiteral="fas-book-medical" iconSize="16" styleClass="nav-icon" /></graphic>
-                </Button>
-            </VBox>
-        </VBox>
+        <fx:include source="sidebar.fxml" fx:id="sidebar" />
     </left>
 
     <!-- Main Content -->
@@ -93,36 +35,36 @@
 
                     <!-- Specialized Metrics Cards (Responsive Flow) -->
                     <FlowPane hgap="25" vgap="25" styleClass="metrics-container">
-                        <!-- Card 1: Stock de Artículos (Success State) -->
-                        <HBox styleClass="card-base, card-success" alignment="TOP_LEFT" spacing="15">
+                        <!-- Card 1: Stock de Artículos -->
+                        <HBox fx:id="stockCard" styleClass="card-base, card-success" alignment="TOP_LEFT" spacing="15">
                             <VBox spacing="8" HBox.hgrow="ALWAYS" alignment="TOP_LEFT">
                                 <Label text="Stock de Artículos" styleClass="card-title" />
-                                <Label text="Saludable" styleClass="card-value, card-value-success" />
-                                <Label text="Todos los artículos cuentan con niveles de stock óptimos en esta sede" styleClass="card-subtitle" wrapText="true" prefWidth="250" />
+                                <Label fx:id="stockValueLabel" text="Saludable" styleClass="card-value, card-value-success" />
+                                <Label fx:id="stockSubtitleLabel" text="Todos los artículos cuentan con niveles de stock óptimos" styleClass="card-subtitle" wrapText="true" prefWidth="250" />
                             </VBox>
-                            <VBox styleClass="icon-container, icon-bg-success">
-                                <FontIcon iconLiteral="fas-check-double" iconSize="20" iconColor="#16a34a" />
+                            <VBox fx:id="stockIconContainer" styleClass="icon-container, icon-bg-success">
+                                <FontIcon fx:id="stockIcon" iconLiteral="fas-check-double" iconSize="20" iconColor="#16a34a" />
                             </VBox>
                         </HBox>
 
-                        <!-- Card 2: Lotes por Vencer (Success State) -->
-                        <HBox styleClass="card-base, card-success" alignment="TOP_LEFT" spacing="15">
+                        <!-- Card 2: Lotes por Vencer -->
+                        <HBox fx:id="vencimientoCard" styleClass="card-base, card-success" alignment="TOP_LEFT" spacing="15">
                             <VBox spacing="8" HBox.hgrow="ALWAYS" alignment="TOP_LEFT">
                                 <Label text="Lotes por Vencer" styleClass="card-title" />
-                                <Label text="Óptimo" styleClass="card-value, card-value-success" />
-                                <Label text="No se registran lotes por vencer en los próximos 30 días" styleClass="card-subtitle" wrapText="true" prefWidth="250" />
+                                <Label fx:id="vencimientoValueLabel" text="Óptimo" styleClass="card-value, card-value-success" />
+                                <Label fx:id="vencimientoSubtitleLabel" text="No se registran lotes por vencer en los próximos 30 días" styleClass="card-subtitle" wrapText="true" prefWidth="250" />
                             </VBox>
-                            <VBox styleClass="icon-container, icon-bg-success">
-                                <FontIcon iconLiteral="fas-check-circle" iconSize="20" iconColor="#16a34a" />
+                            <VBox fx:id="vencimientoIconContainer" styleClass="icon-container, icon-bg-success">
+                                <FontIcon fx:id="vencimientoIcon" iconLiteral="fas-check-circle" iconSize="20" iconColor="#16a34a" />
                             </VBox>
                         </HBox>
 
-                        <!-- Card 3: Salud de Inventario (Image BG) -->
+                        <!-- Card 3: Salud de Inventario (Static Visual) -->
                         <StackPane styleClass="card-health">
                             <VBox styleClass="health-overlay" alignment="TOP_LEFT" spacing="10">
                                 <HBox alignment="CENTER_LEFT" spacing="15">
                                     <VBox HBox.hgrow="ALWAYS">
-                                        <Label text="94%" styleClass="health-value" />
+                                        <Label fx:id="saludValueLabel" text="94%" styleClass="health-value" />
                                         <Label text="Salud de Inventario" styleClass="health-text" />
                                     </VBox>
                                     <FontIcon iconLiteral="fas-heartbeat" iconSize="26" iconColor="white" opacity="0.9" />
@@ -135,7 +77,7 @@
                     <!-- Data Table -->
                     <VBox spacing="20">
                         <Label text="TOP 5 Medicamentos con Menor Stock" styleClass="dashboard-title" style="-fx-font-size: 18px;" />
-                        <TableView fx:id="topDrugsTable" prefHeight="400" maxHeight="500">
+                        <TableView fx:id="topDrugsTable" prefHeight="400" maxHeight="500" fixedCellSize="48">
                             <columns>
                                 <TableColumn fx:id="colCode" text="Código" prefWidth="120" reorderable="false" />
                                 <TableColumn fx:id="colName" text="Medicamento" prefWidth="250" reorderable="false" />
@@ -148,7 +90,7 @@
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                             </columnResizePolicy>
                             <placeholder>
-                                <Label text="No hay datos disponibles para mostrar en este momento." />
+                                <Label text="No hay datos de bajo stock para mostrar." />
                             </placeholder>
                         </TableView>
                     </VBox>

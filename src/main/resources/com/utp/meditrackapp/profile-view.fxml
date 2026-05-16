@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.profile.ui.ProfileController" 
+           styleClass="profile-root" stylesheets="@styles/global.css,@styles/profile.css">
+    
+    <BorderPane fx:id="profileRootPane">
+        <top>
+            <fx:include source="navbar.fxml" fx:id="navbar" />
+        </top>
+
+        <left>
+            <fx:include source="sidebar.fxml" fx:id="sidebar" />
+        </left>
+
+        <center>
+            <VBox spacing="0" styleClass="main-content">
+                <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="15">
+                    <padding><Insets left="25" right="25" /></padding>
+                    <VBox alignment="CENTER_LEFT">
+                        <Label text="Perfil de Usuario" styleClass="header-title" />
+                        <Label text="Dashboard / Configuración de Perfil" styleClass="header-breadcrumb" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <HBox spacing="10" alignment="CENTER">
+                        <VBox alignment="CENTER_RIGHT">
+                            <Label fx:id="fullNameLabelSmall" text="Alejandro Rivas" styleClass="user-name-small" />
+                            <Label fx:id="roleLabelSmall" text="Administrator | Sede Central" styleClass="user-role-small" />
+                        </VBox>
+                        <Circle radius="18" styleClass="avatar-mini" />
+                    </HBox>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="content-scroll">
+                    <GridPane hgap="25" vgap="25">
+                        <padding><Insets top="25" right="25" bottom="25" left="25" /></padding>
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="30" />
+                            <ColumnConstraints percentWidth="70" />
+                        </columnConstraints>
+
+                        <VBox spacing="25" GridPane.columnIndex="0">
+                            <VBox styleClass="card, profile-card" alignment="CENTER" spacing="10">
+                                <StackPane styleClass="avatar-stack">
+                                    <Circle radius="50" styleClass="avatar-large" />
+                                    <FontIcon iconLiteral="fas-user-md" iconSize="45" styleClass="avatar-icon-main" />
+                                </StackPane>
+                                <Label fx:id="fullNameLabel" text="Dr. Alejandro Rivas" styleClass="user-name-large" />
+                                <Label fx:id="roleLabel" text="Administrator" styleClass="user-role-label" />
+                                <HBox alignment="CENTER" spacing="5" styleClass="location-badge">
+                                    <FontIcon iconLiteral="fas-map-marker-alt" styleClass="font-icon" />
+                                    <Label fx:id="sedeLabel" text="Sede Central" />
+                                </HBox>
+                                <Region prefHeight="10" />
+                                <Button text="Editar Perfil" onAction="#onOpenEditModal" styleClass="btn-primary" maxWidth="Infinity">
+                                    <graphic><FontIcon iconLiteral="fas-user-edit" iconColor="white" /></graphic>
+                                </Button>
+                            </VBox>
+
+                            <VBox styleClass="card" spacing="15">
+                                <Label text="Resumen de Actividad" styleClass="card-title" />
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="Último Acceso" styleClass="activity-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Label fx:id="lastAccessValue" text="Hoy, 08:45 AM" styleClass="activity-value" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text="Estado de Cuenta" styleClass="activity-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                                    <Label fx:id="accountStatusValue" text="ACTIVO" styleClass="status-badge-active" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="25" GridPane.columnIndex="1">
+                            <VBox styleClass="card" spacing="25">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <FontIcon iconLiteral="fas-user-circle" iconSize="20" styleClass="font-icon" />
+                                    <Label text="Información Personal" styleClass="card-title" />
+                                </HBox>
+                                
+                                <GridPane hgap="30" vgap="20">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="200" />
+                                    </columnConstraints>
+                                    
+                                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="8">
+                                        <Label text="Nombres" styleClass="input-label" />
+                                        <TextField fx:id="nombresField" editable="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                                    </VBox>
+                                    
+                                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="8">
+                                        <Label text="Apellidos" styleClass="input-label" />
+                                        <TextField fx:id="apellidosField" editable="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                                    </VBox>
+                                    
+                                    <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="8">
+                                        <Label text="Tipo de Documento" styleClass="input-label" />
+                                        <TextField fx:id="tipoDocField" editable="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                                    </VBox>
+                                    
+                                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="8">
+                                        <Label text="Número de Documento" styleClass="input-label" />
+                                        <TextField fx:id="numDocField" editable="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+
+                            <VBox styleClass="card" spacing="15">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <FontIcon iconLiteral="fas-shield-alt" iconSize="20" styleClass="font-icon" />
+                                    <Label text="Seguridad y Acceso" styleClass="card-title" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="15" styleClass="list-item-row">
+                                    <FontIcon iconLiteral="fas-key" styleClass="row-icon"/>
+                                    <VBox HBox.hgrow="ALWAYS">
+                                        <Label text="Contraseña de Usuario" styleClass="row-main-text" />
+                                        <Label text="Protegida por encriptación avanzada" styleClass="row-sub-text" />
+                                    </VBox>
+                                    <Button text="Cambiar Contraseña" onAction="#onChangePassword" styleClass="btn-secondary" />
+                                </HBox>
+                            </VBox>
+
+                            <VBox styleClass="card-danger" spacing="10">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <FontIcon iconLiteral="fas-exclamation-triangle" iconColor="FIREBRICK" styleClass="font-icon" />
+                                    <Label text="Acciones de Cuenta" styleClass="card-title-danger" />
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT">
+                                    <VBox HBox.hgrow="ALWAYS">
+                                        <Label text="Cerrar Sesión Global" styleClass="row-main-text" />
+                                        <Label text="Finaliza todas las sesiones activas en cualquier dispositivo." styleClass="row-sub-text" />
+                                    </VBox>
+                                    <Button text="Cerrar Todas las Sesiones" onAction="#onCloseAllSessions" styleClass="btn-danger" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </GridPane>
+                </ScrollPane>
+            </VBox>
+        </center>
+    </BorderPane>
+
+    <!-- Glassmorphism Edit Modal (Hidden by default) -->
+    <VBox fx:id="editModal" visible="false" alignment="CENTER" styleClass="modal-overlay">
+        <VBox maxWidth="500" spacing="0" styleClass="modal-content">
+            <VBox styleClass="modal-header">
+                <Label text="Editar Información" styleClass="modal-title" />
+                <Label text="Actualice sus datos personales del sistema." styleClass="modal-subtitle" />
+            </VBox>
+            
+            <VBox spacing="20">
+                <VBox spacing="8">
+                    <Label text="Nombres" styleClass="input-label" />
+                    <TextField fx:id="editNombresField" styleClass="flat-text-field" maxWidth="Infinity" />
+                </VBox>
+                <VBox spacing="8">
+                    <Label text="Apellidos" styleClass="input-label" />
+                    <TextField fx:id="editApellidosField" styleClass="flat-text-field" maxWidth="Infinity" />
+                </VBox>
+                <HBox spacing="20">
+                    <VBox HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="Tipo Doc." styleClass="input-label" />
+                        <TextField fx:id="editTipoDocField" styleClass="flat-text-field" maxWidth="Infinity" />
+                    </VBox>
+                    <VBox HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="Núm. Documento" styleClass="input-label" />
+                        <TextField fx:id="editNumDocField" styleClass="flat-text-field" maxWidth="Infinity" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseEditModal" styleClass="btn-ghost" />
+                <Button text="Guardar Cambios" onAction="#onSaveChanges" styleClass="btn-primary" />
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <!-- Change Password Modal (With Eye Toggle) -->
+    <VBox fx:id="passwordModal" visible="false" alignment="CENTER" styleClass="modal-overlay">
+        <VBox maxWidth="450" spacing="0" styleClass="modal-content">
+            <VBox styleClass="modal-header">
+                <Label text="Cambiar Contraseña" styleClass="modal-title" />
+                <Label text="Asegure su cuenta con una contraseña robusta." styleClass="modal-subtitle" />
+            </VBox>
+            
+            <VBox spacing="18">
+                <!-- Current Password -->
+                <VBox spacing="6">
+                    <Label text="Contraseña Actual" styleClass="input-label" />
+                    <HBox alignment="CENTER_LEFT" styleClass="password-field-container">
+                        <StackPane HBox.hgrow="ALWAYS">
+                            <PasswordField fx:id="currentPasswordField" styleClass="flat-text-field" maxWidth="Infinity" />
+                            <TextField fx:id="currentPasswordTextField" visible="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                        </StackPane>
+                        <Button fx:id="toggleCurrentBtn" onAction="#onToggleCurrentVisibility" styleClass="btn-toggle-pass">
+                            <graphic><FontIcon fx:id="currentEyeIcon" iconLiteral="fas-eye" iconSize="14" /></graphic>
+                        </Button>
+                    </HBox>
+                </VBox>
+                
+                <Separator opacity="0.1" />
+
+                <!-- New Password -->
+                <VBox spacing="6">
+                    <Label text="Nueva Contraseña" styleClass="input-label" />
+                    <HBox alignment="CENTER_LEFT" styleClass="password-field-container">
+                        <StackPane HBox.hgrow="ALWAYS">
+                            <PasswordField fx:id="newPasswordField" styleClass="flat-text-field" maxWidth="Infinity" />
+                            <TextField fx:id="newPasswordTextField" visible="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                        </StackPane>
+                        <Button fx:id="toggleNewBtn" onAction="#onToggleNewVisibility" styleClass="btn-toggle-pass">
+                            <graphic><FontIcon fx:id="newEyeIcon" iconLiteral="fas-eye" iconSize="14" /></graphic>
+                        </Button>
+                    </HBox>
+                </VBox>
+
+                <!-- Confirm Password -->
+                <VBox spacing="6">
+                    <Label text="Confirmar Nueva Contraseña" styleClass="input-label" />
+                    <HBox alignment="CENTER_LEFT" styleClass="password-field-container">
+                        <StackPane HBox.hgrow="ALWAYS">
+                            <PasswordField fx:id="confirmPasswordField" styleClass="flat-text-field" maxWidth="Infinity" />
+                            <TextField fx:id="confirmPasswordTextField" visible="false" styleClass="flat-text-field" maxWidth="Infinity" />
+                        </StackPane>
+                        <Button fx:id="toggleConfirmBtn" onAction="#onToggleConfirmVisibility" styleClass="btn-toggle-pass">
+                            <graphic><FontIcon fx:id="confirmEyeIcon" iconLiteral="fas-eye" iconSize="14" /></graphic>
+                        </Button>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onClosePasswordModal" styleClass="btn-ghost" />
+                <Button text="Actualizar Contraseña" onAction="#onUpdatePassword" styleClass="btn-primary" />
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

@@ -12,6 +12,13 @@ Usamos **JUnit 5** para las pruebas de lógica de negocio.
   ```
 - **Convención:** Los nombres de los métodos deben ser descriptivos (ej. `shouldGenerateUniqueIds`).
 
+## Tests de Integración
+
+Para las pruebas que requieren base de datos (DAOs, Configuración):
+- **Estrategia:** Usamos `Assumptions.assumeTrue(DatabaseConfig.getInstance().isReachable())`.
+- **Comportamiento:** Si la base de datos no está disponible (como en el entorno de CI), los tests se saltan automáticamente (**Skipped**) en lugar de fallar. Esto permite que el build del CI se mantenga verde mientras los tests unitarios sigan pasando.
+- **Local:** Asegúrate de tener el contenedor de Docker con SQL Server activo para que estos tests se ejecuten.
+
 ## Integración Continua (CI)
 
 Hemos configurado **GitHub Actions** (`.github/workflows/maven.yml`). 

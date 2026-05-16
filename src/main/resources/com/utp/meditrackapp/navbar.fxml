@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.core.ui.TopbarController" 
+      styleClass="navbar" alignment="CENTER_LEFT" spacing="20">
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" styleClass="brand-icon" />
+        <Label text="MediTrack" styleClass="nav-brand-text" />
+    </HBox>
+    
+    <Region HBox.hgrow="ALWAYS" />
+    
+    <HBox alignment="CENTER_RIGHT" spacing="15">
+        <HBox spacing="5" alignment="CENTER">
+            <Button onAction="#onToggleTheme" styleClass="icon-btn-nav">
+                <graphic><FontIcon fx:id="themeIcon" iconLiteral="fas-moon" iconSize="18" styleClass="secondary-icon" /></graphic>
+            </Button>
+            <Button onAction="#onGoToProfile" styleClass="icon-btn-nav">
+                <graphic><FontIcon iconLiteral="fas-user-circle" iconSize="18" styleClass="secondary-icon" /></graphic>
+            </Button>
+            <Button styleClass="icon-btn-nav">
+                <graphic><FontIcon iconLiteral="fas-cog" iconSize="18" styleClass="secondary-icon" /></graphic>
+            </Button>
+            <Button onAction="#onLogout" styleClass="icon-btn-nav">
+                <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="18" iconColor="#ef4444" /></graphic>
+            </Button>
+        </HBox>
+    </HBox>
+</HBox>
