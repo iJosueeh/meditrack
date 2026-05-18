@@ -11,7 +11,8 @@ public class Lote {
     private LocalDate fechaFabricacion;
     private int cantidad;
 
-    public Lote() {}
+    public Lote() {
+    }
 
     public Lote(String id, String productoId, String sedeId, String numeroLote, LocalDate fechaVencimiento, LocalDate fechaFabricacion, int cantidad) {
         this.id = id;
@@ -23,30 +24,59 @@ public class Lote {
         this.cantidad = cantidad;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public String getProductoId() { return productoId; }
-    public void setProductoId(String productoId) { this.productoId = productoId; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getSedeId() { return sedeId; }
-    public void setSedeId(String sedeId) { this.sedeId = sedeId; }
+    public String getProductoId() {
+        return productoId;
+    }
 
-    public String getNumeroLote() { return numeroLote; }
-    public void setNumeroLote(String numeroLote) { this.numeroLote = numeroLote; }
+    public void setProductoId(String productoId) {
+        this.productoId = productoId;
+    }
 
-    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
-    public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
+    public String getSedeId() {
+        return sedeId;
+    }
 
-    public LocalDate getFechaFabricacion() { return fechaFabricacion; }
-    public void setFechaFabricacion(LocalDate fechaFabricacion) { this.fechaFabricacion = fechaFabricacion; }
+    public void setSedeId(String sedeId) {
+        this.sedeId = sedeId;
+    }
 
-    public int getCantidad() { return cantidad; }
-    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+    public String getNumeroLote() {
+        return numeroLote;
+    }
 
-    public boolean verificarFEFO() {
-        // Lógica para verificar First Expired, First Out
-        if (fechaVencimiento == null) return false;
-        return fechaVencimiento.isBefore(LocalDate.now().plusMonths(6));
+    public void setNumeroLote(String numeroLote) {
+        this.numeroLote = numeroLote;
+    }
+
+    public LocalDate getFechaVencimiento() {
+        return fechaVencimiento;
+    }
+
+    public void setFechaVencimiento(LocalDate fechaVencimiento) {
+        this.fechaVencimiento = fechaVencimiento;
+    }
+
+    public LocalDate getFechaFabricacion() {
+        return fechaFabricacion;
+    }
+
+    public void setFechaFabricacion(LocalDate fechaFabricacion) {
+        this.fechaFabricacion = fechaFabricacion;
+    }
+
+    public int getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
     }
 }
