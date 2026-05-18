@@ -173,6 +173,11 @@ public class ProductoDAO extends JdbcDaoSupport {
 
     private void bindProducto(PreparedStatement statement, Producto producto, boolean includeStockMinimo, boolean isInsert) throws SQLException {
         int index = 1;
+        if (isInsert) {
+            // INSERT expects id as first parameter
+            statement.setString(index++, producto.getId());
+        }
+
         statement.setString(index++, producto.getCategoriaId());
         statement.setString(index++, producto.getCodigoDigemid().trim());
         statement.setString(index++, producto.getNombre().trim());
@@ -184,14 +189,9 @@ public class ProductoDAO extends JdbcDaoSupport {
             statement.setObject(index++, producto.getStockMinimo() == null ? STOCK_MINIMO_DEFAULT : producto.getStockMinimo());
         }
 
-        if (isInsert) {
+        if (!isInsert) {
+            // UPDATE has id as the last parameter (WHERE id = ?)
             statement.setString(index, producto.getId());
-        } else {
-            if (includeStockMinimo) {
-                statement.setString(index++, producto.getId());
-            } else {
-                statement.setString(index, producto.getId());
-            }
         }
     }
 

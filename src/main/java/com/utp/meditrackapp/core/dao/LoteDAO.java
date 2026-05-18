@@ -16,9 +16,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class LoteDAO extends JdbcDaoSupport {
     private static final int STOCK_MINIMO_DEFAULT = Integer.getInteger("inventory.defaultStockMinimo", 10);
+    private volatile Boolean hasStockMinimoColumnCache;
 
     public Lote registrarIngreso(Lote lote) throws SQLException {
         validarLote(lote);
@@ -132,8 +135,15 @@ public class LoteDAO extends JdbcDaoSupport {
     }
 
     public List<StockCriticoItem> obtenerTopStockBajo(String sedeId, int limite) throws SQLException {
+        // obtenerStockCritico incluye tanto stock bajo como alertas por vencimiento.
+        // Aquí filtramos solo por stock bajo (stock_actual < stock_minimo), luego ordenamos por stock_actual asc y devolvemos el top N.
         List<StockCriticoItem> stockCritico = obtenerStockCritico(sedeId);
-        return stockCritico.size() <= limite ? stockCritico : stockCritico.subList(0, limite);
+        List<StockCriticoItem> soloStockBajo = stockCritico.stream()
+                .filter(item -> item.getStockActual() < item.getStockMinimo())
+                .sorted(Comparator.comparingInt(StockCriticoItem::getStockActual))
+                .collect(Collectors.toList());
+
+        return soloStockBajo.size() <= limite ? soloStockBajo : soloStockBajo.subList(0, limite);
     }
 
     public List<Lote> listarPorSedeActual() throws SQLException {
@@ -165,10 +175,20 @@ public class LoteDAO extends JdbcDaoSupport {
     }
 
     private boolean hasStockMinimoColumn() {
-        try (Connection connection = getConnection()) {
-            return SchemaInspector.hasColumn(connection, "productos", "stock_minimo");
-        } catch (SQLException error) {
-            return false;
+        Boolean cached = hasStockMinimoColumnCache;
+        if (cached != null) {
+            return cached;
+        }
+
+        synchronized (this) {
+            if (hasStockMinimoColumnCache == null) {
+                try (Connection connection = getConnection()) {
+                    hasStockMinimoColumnCache = SchemaInspector.hasColumn(connection, "productos", "stock_minimo");
+                } catch (SQLException error) {
+                    hasStockMinimoColumnCache = false;
+                }
+            }
+            return hasStockMinimoColumnCache;
         }
     }
 

@@ -25,6 +25,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import javafx.concurrent.Task;
 
 public class DashboardController {
 
@@ -87,10 +88,17 @@ public class DashboardController {
         }
 
         SessionContext.getSedeId().ifPresent(sedeId -> {
-            try {
-                List<StockCriticoItem> items = inventarioService.obtenerTopStockBajo(sedeId, 5);
-                ObservableList<MedicamentoResumen> filas = FXCollections.observableArrayList();
+            // Ejecutar la consulta en background para no bloquear el JavaFX Application Thread
+            Task<List<StockCriticoItem>> loader = new Task<>() {
+                @Override
+                protected List<StockCriticoItem> call() throws Exception {
+                    return inventarioService.obtenerTopStockBajo(sedeId, 5);
+                }
+            };
 
+            loader.setOnSucceeded(evt -> {
+                List<StockCriticoItem> items = loader.getValue();
+                ObservableList<MedicamentoResumen> filas = FXCollections.observableArrayList();
                 for (StockCriticoItem item : items) {
                     filas.add(new MedicamentoResumen(
                             item.getCodigoDigemid(),
@@ -101,11 +109,17 @@ public class DashboardController {
                             item.getEstado()
                     ));
                 }
-
                 topDrugsTable.setItems(filas);
-            } catch (SQLException error) {
-                System.err.println("[INVENTARIO] No fue posible cargar el resumen de stock: " + error.getMessage());
-            }
+            });
+
+            loader.setOnFailed(evt -> {
+                Throwable ex = loader.getException();
+                System.err.println("[INVENTARIO] No fue posible cargar el resumen de stock: " + (ex == null ? "unknown" : ex.getMessage()));
+            });
+
+            Thread t = new Thread(loader, "dashboard-top-drugs-loader");
+            t.setDaemon(true);
+            t.start();
         });
     }
 

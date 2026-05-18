@@ -35,7 +35,7 @@ public final class SessionContext {
     }
 
     public static String requireSedeId() {
-        return getSedeId().orElseThrow(() -> new IllegalStateException("No hay una sede activa en la sesion."));
+        return getSedeId().orElseThrow(() -> new IllegalStateException("No hay una sede activa en la sesión."));
     }
 
     public static void clear() {
