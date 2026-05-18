@@ -1,7 +1,7 @@
 package com.utp.meditrackapp.features.dashboard.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
-import com.utp.meditrackapp.core.service.InventarioService;
+import com.utp.meditrackapp.features.inventory.service.InventarioService;
 import com.utp.meditrackapp.features.dashboard.Dao.DashboardDao;
 import com.utp.meditrackapp.features.dashboard.models.MedicamentoResumen;
 import com.utp.meditrackapp.features.dashboard.service.ReportService;
