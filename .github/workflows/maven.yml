@@ -10,6 +10,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: Password123!
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+
     steps:
     - uses: actions/checkout@v4
     
@@ -19,9 +29,32 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
-        
+
+    - name: Wait for SQL Server to start
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mssql-tools18 unixodbc-dev
+        # Intentar conectar hasta que esté listo
+        until /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password123!" -C -Q "SELECT 1" > /dev/null 2>&1; do
+          echo "Esperando a SQL Server..."
+          sleep 5
+        done
+
+    - name: Initialize Database
+      run: |
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password123!" -C -Q "CREATE DATABASE meditrack_db;"
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password123!" -C -d meditrack_db -i database/init.sql
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Password123!" -C -d meditrack_db -i database/seed_data.sql
+
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package -DskipTests --file pom.xml
       
     - name: Run Tests
       run: mvn test
+      env:
+        DB_HOST: localhost
+        DB_PORT: 1433
+        DB_NAME: meditrack_db
+        DB_USER: sa
+        DB_PASSWORD: Password123!
+        DB_TRUST_SERVER_CERTIFICATE: true

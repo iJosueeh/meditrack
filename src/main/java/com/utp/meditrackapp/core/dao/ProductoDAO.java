@@ -183,7 +183,7 @@ public class ProductoDAO extends JdbcDaoSupport {
         statement.setString(index++, producto.getNombre().trim());
         statement.setString(index++, producto.getDetalle());
         statement.setString(index++, producto.getUnidadMedida());
-        statement.setInt(index++, producto.isActivo() ? 1 : 0);
+        statement.setInt(index++, producto.getIsActivo());
 
         if (includeStockMinimo) {
             statement.setObject(index++, producto.getStockMinimo() == null ? STOCK_MINIMO_DEFAULT : producto.getStockMinimo());
@@ -217,7 +217,7 @@ public class ProductoDAO extends JdbcDaoSupport {
         producto.setNombre(resultSet.getString("nombre"));
         producto.setDetalle(resultSet.getString("detalle"));
         producto.setUnidadMedida(resultSet.getString("unidad_medida"));
-        producto.setActivo(resultSet.getInt("is_activo") != 0);
+        producto.setIsActivo(resultSet.getInt("is_activo"));
         producto.setStockMinimo(hasStockMinimoColumn(connection) ? resultSet.getObject("stock_minimo", Integer.class) : STOCK_MINIMO_DEFAULT);
         return producto;
     }

@@ -19,19 +19,19 @@ services:
         # Espera a que SQL Server inicie
         sleep 30;
         # Crea la base de datos si no existe
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q \"
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q \"
           IF DB_ID('$$DB_NAME') IS NULL
             BEGIN
               CREATE DATABASE [$$DB_NAME];
             END\";
         # Crea el login del usuario si no existe
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q \"
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q \"
           IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = '$$DB_USER')
             BEGIN
               CREATE LOGIN [$$DB_USER] WITH PASSWORD='$$DB_PASSWORD';
             END\";
         # Crea el usuario en la BD y le da permisos de dueño
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -d \"$$DB_NAME\" -Q \"
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -d \"$$DB_NAME\" -C -Q \"
           IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$$DB_USER')
             BEGIN
               CREATE USER [$$DB_USER] FOR LOGIN [$$DB_USER];
@@ -53,6 +53,24 @@ services:
       - "8080:8080"
     networks:
       - meditrack_net
+
+  db_seed:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: meditrack_db_seed
+    depends_on:
+      - database
+    volumes:
+      - ./database/seed_data.sql:/seed/seed_data.sql:ro
+    entrypoint: ["/bin/bash","-c"]
+    command: >
+      "
+      sleep 15;
+      /opt/mssql-tools/bin/sqlcmd -S database -U sa -P \"${DB_PASSWORD}\" -d ${DB_NAME} -i /seed/seed_data.sql || true;
+      echo 'Seed finished';
+      "
+    networks:
+      - meditrack_net
+    restart: 'no'
 
 networks:
   meditrack_net:

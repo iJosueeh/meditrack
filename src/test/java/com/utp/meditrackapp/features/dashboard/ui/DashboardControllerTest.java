@@ -1,5 +1,6 @@
 package com.utp.meditrackapp.features.dashboard.ui;
 
+import com.utp.meditrackapp.features.dashboard.models.MedicamentoResumen;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -7,7 +8,7 @@ class DashboardControllerTest {
 
     @Test
     void testMedicamentoResumenCreation() {
-        DashboardController.MedicamentoResumen med = new DashboardController.MedicamentoResumen(
+        MedicamentoResumen med = new MedicamentoResumen(
             "MED001", "Paracetamol", "Analgésicos", 50, 10, "Estable"
         );
         

@@ -4,6 +4,7 @@ public class Categoria {
     private String id;
     private String nombre;
 
+
     public Categoria() {
     }
 
@@ -11,7 +12,7 @@ public class Categoria {
         this.id = id;
         this.nombre = nombre;
     }
-
+    
     public String getId() {
         return id;
     }
@@ -28,3 +29,4 @@ public class Categoria {
         this.nombre = nombre;
     }
 }
+

@@ -1,159 +1,4 @@
-/* Dashboard Advanced Styles */
-.dashboard-root {
-    /* Light Theme Variables (Default) */
-    -fx-bg-color: #f8fafc;
-    -fx-surface-color: #ffffff;
-    -fx-surface-hover: #f1f5f9;
-    -fx-border-color-var: #f1f5f9;
-    
-    /* Text Colors */
-    -fx-text-primary: #1e293b;
-    -fx-text-secondary: #64748b;
-    -fx-text-muted: #94a3b8;
-    
-    /* Brand Colors */
-    -fx-brand-primary: #1f4e7a;
-    -fx-brand-success: #16a34a;
-    -fx-brand-danger: #ef4444;
-    
-    /* UI Specific */
-    -fx-navbar-bg: #ffffff;
-    -fx-sidebar-bg: #ffffff;
-    -fx-nav-active-bg: #f0f7ff;
-
-    -fx-font-family: "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
-    -fx-background-color: -fx-bg-color;
-}
-
-.dark-theme {
-    /* Dark Theme Variables */
-    -fx-bg-color: #0f172a;
-    -fx-surface-color: #1e293b;
-    -fx-surface-hover: #334155;
-    -fx-border-color-var: #334155;
-    
-    -fx-text-primary: #f1f5f9;
-    -fx-text-secondary: #94a3b8;
-    -fx-text-muted: #64748b;
-    
-    -fx-brand-primary: #38bdf8;
-    
-    -fx-navbar-bg: #1e293b;
-    -fx-sidebar-bg: #1e293b;
-    -fx-nav-active-bg: #1e293b;
-}
-
-/* Navbar */
-.navbar {
-    -fx-background-color: -fx-navbar-bg;
-    -fx-padding: 0 40;
-    -fx-min-height: 70;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 10, 0, 0, 2);
-    -fx-border-color: -fx-border-color-var;
-    -fx-border-width: 0 0 1 0;
-}
-
-.nav-brand-text {
-    -fx-text-fill: -fx-brand-primary;
-    -fx-font-weight: 800;
-    -fx-font-size: 20px;
-}
-
-.user-info-text {
-    -fx-font-size: 13px;
-    -fx-text-fill: -fx-text-secondary;
-    -fx-font-weight: 600;
-}
-
-/* Transparent Icon Buttons in Nav */
-.icon-btn-nav {
-    -fx-background-color: transparent;
-    -fx-background-radius: 10;
-    -fx-min-width: 38;
-    -fx-min-height: 38;
-    -fx-cursor: hand;
-    -fx-border-color: transparent;
-}
-
-.icon-btn-nav:hover {
-    -fx-background-color: -fx-surface-hover;
-    -fx-border-color: -fx-border-color-var;
-}
-
-/* Sidebar */
-.sidebar {
-    -fx-background-color: -fx-sidebar-bg;
-    -fx-padding: 20 0;
-    -fx-pref-width: 260;
-    -fx-border-color: -fx-border-color-var;
-    -fx-border-width: 0 1 0 0;
-}
-
-.sidebar-profile {
-    -fx-padding: 10 25 25 25;
-}
-
-.profile-avatar-container {
-    -fx-background-color: -fx-bg-color;
-    -fx-background-radius: 50;
-    -fx-min-width: 42;
-    -fx-min-height: 42;
-    -fx-alignment: center;
-    -fx-border-color: -fx-border-color-var;
-    -fx-border-radius: 50;
-}
-
-.profile-name {
-    -fx-font-weight: 700;
-    -fx-text-fill: -fx-text-primary;
-    -fx-font-size: 14px;
-}
-
-.profile-sede {
-    -fx-font-size: 12px;
-    -fx-text-fill: -fx-text-muted;
-    -fx-font-weight: 500;
-}
-
-.nav-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-text-secondary;
-    -fx-alignment: center_left;
-    -fx-padding: 14 25;
-    -fx-font-weight: 600;
-    -fx-background-radius: 0;
-    -fx-cursor: hand;
-    -fx-graphic-text-gap: 15;
-    -fx-border-width: 0 0 0 4;
-    -fx-border-color: transparent;
-}
-
-.nav-button:hover {
-    -fx-background-color: -fx-bg-color;
-    -fx-text-fill: -fx-brand-primary;
-}
-
-.nav-button-active {
-    -fx-background-color: -fx-nav-active-bg;
-    -fx-text-fill: -fx-brand-primary;
-    -fx-border-color: -fx-brand-primary;
-}
-
-.nav-icon {
-    -fx-icon-color: -fx-text-muted;
-}
-
-.brand-icon {
-    -fx-icon-color: -fx-brand-primary;
-}
-
-.secondary-icon {
-    -fx-icon-color: -fx-text-secondary;
-}
-
-.nav-button:hover .nav-icon, .nav-button-active .nav-icon {
-    -fx-icon-color: -fx-brand-primary;
-}
+/* Dashboard Specific Styles */
 
 /* Main Content Area */
 .content-area {
@@ -359,6 +204,11 @@
     -fx-background-color: -fx-surface-color;
     -fx-border-color: transparent transparent -fx-border-color-var transparent;
     -fx-padding: 12 0;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.table-cell {
+    -fx-text-fill: -fx-text-primary;
 }
 
 .table-row-cell:hover {
@@ -392,3 +242,40 @@
     -fx-shape: ""; /* Hide arrows for a cleaner modern look */
     -fx-padding: 0;
 }
+
+/* --- Status Badges in Table --- */
+.status-badge-base {
+    -fx-padding: 4 10;
+    -fx-background-radius: 6;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
+.status-badge-critico {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #ef4444;
+}
+
+.status-badge-bajo {
+    -fx-background-color: #fefce8;
+    -fx-text-fill: #eab308;
+}
+
+/* --- Selección de Fila (Fix para texto que se borra/pone blanco) --- */
+.table-view:focused .table-row-cell:selected {
+    -fx-background-color: -fx-nav-active-bg;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -fx-brand-primary;
+}
+
+.dark-theme .table-view:focused .table-row-cell:selected {
+    -fx-background-color: -fx-brand-primary;
+}
+
+.dark-theme .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+

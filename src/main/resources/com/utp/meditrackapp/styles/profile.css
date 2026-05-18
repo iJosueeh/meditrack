@@ -1,0 +1,298 @@
+/* Profile Specific Styles */
+
+/* General */
+.profile-root {
+    -fx-background-color: -fx-bg-color;
+}
+
+.main-content {
+    -fx-background-color: -fx-bg-color;
+}
+
+.content-scroll {
+    -fx-background: -fx-bg-color; /* Fix crítico: el ScrollPane tiene un fondo blanco interno por defecto */
+    -fx-background-color: transparent;
+}
+
+/* --- Header Bar --- */
+.header-bar {
+    -fx-min-height: 80;
+    -fx-background-color: -fx-surface-color;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 0 0 1 0;
+}
+
+.header-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.header-breadcrumb {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-muted;
+}
+
+.user-name-small {
+    -fx-font-weight: 700;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 13px;
+}
+
+.user-role-small {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fx-text-muted;
+}
+
+.avatar-mini {
+    -fx-fill: -fx-surface-hover;
+    -fx-stroke: -fx-border-color-var;
+}
+
+/* --- Cards --- */
+.card {
+    -fx-background-color: -fx-surface-color;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 10, 0.0, 0, 2);
+}
+
+.card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -fx-text-primary;
+}
+
+/* --- Inputs --- */
+.flat-text-field {
+    -fx-background-color: -fx-bg-color;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-radius: 8;
+    -fx-padding: 12 15;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 13px;
+}
+
+.input-label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-padding: 0 0 5 0;
+}
+
+/* --- Password Toggle Specific --- */
+.password-field-container {
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-color: -fx-bg-color;
+    -fx-background-radius: 8;
+}
+
+.password-field-container .flat-text-field {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+
+.btn-toggle-pass {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0 15 0 0;
+}
+
+.btn-toggle-pass .font-icon {
+    -fx-icon-color: -fx-text-muted;
+}
+
+/* --- Profile Specific Card Elements --- */
+.avatar-large {
+    -fx-fill: linear-gradient(to bottom right, -fx-brand-primary, #3273dc);
+    -fx-stroke: white;
+    -fx-stroke-width: 3;
+}
+
+.avatar-icon-main {
+    -fx-icon-color: white;
+}
+
+.btn-camera-edit {
+    -fx-background-color: -fx-brand-primary;
+    -fx-background-radius: 50;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-text-fill: white;
+}
+
+.user-name-large {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.user-role-label {
+    -fx-text-fill: -fx-text-muted;
+    -fx-font-weight: 600;
+}
+
+.location-badge {
+    -fx-background-color: -fx-surface-hover;
+    -fx-padding: 6 12;
+    -fx-background-radius: 20;
+}
+
+.location-badge .label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 12px;
+}
+
+.location-badge .font-icon {
+    -fx-icon-color: -fx-text-muted;
+}
+
+/* --- Activity List --- */
+.activity-label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 13px;
+}
+
+.activity-value {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 700;
+    -fx-font-size: 13px;
+}
+
+.status-badge-active {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #16a34a;
+    -fx-padding: 4 10;
+    -fx-background-radius: 6;
+    -fx-font-weight: 800;
+    -fx-font-size: 11px;
+}
+
+/* --- Buttons --- */
+.btn-secondary {
+    -fx-background-color: -fx-surface-hover;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 700;
+    -fx-padding: 8 16;
+    -fx-background-radius: 8;
+    -fx-border-color: -fx-border-color-var;
+}
+
+.btn-danger {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20;
+    -fx-background-radius: 8;
+}
+
+.dark-theme .btn-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.1);
+    -fx-border-color: rgba(239, 68, 68, 0.4);
+    -fx-text-fill: #f87171;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #fecaca;
+}
+
+.dark-theme .btn-danger:hover {
+    -fx-background-color: rgba(239, 68, 68, 0.2);
+}
+
+.card-danger {
+    -fx-background-color: #fef2f2;
+    -fx-border-color: #fee2e2;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+}
+
+.dark-theme .card-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.05);
+    -fx-border-color: rgba(239, 68, 68, 0.2);
+}
+
+.card-title-danger {
+    -fx-text-fill: #991b1b;
+    -fx-font-weight: 800;
+    -fx-font-size: 16px;
+}
+
+.dark-theme .card-title-danger {
+    -fx-text-fill: #f87171;
+}
+
+.row-main-text {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 700;
+}
+
+.row-sub-text {
+    -fx-text-fill: -fx-text-muted;
+    -fx-font-size: 12px;
+}
+
+/* --- Modal & Glassmorphism --- */
+.modal-overlay {
+    -fx-background-color: rgba(15, 23, 42, 0.7);
+}
+
+.modal-content {
+    -fx-background-color: rgba(255, 255, 255, 0.85);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 30, 0, 0, 10);
+    -fx-padding: 40;
+}
+
+.dark-theme .modal-content {
+    -fx-background-color: rgba(30, 41, 59, 0.85);
+}
+
+.modal-header {
+    -fx-padding: 0 0 30 0;
+}
+
+.modal-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.modal-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+.modal-footer {
+    -fx-padding: 30 0 0 0;
+}
+
+.btn-primary {
+    -fx-background-color: linear-gradient(to right, #1f4e7a, #3273dc);
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-padding: 12 30;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.btn-primary:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(50, 115, 220, 0.4), 10, 0, 0, 3);
+}
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: 700;
+    -fx-padding: 12 25;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}

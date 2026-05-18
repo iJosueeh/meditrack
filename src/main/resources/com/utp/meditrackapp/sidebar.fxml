@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.core.ui.SidebarController" 
+      styleClass="sidebar" spacing="0">
+    <!-- User Profile in Sidebar -->
+    <VBox styleClass="sidebar-profile">
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <VBox styleClass="profile-avatar-container">
+                <FontIcon iconLiteral="fas-user" iconSize="18" iconColor="#1f4e7a" />
+            </VBox>
+            <VBox alignment="CENTER_LEFT" spacing="2">
+                <Label fx:id="userNameLabel" text="Josué Arcas" styleClass="profile-name" />
+                <Label fx:id="userSedeLabel" text="Sede Central" styleClass="profile-sede" />
+            </VBox>
+        </HBox>
+    </VBox>
+    
+    <Separator opacity="0.1" />
+
+    <VBox spacing="2" VBox.vgrow="ALWAYS">
+        <padding><Insets top="15" /></padding>
+        <Button text="Panel de Control" onAction="#onGoToDashboard" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-th-large" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+        <Button text="Gestión de Pacientes" onAction="#onGoToPatients" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-user-injured" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+        <Button text="Inventario Médico" onAction="#onGoToInventory" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+        <Button text="Control de Citas" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-calendar-alt" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+        <Button text="Catálogo Digital" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-book-medical" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+    </VBox>
+</VBox>
