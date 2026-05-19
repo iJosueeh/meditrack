@@ -1,5 +1,6 @@
 package com.utp.meditrackapp.features.patients.ui;
 
+import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.models.entity.Paciente;
 import com.utp.meditrackapp.features.patients.service.PacienteService;
 import javafx.collections.FXCollections;
