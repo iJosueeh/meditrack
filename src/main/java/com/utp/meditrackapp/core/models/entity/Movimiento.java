@@ -13,7 +13,8 @@ public class Movimiento {
     private String observacion;
     private LocalDateTime fechaRegistro;
 
-    public Movimiento() {}
+    public Movimiento() {
+    }
 
     public Movimiento(String id, String tipoId, String motivoId, String sedeId, String usuarioId, String loteId, int cantidad, String observacion, LocalDateTime fechaRegistro) {
         this.id = id;
@@ -27,30 +28,75 @@ public class Movimiento {
         this.fechaRegistro = fechaRegistro;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public String getTipoId() { return tipoId; }
-    public void setTipoId(String tipoId) { this.tipoId = tipoId; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getMotivoId() { return motivoId; }
-    public void setMotivoId(String motivoId) { this.motivoId = motivoId; }
+    public String getTipoId() {
+        return tipoId;
+    }
 
-    public String getSedeId() { return sedeId; }
-    public void setSedeId(String sedeId) { this.sedeId = sedeId; }
+    public void setTipoId(String tipoId) {
+        this.tipoId = tipoId;
+    }
 
-    public String getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
+    public String getMotivoId() {
+        return motivoId;
+    }
 
-    public String getLoteId() { return loteId; }
-    public void setLoteId(String loteId) { this.loteId = loteId; }
+    public void setMotivoId(String motivoId) {
+        this.motivoId = motivoId;
+    }
 
-    public int getCantidad() { return cantidad; }
-    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+    public String getSedeId() {
+        return sedeId;
+    }
 
-    public String getObservacion() { return observacion; }
-    public void setObservacion(String observacion) { this.observacion = observacion; }
+    public void setSedeId(String sedeId) {
+        this.sedeId = sedeId;
+    }
 
-    public LocalDateTime getFechaRegistro() { return fechaRegistro; }
-    public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }
+    public String getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(String usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public String getLoteId() {
+        return loteId;
+    }
+
+    public void setLoteId(String loteId) {
+        this.loteId = loteId;
+    }
+
+    public int getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public void setObservacion(String observacion) {
+        this.observacion = observacion;
+    }
+
+    public LocalDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(LocalDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
 }
