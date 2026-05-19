@@ -4,15 +4,22 @@ import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.models.entity.Usuario;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import java.io.IOException;
 
 public class SidebarController {
 
-    @FXML
-    private Label userNameLabel;
-    @FXML
-    private Label userSedeLabel;
+    @FXML private Label userNameLabel;
+    @FXML private Label userSedeLabel;
+    
+    @FXML private Button btnDashboard;
+    @FXML private Button btnPatients;
+    @FXML private Button btnAttentions;
+    @FXML private Button btnMovements;
+    @FXML private Button btnInventory;
+    @FXML private Button btnCatalog;
+    @FXML private Button btnUsers;
 
     @FXML
     public void initialize() {
@@ -21,6 +28,38 @@ public class SidebarController {
             userNameLabel.setText(user.getNombres() + " " + user.getApellidos());
             String sede = user.getSedeNombre();
             userSedeLabel.setText(sede != null ? sede : "Sin Sede");
+            
+            applyRolePermissions();
+        }
+    }
+
+    private void applyRolePermissions() {
+        SessionManager session = SessionManager.getInstance();
+        
+        // 1. Técnico de Farmacia (Operativo)
+        if (session.isTecnico()) {
+            btnMovements.setVisible(false);
+            btnMovements.setManaged(false);
+            btnCatalog.setVisible(false);
+            btnCatalog.setManaged(false);
+            btnUsers.setVisible(false);
+            btnUsers.setManaged(false);
+        }
+        
+        // 2. Químico Farmacéutico (Táctico)
+        if (session.isQuimico()) {
+            btnCatalog.setVisible(false);
+            btnCatalog.setManaged(false);
+            btnUsers.setVisible(false);
+            btnUsers.setManaged(false);
+        }
+        
+        // 3. Administrador (Estratégico)
+        if (session.isAdmin()) {
+            btnAttentions.setVisible(false);
+            btnAttentions.setManaged(false);
+            btnMovements.setVisible(false);
+            btnMovements.setManaged(false);
         }
     }
 
@@ -30,12 +69,37 @@ public class SidebarController {
     }
 
     @FXML
-    protected void onGoToPatients() {
-        // NavigationService.toPatients();
+    protected void onGoToPatients() throws IOException {
+        NavigationService.toPatients();
     }
 
     @FXML
-    protected void onGoToInventory() {
+    protected void onGoToAttentions() throws IOException {
+        // NavigationService.toAttentions();
+        System.out.println("[NAV] Navegando a Atenciones...");
+    }
+
+    @FXML
+    protected void onGoToMovements() throws IOException {
+        // NavigationService.toMovements();
+        System.out.println("[NAV] Navegando a Movimientos...");
+    }
+
+    @FXML
+    protected void onGoToInventory() throws IOException {
         // NavigationService.toInventory();
+        System.out.println("[NAV] Navegando a Inventario...");
+    }
+
+    @FXML
+    protected void onGoToCatalog() throws IOException {
+        // NavigationService.toCatalog();
+        System.out.println("[NAV] Navegando a Catálogo Maestro...");
+    }
+
+    @FXML
+    protected void onGoToUsers() throws IOException {
+        // NavigationService.toUsers();
+        System.out.println("[NAV] Navegando a Usuarios...");
     }
 }

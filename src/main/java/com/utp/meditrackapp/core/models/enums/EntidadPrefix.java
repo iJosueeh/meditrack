@@ -14,7 +14,8 @@ public enum EntidadPrefix {
     MOVIMIENTO("MOV"),
     DISPENSACION("DIS"),
     DETALLE_DISPENSACION("DTD"),
-    LOG_ACTIVIDAD("LOG");
+    LOG_ACTIVIDAD("LOG"),
+    PACIENTE("PAC");
 
     private final String prefix;
 

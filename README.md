@@ -44,16 +44,26 @@
 #### Requisitos
 - [JDK 21+](https://adoptium.net/)
 - [Maven 3.8+](https://maven.apache.org/download.cgi)
+- [Docker & Docker Compose](https://www.docker.com/)
+
+#### Configuración de la Base de Datos (Docker)
+Este proyecto utiliza SQL Server en un contenedor Docker para facilitar el desarrollo.
+
+```bash
+# 1. Crear archivo .env a partir del template (ya realizado por el asistente)
+# cp .env.template .env
+
+# 2. Iniciar el contenedor de la base de datos
+docker-compose up -d
+```
+*Nota: La primera vez, el contenedor ejecutará automáticamente `init.sql` y `seed_data.sql` para preparar las tablas y datos iniciales. Espere unos 45 segundos antes de ejecutar la aplicación.*
 
 #### Instalación y Ejecución
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/iJosueeh/meditrack.git
-
-# 2. Compilar el proyecto
+# 1. Compilar el proyecto
 ./mvnw clean compile
 
-# 3. Ejecutar la aplicación
+# 2. Ejecutar la aplicación
 ./mvnw javafx:run
 ```
 

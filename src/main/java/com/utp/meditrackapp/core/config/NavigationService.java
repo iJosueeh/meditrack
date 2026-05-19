@@ -89,6 +89,18 @@ public class NavigationService {
         }
     }
 
+    public static void toPatients() throws IOException {
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/pacientes-view.fxml"));
+        Scene patientsScene = new Scene(loader.load());
+        applyTheme(patientsScene);
+
+        if (primaryStage != null) {
+            primaryStage.setScene(patientsScene);
+            primaryStage.setTitle("MediTrack — Gestión de Pacientes");
+            primaryStage.setMaximized(true);
+        }
+    }
+
     /**
      * TODO: Add methods for other views (Atención, Inventario, Catálogo, Usuarios)
      */
