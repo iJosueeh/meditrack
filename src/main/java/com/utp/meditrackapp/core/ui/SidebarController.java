@@ -35,7 +35,7 @@ public class SidebarController {
     }
 
     @FXML
-    protected void onGoToInventory() {
-        // NavigationService.toInventory();
+    protected void onGoToInventory() throws IOException {
+        NavigationService.toInventory();
     }
 }

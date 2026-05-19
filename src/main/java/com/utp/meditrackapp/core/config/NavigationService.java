@@ -86,6 +86,7 @@ public class NavigationService {
         if (primaryStage != null) {
             primaryStage.setScene(profileScene);
             primaryStage.setTitle("MediTrack — Mi Perfil");
+            primaryStage.setMaximized(true);
         }
     }
 
@@ -97,7 +98,15 @@ public class NavigationService {
     }
 
     public static void toInventory() throws IOException {
-        // TODO: Load inventory-view.fxml
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/inventory-view.fxml"));
+        dashboardScene = new Scene(loader.load());
+        applyTheme(dashboardScene);
+
+        if (primaryStage != null) {
+            primaryStage.setScene(dashboardScene);
+            primaryStage.setTitle("MediTrack — Iventario");
+            primaryStage.setMaximized(true);
+        }
     }
 
     public static void toCatalog() throws IOException {
