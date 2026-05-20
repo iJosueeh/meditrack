@@ -6,20 +6,23 @@ import com.utp.meditrackapp.core.models.entity.AtencionDetalle;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
 import com.utp.meditrackapp.core.util.IdGenerator;
 
+import com.utp.meditrackapp.core.dao.LoteDAO;
+import com.utp.meditrackapp.core.dao.MovimientoDAO;
+import com.utp.meditrackapp.core.models.entity.Movimiento;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AtencionRepositoryImpl implements AtencionRepository {
     private final DatabaseConfig dbConfig = DatabaseConfig.getInstance();
+    private final LoteDAO loteDAO = new LoteDAO();
+    private final MovimientoDAO movimientoDAO = new MovimientoDAO();
 
     @Override
     public boolean registrarAtencionCompleta(Atencion atencion, List<AtencionDetalle> detalles) {
         String sqlAtencion = "INSERT INTO atenciones (id, sede_id, paciente_id, usuario_id, numero_receta, fecha_atencion) VALUES (?, ?, ?, ?, ?, GETDATE())";
         String sqlDetalle = "INSERT INTO atencion_detalles (id, atencion_id, lote_id, cantidad_entregada) VALUES (?, ?, ?, ?)";
-        String sqlUpdateLote = "UPDATE lotes SET cantidad = cantidad - ? WHERE id = ? AND cantidad >= ?";
-        String sqlMovimiento = "INSERT INTO movimientos (id, tipo_id, motivo_id, sede_id, usuario_id, lote_id, cantidad, observacion, fecha_registro) " +
-                               "VALUES (?, 'MOV-T-02', 'MOV-M-03', ?, ?, ?, ?, ?, GETDATE())";
 
         Connection conn = null;
         try {
@@ -49,29 +52,20 @@ public class AtencionRepositoryImpl implements AtencionRepository {
                     psD.executeUpdate();
                 }
 
-                // Actualizar Stock en Lote (Validando que haya suficiente)
-                try (PreparedStatement psU = conn.prepareStatement(sqlUpdateLote)) {
-                    psU.setInt(1, det.getCantidadEntregada());
-                    psU.setString(2, det.getLoteId());
-                    psU.setInt(3, det.getCantidadEntregada());
-                    
-                    int rowsAffected = psU.executeUpdate();
-                    if (rowsAffected == 0) {
-                        throw new SQLException("Stock insuficiente para el lote: " + det.getLoteId());
-                    }
-                }
+                // Actualizar Stock en Lote usando LoteDAO (Compartido)
+                loteDAO.reducirStock(conn, det.getLoteId(), det.getCantidadEntregada());
 
-                // Registrar Movimiento de Salida
-                String movimientoId = IdGenerator.generateId(EntidadPrefix.MOVIMIENTO);
-                try (PreparedStatement psM = conn.prepareStatement(sqlMovimiento)) {
-                    psM.setString(1, movimientoId);
-                    psM.setString(2, atencion.getSedeId());
-                    psM.setString(3, atencion.getUsuarioId());
-                    psM.setString(4, det.getLoteId());
-                    psM.setInt(5, det.getCantidadEntregada());
-                    psM.setString(6, "Salida por Atención Médica - Receta: " + atencion.getNumeroReceta());
-                    psM.executeUpdate();
-                }
+                // Registrar Movimiento de Salida usando MovimientoDAO (Compartido)
+                Movimiento mov = new Movimiento();
+                mov.setTipoId("MOV-T-02"); // salida
+                mov.setMotivoId("MOV-M-03"); // atencion
+                mov.setSedeId(atencion.getSedeId());
+                mov.setUsuarioId(atencion.getUsuarioId());
+                mov.setLoteId(det.getLoteId());
+                mov.setCantidad(det.getCantidadEntregada());
+                mov.setObservacion("Salida por Atención Médica - Receta: " + atencion.getNumeroReceta());
+                
+                movimientoDAO.registrarMovimiento(conn, mov);
             }
 
             conn.commit(); // ÉXITO: Confirmar todos los cambios

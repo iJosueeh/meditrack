@@ -146,6 +146,20 @@ public class LoteDAO extends JdbcDaoSupport {
         return soloStockBajo.size() <= limite ? soloStockBajo : soloStockBajo.subList(0, limite);
     }
 
+    public void reducirStock(Connection connection, String loteId, int cantidad) throws SQLException {
+        String sql = "UPDATE lotes SET cantidad = cantidad - ? WHERE id = ? AND cantidad >= ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, cantidad);
+            statement.setString(2, loteId);
+            statement.setInt(3, cantidad);
+            
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Stock insuficiente o lote no encontrado: " + loteId);
+            }
+        }
+    }
+
     public List<Lote> listarPorSedeActual() throws SQLException {
         return listarPorSede(SessionContext.requireSedeId());
     }
