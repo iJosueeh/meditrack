@@ -24,24 +24,28 @@ public class LoteDAO extends JdbcDaoSupport {
     private volatile Boolean hasStockMinimoColumnCache;
 
     public Lote registrarIngreso(Lote lote) throws SQLException {
+        try (Connection connection = getConnection()) {
+            return registrarIngreso(connection, lote);
+        }
+    }
+
+    public Lote registrarIngreso(Connection connection, Lote lote) throws SQLException {
         validarLote(lote);
 
-        try (Connection connection = getConnection()) {
-            if (lote.getId() == null || lote.getId().isBlank()) {
-                lote.setId(IdGenerator.generateId(EntidadPrefix.LOTE));
-            }
+        if (lote.getId() == null || lote.getId().isBlank()) {
+            lote.setId(IdGenerator.generateId(EntidadPrefix.LOTE));
+        }
 
-            String sql = "INSERT INTO lotes (id, producto_id, sede_id, numero_lote, fecha_vencimiento, fecha_fabricacion, cantidad) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setString(1, lote.getId());
-                statement.setString(2, lote.getProductoId());
-                statement.setString(3, lote.getSedeId());
-                statement.setString(4, lote.getNumeroLote());
-                statement.setDate(5, Date.valueOf(lote.getFechaVencimiento()));
-                statement.setDate(6, lote.getFechaFabricacion() == null ? null : Date.valueOf(lote.getFechaFabricacion()));
-                statement.setInt(7, lote.getCantidad());
-                statement.executeUpdate();
-            }
+        String sql = "INSERT INTO lotes (id, producto_id, sede_id, numero_lote, fecha_vencimiento, fecha_fabricacion, cantidad) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, lote.getId());
+            statement.setString(2, lote.getProductoId());
+            statement.setString(3, lote.getSedeId());
+            statement.setString(4, lote.getNumeroLote());
+            statement.setDate(5, Date.valueOf(lote.getFechaVencimiento()));
+            statement.setDate(6, lote.getFechaFabricacion() == null ? null : Date.valueOf(lote.getFechaFabricacion()));
+            statement.setInt(7, lote.getCantidad());
+            statement.executeUpdate();
         }
 
         return lote;
@@ -156,6 +160,19 @@ public class LoteDAO extends JdbcDaoSupport {
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected == 0) {
                 throw new SQLException("Stock insuficiente o lote no encontrado: " + loteId);
+            }
+        }
+    }
+
+    public void aumentarStock(Connection connection, String loteId, int cantidad) throws SQLException {
+        String sql = "UPDATE lotes SET cantidad = cantidad + ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, cantidad);
+            statement.setString(2, loteId);
+            
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Lote no encontrado: " + loteId);
             }
         }
     }
