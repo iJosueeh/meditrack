@@ -29,7 +29,7 @@
                                 <Label text="DNI / NÚMERO DE IDENTIFICACIÓN" styleClass="grid-label" />
                                 <HBox styleClass="input-container" alignment="CENTER_LEFT" spacing="10">
                                     <FontIcon iconLiteral="fas-id-card" iconSize="16" iconColor="#9aa0a6" />
-                                    <TextField fx:id="dniField" promptText="Ingrese su DNI" HBox.hgrow="ALWAYS" styleClass="naked-input" />
+                                    <TextField fx:id="dniField" promptText="Ingrese su DNI" HBox.hgrow="ALWAYS" styleClass="naked-input" onAction="#onDniAction" />
                                 </HBox>
                             </VBox>
 
@@ -38,8 +38,8 @@
                                 <HBox styleClass="input-container" alignment="CENTER_LEFT" spacing="10">
                                     <FontIcon iconLiteral="fas-lock" iconSize="16" iconColor="#9aa0a6" />
                                     <StackPane HBox.hgrow="ALWAYS">
-                                        <PasswordField fx:id="passwordField" promptText="••••••••" styleClass="naked-input" />
-                                        <TextField fx:id="passwordTextField" promptText="••••••••" visible="false" styleClass="naked-input" />
+                                        <PasswordField fx:id="passwordField" promptText="••••••••" styleClass="naked-input" onAction="#onLogin" />
+                                        <TextField fx:id="passwordTextField" promptText="••••••••" visible="false" styleClass="naked-input" onAction="#onLogin" />
                                     </StackPane>
                                     <Button fx:id="toggleViewBtn" mnemonicParsing="false" onAction="#onTogglePasswordVisibility" styleClass="icon-btn">
                                         <graphic>

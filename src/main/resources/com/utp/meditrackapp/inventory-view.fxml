@@ -25,7 +25,7 @@
                     <!-- Header with Action Button -->
                     <HBox alignment="CENTER_LEFT">
                         <VBox spacing="4" HBox.hgrow="ALWAYS">
-                            <Label text="Panel de Control de Gestión" styleClass="dashboard-title" />
+                            <Label text="PINVENTARIO" styleClass="dashboard-title" />
                             <Label text="Visualización en tiempo real del estado de la sede." styleClass="section-subtitle" />
                         </VBox>
                         <Button text="Generar Reporte" onAction="#onGenerateReport" styleClass="btn-report">

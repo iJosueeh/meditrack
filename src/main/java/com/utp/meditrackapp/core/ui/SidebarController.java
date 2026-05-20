@@ -70,7 +70,7 @@ public class SidebarController {
 
     @FXML
     protected void onGoToPatients() throws IOException {
-        NavigationService.toPatients();
+        // NavigationService.toPatients();
     }
 
     @FXML
