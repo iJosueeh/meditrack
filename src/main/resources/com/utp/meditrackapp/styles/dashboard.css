@@ -40,7 +40,8 @@
     -fx-background-radius: 16;
     -fx-padding: 22 25;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 12, 0, 0, 4);
-    -fx-border-width: 2.5;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
     -fx-border-radius: 16;
     -fx-min-height: 145;
     -fx-pref-width: 380;
@@ -59,7 +60,6 @@
     -fx-font-weight: 800;
     -fx-text-fill: -fx-text-secondary;
     -fx-text-transform: uppercase;
-    -fx-letter-spacing: 0.8px;
 }
 
 .card-value {
@@ -77,7 +77,6 @@
     -fx-font-size: 13px;
     -fx-text-fill: -fx-text-secondary;
     -fx-font-weight: 500;
-    -fx-line-spacing: 1.4px;
     -fx-wrap-text: true;
 }
 
@@ -181,8 +180,8 @@
 }
 
 .table-view .column-header-background {
-    -fx-background-color: -fx-bg-color;
-    -fx-background-radius: 15 15 0 0; /* Un poco menos para no salirse del borde */
+    -fx-background-color: -fx-surface-color;
+    -fx-background-radius: 15 15 0 0;
 }
 
 .table-view .column-header {
@@ -239,7 +238,6 @@
 }
 
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
-    -fx-shape: ""; /* Hide arrows for a cleaner modern look */
     -fx-padding: 0;
 }
 
@@ -261,7 +259,7 @@
     -fx-text-fill: #eab308;
 }
 
-/* --- Selección de Fila (Fix para texto que se borra/pone blanco) --- */
+/* --- Selection styling --- */
 .table-view:focused .table-row-cell:selected {
     -fx-background-color: -fx-nav-active-bg;
 }

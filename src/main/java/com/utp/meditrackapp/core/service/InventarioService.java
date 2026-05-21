@@ -50,6 +50,10 @@ public class InventarioService {
         return loteDAO.registrarIngreso(lote);
     }
 
+    public List<Lote> listarLotesConProducto(String sedeId) throws SQLException {
+        return loteDAO.listarLotesConProducto(sedeId);
+    }
+
     public List<Lote> listarLotesFefo(String sedeId, String productoId) throws SQLException {
         return loteDAO.listarLotesFefo(sedeId, productoId);
     }

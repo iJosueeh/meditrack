@@ -8,12 +8,17 @@ import com.utp.meditrackapp.core.models.entity.Movimiento;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 public class MovimientoService {
     private final LoteDAO loteDAO = new LoteDAO();
     private final MovimientoDAO movimientoDAO = new MovimientoDAO();
     private final DatabaseConfig dbConfig = DatabaseConfig.getInstance();
+
+    public List<Movimiento> listarMovimientos(String sedeId, String tipoId, String buscar) throws SQLException {
+        return movimientoDAO.listarPorSede(sedeId, tipoId, buscar);
+    }
 
     /**
      * Registra una entrada de stock (Compra).
@@ -26,7 +31,7 @@ public class MovimientoService {
 
             // 1. Registrar el Lote (Si es nuevo lo inserta, si ya tiene ID debería existir)
             if (lote.getId() == null || lote.getId().isEmpty()) {
-                loteDAO.registrarIngreso(lote);
+                loteDAO.registrarIngreso(conn, lote);
             } else {
                 loteDAO.aumentarStock(conn, lote.getId(), lote.getCantidad());
             }

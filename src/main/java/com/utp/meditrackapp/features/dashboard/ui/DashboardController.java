@@ -68,10 +68,28 @@ public class DashboardController {
             welcomeLabel.setText("¡Bienvenido de nuevo, Usuario!");
         }
         setupTable();
+        loadDashboardMetrics();
         if (rootPane != null && rootPane.getParent() instanceof StackPane) {
             StackPane parent = (StackPane) rootPane.getParent();
             rootPane.prefHeightProperty().bind(parent.heightProperty());
             rootPane.prefWidthProperty().bind(parent.widthProperty());
+        }
+    }
+
+    private void loadDashboardMetrics() {
+        try {
+            int stockCritico = dashboardDao.getStockCriticoCount(10);
+            stockValueLabel.setText(String.valueOf(stockCritico));
+            
+            int porVencer = dashboardDao.getLotesPorVencerCount(30);
+            vencimientoValueLabel.setText(String.valueOf(porVencer));
+            
+            int salud = dashboardDao.getSaludInventario();
+            saludValueLabel.setText(salud + "%");
+
+            topDrugsTable.setItems(FXCollections.observableArrayList(dashboardDao.getTopBajoStock()));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

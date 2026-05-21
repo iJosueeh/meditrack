@@ -75,7 +75,7 @@ public class SidebarController {
 
     @FXML
     protected void onGoToAttentions() throws IOException {
-        // NavigationService.toAttentions();
+        NavigationService.toAttention();
         System.out.println("[NAV] Navegando a Atenciones...");
     }
 

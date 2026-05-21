@@ -106,17 +106,25 @@ public class NavigationService {
      * TODO: Add methods for other views (Atención, Inventario, Catálogo, Usuarios)
      */
     public static void toAttention() throws IOException {
-        // TODO: Load attention-view.fxml
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/atencion-view.fxml"));
+        Scene attentionScene = new Scene(loader.load());
+        applyTheme(attentionScene);
+
+        if (primaryStage != null) {
+            primaryStage.setScene(attentionScene);
+            primaryStage.setTitle("MediTrack — Registro de Atenciones");
+            primaryStage.setMaximized(true);
+        }
     }
 
     public static void toInventory() throws IOException {
         FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/inventory-view.fxml"));
-        dashboardScene = new Scene(loader.load());
-        applyTheme(dashboardScene);
+        Scene inventoryScene = new Scene(loader.load());
+        applyTheme(inventoryScene);
 
         if (primaryStage != null) {
-            primaryStage.setScene(dashboardScene);
-            primaryStage.setTitle("MediTrack — Iventario");
+            primaryStage.setScene(inventoryScene);
+            primaryStage.setTitle("MediTrack — Inventario");
             primaryStage.setMaximized(true);
         }
     }
