@@ -13,6 +13,7 @@ public class App extends Application {
         
         // Iniciamos la ventana maximizada
         stage.setMaximized(true);
+
         stage.setTitle("MediTrack - Gestión de Inventario Médico");
         stage.show();
         

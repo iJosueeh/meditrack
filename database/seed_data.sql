@@ -2,9 +2,6 @@
 -- SCRIPT DE DATOS DE PRUEBA (SEED) PARA MEDITRACK
 -- =============================================
 
-USE meditrack_db;
-GO
-
 -- Asegurar columna de precio_unitario en productos
 IF COL_LENGTH('productos','precio_unitario') IS NULL
 BEGIN

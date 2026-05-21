@@ -16,27 +16,40 @@ services:
       /bin/bash -c "
         /opt/mssql/bin/sqlservr &
         pid=$$!;
-        # Espera a que SQL Server inicie
-        sleep 30;
+        # Espera a que SQL Server inicie verificando el puerto
+        echo 'Esperando a que SQL Server esté listo...';
+        until /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" &> /dev/null; do
+          sleep 5;
+          echo 'Reintentando conexión...';
+        done;
+        
+        echo 'SQL Server listo. Configurando base de datos...';
+
         # Crea la base de datos si no existe
-        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q \"
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"
           IF DB_ID('$$DB_NAME') IS NULL
             BEGIN
               CREATE DATABASE [$$DB_NAME];
+              PRINT 'Base de datos $$DB_NAME creada.';
             END\";
-        # Crea el login del usuario si no existe
-        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q \"
-          IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = '$$DB_USER')
+        
+        # Crea el login del usuario si no existe (solo si no es sa)
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"
+          IF '$$DB_USER' <> 'sa' AND NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = '$$DB_USER')
             BEGIN
               CREATE LOGIN [$$DB_USER] WITH PASSWORD='$$DB_PASSWORD';
+              PRINT 'Login $$DB_USER creado.';
             END\";
+        
         # Crea el usuario en la BD y le da permisos de dueño
-        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -d \"$$DB_NAME\" -C -Q \"
-          IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$$DB_USER')
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -d \"$$DB_NAME\" -C -Q \"
+          IF '$$DB_USER' <> 'sa' AND NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$$DB_USER')
             BEGIN
               CREATE USER [$$DB_USER] FOR LOGIN [$$DB_USER];
               EXEC sp_addrolemember N'db_owner', N'$$DB_USER';
+              PRINT 'Usuario $$DB_USER configurado en $$DB_NAME.';
             END\";
+        
         wait $$pid
       "
     volumes:
@@ -44,6 +57,12 @@ services:
     networks:
       - meditrack_net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${DB_PASSWORD}", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
 
   admin_panel:
     image: adminer:latest
@@ -58,15 +77,16 @@ services:
     image: mcr.microsoft.com/mssql-tools
     container_name: meditrack_db_seed
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     volumes:
-      - ./database/seed_data.sql:/seed/seed_data.sql:ro
+      - ./database:/database:ro
     entrypoint: ["/bin/bash","-c"]
     command: >
       "
-      sleep 15;
-      /opt/mssql-tools/bin/sqlcmd -S database -U sa -P \"${DB_PASSWORD}\" -d ${DB_NAME} -i /seed/seed_data.sql || true;
-      echo 'Seed finished';
+      /opt/mssql-tools/bin/sqlcmd -S database -U sa -P \"${DB_PASSWORD}\" -d ${DB_NAME} -i /database/init.sql || true;
+      /opt/mssql-tools/bin/sqlcmd -S database -U sa -P \"${DB_PASSWORD}\" -d ${DB_NAME} -i /database/seed_data.sql || true;
+      echo 'Initialization and Seed finished';
       "
     networks:
       - meditrack_net
