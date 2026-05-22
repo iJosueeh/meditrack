@@ -1,9 +1,11 @@
 package com.utp.meditrackapp.features.inventory.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
+import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
 import com.utp.meditrackapp.core.models.entity.*;
-import com.utp.meditrackapp.core.service.InventarioService;
-import com.utp.meditrackapp.features.inventory.service.MovimientoService;
+import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
+import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
+import com.utp.meditrackapp.features.inventory.service.InventarioService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -19,7 +21,6 @@ import java.util.List;
 public class InventoryController {
 
     private final InventarioService inventarioService = new InventarioService();
-    private final MovimientoService movimientoService = new MovimientoService();
     private final SessionManager sessionManager = SessionManager.getInstance();
 
     @FXML private TabPane inventoryTabPane;
@@ -71,10 +72,9 @@ public class InventoryController {
         try {
             List<Producto> productos = inventarioService.listarProductosActivos();
             cmbModalProduct.setItems(FXCollections.observableArrayList(productos));
-            cmbModalType.setItems(FXCollections.observableArrayList("Entrada", "Salida"));
-            
-            cmbModalMotivo.setItems(FXCollections.observableArrayList(
-                new MotivoMovimiento("1", "Compra"), new MotivoMovimiento("2", "Ajuste")
+            cmbModalType.setItems(FXCollections.observableArrayList(
+                TipoMovimientoEnum.ENTRADA.name(), 
+                TipoMovimientoEnum.SALIDA.name()
             ));
             
             cmbModalProduct.setConverter(new StringConverter<>() {
@@ -102,22 +102,28 @@ public class InventoryController {
 
     @FXML
     protected void onModalProductChanged() {
-        if ("Salida".equals(cmbModalType.getValue())) {
+        if (TipoMovimientoEnum.SALIDA.name().equals(cmbModalType.getValue())) {
             loadBatchesForProduct(cmbModalProduct.getValue());
         }
     }
 
     @FXML
     protected void onModalTypeChanged() {
-        boolean isEntrada = "Entrada".equals(cmbModalType.getValue());
+        boolean isEntrada = TipoMovimientoEnum.ENTRADA.name().equals(cmbModalType.getValue());
         vboxEntradaDetails.setVisible(isEntrada);
         vboxEntradaDetails.setManaged(isEntrada);
         cmbModalBatch.setVisible(!isEntrada);
         cmbModalBatch.setManaged(!isEntrada);
         
         List<MotivoMovimiento> motivos = isEntrada ? 
-            List.of(new MotivoMovimiento("E1", "Compra"), new MotivoMovimiento("E2", "Donación")) :
-            List.of(new MotivoMovimiento("S1", "Atención"), new MotivoMovimiento("S2", "Merma"));
+            List.of(
+                new MotivoMovimiento(MotivoMovimientoEnum.COMPRA.getId(), "Compra"), 
+                new MotivoMovimiento(MotivoMovimientoEnum.TRANSFERENCIA.getId(), "Transferencia")
+            ) :
+            List.of(
+                new MotivoMovimiento(MotivoMovimientoEnum.ATENCION.getId(), "Atención"), 
+                new MotivoMovimiento(MotivoMovimientoEnum.MERMA.getId(), "Merma")
+            );
         cmbModalMotivo.setItems(FXCollections.observableArrayList(motivos));
         
         if (!isEntrada) loadBatchesForProduct(cmbModalProduct.getValue());
@@ -139,6 +145,7 @@ public class InventoryController {
     @FXML
     protected void onSaveMovement() {
         System.out.println("Guardando movimiento...");
+        // TODO: Implement actual save logic using inventarioService.registrarEntrada/Merma
         onCloseModal();
         refreshMovements();
         refreshBatches();
@@ -153,7 +160,7 @@ public class InventoryController {
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
-            List<Movimiento> movements = movimientoService.listarMovimientos(user.getSedeId(), null, ""); 
+            List<Movimiento> movements = inventarioService.listarMovimientos(user.getSedeId(), null, ""); 
             tableMovements.setItems(FXCollections.observableArrayList(movements));
         } catch (SQLException e) { e.printStackTrace(); }
     }
@@ -164,20 +171,24 @@ public class InventoryController {
             if (user == null) return;
             List<Lote> batches = inventarioService.listarLotesConProducto(user.getSedeId());
             tableBatches.setItems(FXCollections.observableArrayList(batches));
-            updateBatchSummary(batches);
+            updateBatchSummary(user.getSedeId(), batches);
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    private void updateBatchSummary(List<Lote> batches) {
+    private void updateBatchSummary(String sedeId, List<Lote> batches) {
         if (lblActiveBatches == null || lblCriticalBatches == null) return;
-        long active = batches.stream().filter(l -> l.getCantidad() > 0).count();
-        long critical = batches.stream()
-                .filter(l -> l.getFechaVencimiento() != null && 
-                        l.getFechaVencimiento().isBefore(LocalDate.now().plusDays(5)) && 
-                        l.getFechaVencimiento().isAfter(LocalDate.now().minusDays(1)))
-                .count();
         
-        lblActiveBatches.setText(String.valueOf(active));
-        lblCriticalBatches.setText(String.valueOf(critical));
+        try {
+            // Ya no filtramos manualmente en Java, usamos el servicio que encapsula la lógica
+            List<StockCriticoItem> criticos = inventarioService.obtenerStockCritico(sedeId);
+            
+            long active = batches.stream().filter(l -> l.getCantidad() > 0).count();
+            long critical = criticos.stream().filter(StockCriticoItem::isVencePronto).count();
+            
+            lblActiveBatches.setText(String.valueOf(active));
+            lblCriticalBatches.setText(String.valueOf(critical));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

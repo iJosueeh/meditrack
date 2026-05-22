@@ -5,7 +5,7 @@ import com.utp.meditrackapp.core.models.entity.AtencionDetalle;
 import com.utp.meditrackapp.core.models.entity.Producto;
 import com.utp.meditrackapp.core.models.entity.Lote;
 import com.utp.meditrackapp.features.attentions.service.AtencionService;
-import com.utp.meditrackapp.core.service.InventarioService;
+import com.utp.meditrackapp.features.inventory.service.InventarioService;
 import com.utp.meditrackapp.core.config.SessionManager;
 
 import javafx.collections.FXCollections;
