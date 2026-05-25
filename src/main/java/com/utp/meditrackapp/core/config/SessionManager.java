@@ -31,4 +31,16 @@ public class SessionManager {
      public boolean isLoggedIn() {
         return currentUser != null;
      }
+
+     public boolean isTecnico() {
+         return isLoggedIn() && "Técnico de Farmacia".equalsIgnoreCase(currentUser.getRolNombre());
+     }
+
+     public boolean isQuimico() {
+         return isLoggedIn() && "Químico Farmacéutico".equalsIgnoreCase(currentUser.getRolNombre());
+     }
+
+     public boolean isAdmin() {
+         return isLoggedIn() && "Administrador".equalsIgnoreCase(currentUser.getRolNombre());
+     }
 }

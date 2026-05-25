@@ -21,20 +21,24 @@ public class DatabaseConfig {
         String dbName = dotenv.get("DB_NAME");
         String dbUser = dotenv.get("DB_USER");
         String dbPassword = dotenv.get("DB_PASSWORD");
-        String trustCert = dotenv.get("DB_TRUST_SERVER_CERTIFICATE", "false");
 
+        System.out.println("[DB DEBUG] Intentando conectar a: " + dbHost + ":" + dbPort + " BD: " + dbName + " como " + dbUser);
+
+        // URL simplificada para evitar problemas de cifrado/certificados en local
         String url = String.format(
-                "jdbc:sqlserver://%s:%s;databaseName=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=%s;",
-                dbHost, dbPort, dbName, dbUser, dbPassword, trustCert
+                "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=false;loginTimeout=10;",
+                dbHost, dbPort, dbName
         );
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
-        config.setMaximumPoolSize(5);
-        config.setConnectionTimeout(2000);
-        config.setIdleTimeout(600000);
+        config.setUsername(dbUser);
+        config.setPassword(dbPassword);
+        config.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        config.setMaximumPoolSize(10);
+        config.setConnectionTimeout(10000);
         config.setPoolName("MediTrackPool");
-        config.setInitializationFailTimeout(-1);
+        config.setInitializationFailTimeout(0);
         
         this.dataSource = new HikariDataSource(config);
     }
