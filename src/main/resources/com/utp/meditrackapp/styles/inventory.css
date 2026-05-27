@@ -1,0 +1,102 @@
+/* Inventory Module Styles */
+
+.modal-overlay {
+    -fx-background-color: rgba(0,0,0,0.4);
+}
+
+.card-base {
+    -fx-background-color: -fx-surface-color;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 8, 0, 0, 2);
+}
+
+.input-label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-transform: uppercase;
+}
+
+/* Input Fields */
+.flat-text-field, .combo-box, .date-picker {
+    -fx-background-color: -fx-bg-color;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-radius: 8;
+    -fx-padding: 8;
+    -fx-pref-height: 38;
+}
+
+.date-picker > .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .cell, .date-picker .cell {
+    -fx-text-fill: -fx-text-primary;
+}
+
+/* Button Filtering */
+.btn-filter {
+    -fx-background-color: -fx-brand-primary;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-background-radius: 8;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+/* Alert styling classes */
+.alert-danger {
+    -fx-background-color: #fef2f2;
+    -fx-padding: 12;
+    -fx-background-radius: 8;
+    -fx-border-color: #ef4444;
+    -fx-border-width: 1;
+}
+
+.alert-warning {
+    -fx-background-color: #fffbeb;
+    -fx-padding: 12;
+    -fx-background-radius: 8;
+    -fx-border-color: #f59e0b;
+    -fx-border-width: 1;
+}
+
+/* Filter Bar Styling */
+.filter-bar {
+    -fx-background-color: -fx-surface-color;
+    -fx-padding: 20;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-border-color-var;
+    -fx-border-width: 1;
+    -fx-alignment: center-left;
+    -fx-spacing: 15;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 8, 0, 0, 2);
+}
+
+/* TabPane Styling */
+.modern-tab-pane .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.modern-tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 10 20;
+}
+
+.modern-tab-pane .tab:selected {
+    -fx-border-color: transparent transparent -fx-brand-primary transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+.modern-tab-pane .tab .tab-label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: 600;
+}
+
+.modern-tab-pane .tab:selected .tab-label {
+    -fx-text-fill: -fx-brand-primary;
+}
+

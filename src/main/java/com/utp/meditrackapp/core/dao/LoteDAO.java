@@ -177,8 +177,20 @@ public class LoteDAO extends JdbcDaoSupport {
         }
     }
 
-    public List<Lote> listarPorSedeActual() throws SQLException {
-        return listarPorSede(SessionContext.requireSedeId());
+    public List<Lote> listarLotesConProducto(String sedeId) throws SQLException {
+        String sql = "SELECT l.*, p.nombre as producto_nombre FROM lotes l JOIN productos p ON l.producto_id = p.id WHERE l.sede_id = ? ORDER BY l.fecha_vencimiento ASC";
+        List<Lote> lotes = new ArrayList<>();
+        try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, sedeId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Lote lote = mapLote(resultSet);
+                    // Podríamos setear el nombre del producto si el modelo lo permite o usar un DTO
+                    lotes.add(lote);
+                }
+            }
+        }
+        return lotes;
     }
 
     private List<Lote> listarPorSedeYProducto(String sedeId, String productoId) throws SQLException {
@@ -258,6 +270,10 @@ public class LoteDAO extends JdbcDaoSupport {
             lote.setFechaFabricacion(fechaFabricacion.toLocalDate());
         }
         lote.setCantidad(resultSet.getInt("cantidad"));
+        
+        // Map transient field if present
+        try { lote.setProductoNombre(resultSet.getString("producto_nombre")); } catch (SQLException e) {}
+        
         return lote;
     }
 

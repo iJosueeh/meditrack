@@ -5,7 +5,7 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.features.dashboard.ui.DashboardController" styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css">
-    <BorderPane fx:id="rootPane" prefWidth="1280" prefHeight="850">
+    <BorderPane fx:id="rootPane">
     
     <!-- Top Navbar (Reusable) -->
     <top>

@@ -86,6 +86,7 @@ public class NavigationService {
         if (primaryStage != null) {
             primaryStage.setScene(profileScene);
             primaryStage.setTitle("MediTrack — Mi Perfil");
+            primaryStage.setMaximized(true);
         }
     }
 
@@ -105,11 +106,27 @@ public class NavigationService {
      * TODO: Add methods for other views (Atención, Inventario, Catálogo, Usuarios)
      */
     public static void toAttention() throws IOException {
-        // TODO: Load attention-view.fxml
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/atencion-view.fxml"));
+        Scene attentionScene = new Scene(loader.load());
+        applyTheme(attentionScene);
+
+        if (primaryStage != null) {
+            primaryStage.setScene(attentionScene);
+            primaryStage.setTitle("MediTrack — Registro de Atenciones");
+            primaryStage.setMaximized(true);
+        }
     }
 
     public static void toInventory() throws IOException {
-        // TODO: Load inventory-view.fxml
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/inventory-view.fxml"));
+        Scene inventoryScene = new Scene(loader.load());
+        applyTheme(inventoryScene);
+
+        if (primaryStage != null) {
+            primaryStage.setScene(inventoryScene);
+            primaryStage.setTitle("MediTrack — Inventario");
+            primaryStage.setMaximized(true);
+        }
     }
 
     public static void toCatalog() throws IOException {

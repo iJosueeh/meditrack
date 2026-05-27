@@ -61,6 +61,15 @@ public class LoginController {
     }
 
     @FXML
+    protected void onDniAction() {
+        if (isPasswordVisible) {
+            passwordTextField.requestFocus();
+        } else {
+            passwordField.requestFocus();
+        }
+    }
+
+    @FXML
     protected void onLogin() throws IOException {
         String dni = dniField.getText();
         String password = isPasswordVisible ? passwordTextField.getText() : passwordField.getText();
