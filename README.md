@@ -24,17 +24,21 @@
 | **📦 Control de Stock** | Monitoreo en tiempo real de niveles críticos y alertas de reabastecimiento. |
 | **⏳ Gestión de Lotes** | Seguimiento exhaustivo de fechas de vencimiento y rotación de insumos. |
 | **📊 Dashboard Dinámico** | Métricas visuales de salud de inventario y actividad general por sede. |
-| **🛡️ Seguridad Avanzada** | Control de acceso basado en roles para personal administrativo y médico. |
-| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *Fluent Design* y responsividad total. |
+| **🛡️ Seguridad & Usuarios** | Gestión completa de cuentas (CRUD) y control de acceso (RBAC) para Admin. |
+| **📦 Monitor de Inventario** | Registro rápido, transacciones ACID (Entradas/Salidas) y alertas visuales FEFO. |
+| **🏢 Gestión de Sedes** | Administración de locales con asignación de responsables y visualización de staff. |
+| **🔍 Búsqueda Inteligente** | Buscador global con navegación directa y auto-resaltado de registros. |
+| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *AtlantaFX* (Primer Theme) e Ikonli. |
 
 ---
 
 ### 🛠️ Stack Tecnológico
 
 - **Core:** Java 21 (LTS)
-- **UI:** JavaFX 21 (FXML + CSS Moderno)
+- **UI:** JavaFX 21 + **AtlantaFX** (Fluent/Minimalist Design)
 - **Iconos:** Ikonli (FontAwesome 5 Packs)
-- **Testing:** JUnit 5 (JUnit Jupiter)
+- **Database:** SQL Server (Docker Container)
+- **Testing:** JUnit 5 (Pruebas de Integración y Lógica)
 - **Build & CI:** Maven + GitHub Actions
 
 ---
