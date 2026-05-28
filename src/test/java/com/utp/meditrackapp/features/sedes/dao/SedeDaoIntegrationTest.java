@@ -20,6 +20,14 @@ public class SedeDaoIntegrationTest {
     public void setUp() {
         Assumptions.assumeTrue(DatabaseConfig.getInstance().isReachable(), 
             "Abortando test: Base de datos no disponible");
+        
+        // Limpieza de datos de prueba previos
+        try (java.sql.Connection conn = DatabaseConfig.getInstance().getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement("DELETE FROM sedes WHERE id = 'SED-TEST'")) {
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -41,10 +49,10 @@ public class SedeDaoIntegrationTest {
     @Test
     public void testSaveAndUpdateSede() throws SQLException {
         String testId = "SED-TEST";
-        Sede testSede = new Sede(testId, "Sede Test Unit", "Calle Falsa 123", 1);
+        SedeDetalleDTO testSede = new SedeDetalleDTO(testId, "Sede Test Unit", "Calle Falsa 123", 1);
+        testSede.setTelefono("999888777");
         
-        // Limpieza previa si existe
-        // (Nota: En un ambiente real usaríamos transacciones o un DB de test)
+        // Limpieza previa no incluida por brevedad, asumimos ambiente controlado
         
         // Save
         boolean saved = sedeDAO.save(testSede);
@@ -52,14 +60,17 @@ public class SedeDaoIntegrationTest {
 
         // Update
         testSede.setNombre("Sede Test Editada");
+        testSede.setTelefono("911222333");
         boolean updated = sedeDAO.update(testSede);
         assertTrue(updated);
 
         // Verify
         List<SedeDetalleDTO> list = sedeDAO.getAllWithDetails();
-        Sede found = list.stream().filter(s -> s.getId().equals(testId)).findFirst().orElse(null);
+        SedeDetalleDTO found = list.stream().filter(s -> s.getId().equals(testId)).findFirst().orElse(null);
+        
         assertNotNull(found);
         assertEquals("Sede Test Editada", found.getNombre());
+        assertEquals("911222333", found.getTelefono());
     }
 
     @Test

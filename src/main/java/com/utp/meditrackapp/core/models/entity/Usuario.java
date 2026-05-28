@@ -54,6 +54,10 @@ public class Usuario {
     public String getApellidos() { return apellidos; }
     public void setApellidos(String apellidos) { this.apellidos = apellidos; }
 
+    public String getNombreCompleto() {
+        return (nombres != null ? nombres : "") + " " + (apellidos != null ? apellidos : "");
+    }
+
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 

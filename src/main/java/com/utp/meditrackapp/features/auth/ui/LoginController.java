@@ -57,7 +57,7 @@ public class LoginController {
 
     @FXML
     protected void onForgotPassword() {
-        // TODO: Implementar recuperación de contraseña
+        // Implementación futura: Recuperación de contraseña
     }
 
     @FXML

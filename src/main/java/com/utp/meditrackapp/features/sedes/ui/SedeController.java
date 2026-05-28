@@ -37,17 +37,23 @@ public class SedeController {
 
     @FXML private StackPane modalSede;
     @FXML private Label modalTitle;
-    @FXML private TextField txtNombre;
+    @FXML private TextField txtNombre, txtTelefono;
     @FXML private TextArea txtDireccion;
     @FXML private CheckBox chkActiva;
+    @FXML private ComboBox<com.utp.meditrackapp.core.models.entity.Usuario> cmbManager;
+    @FXML private ComboBox<String> cmbTipoSede;
+    @FXML private TableView<com.utp.meditrackapp.core.models.entity.Usuario> tableStaff;
+    @FXML private TableColumn<com.utp.meditrackapp.core.models.entity.Usuario, String> colStaffName, colStaffRol;
 
     private final SedeDAO sedeDAO = new SedeDAO();
+    private final com.utp.meditrackapp.features.auth.Dao.UsuarioDao usuarioDao = new com.utp.meditrackapp.features.auth.Dao.UsuarioDao();
     private final ObservableList<SedeDetalleDTO> masterData = FXCollections.observableArrayList();
     private static final int ROWS_PER_PAGE = 8;
 
     @FXML
     public void initialize() {
         setupTable();
+        setupModalControls();
         loadData();
     }
 
@@ -57,6 +63,10 @@ public class SedeController {
         colAdmin.setCellValueFactory(new PropertyValueFactory<>("administrador"));
         colEmp.setCellValueFactory(new PropertyValueFactory<>("totalEmpleados"));
         
+        // Staff Table inside modal
+        colStaffName.setCellValueFactory(new PropertyValueFactory<>("nombreCompleto"));
+        colStaffRol.setCellValueFactory(new PropertyValueFactory<>("rolNombre"));
+
         // Custom rendering for Stock Status
         colStockStatus.setCellFactory(column -> new TableCell<>() {
             @Override
@@ -122,6 +132,19 @@ public class SedeController {
         });
     }
 
+    private void setupModalControls() {
+        cmbTipoSede.setItems(FXCollections.observableArrayList("Posta Médica", "Hospital", "Almacén Central", "Centro de Salud"));
+        
+        cmbManager.setConverter(new javafx.util.StringConverter<>() {
+            @Override public String toString(com.utp.meditrackapp.core.models.entity.Usuario u) { return u != null ? u.getNombreCompleto() : ""; }
+            @Override public com.utp.meditrackapp.core.models.entity.Usuario fromString(String s) { return null; }
+        });
+
+        // Cargar lista de usuarios administradores elegibles
+        List<com.utp.meditrackapp.core.models.entity.Usuario> allUsers = usuarioDao.listarTodos();
+        cmbManager.setItems(FXCollections.observableArrayList(allUsers));
+    }
+
     private void loadData() {
         try {
             List<SedeDetalleDTO> list = sedeDAO.getAllWithDetails();
@@ -174,6 +197,10 @@ public class SedeController {
         modalTitle.setText("Registrar Nueva Sede");
         txtNombre.clear();
         txtDireccion.clear();
+        txtTelefono.clear();
+        cmbManager.getSelectionModel().clearSelection();
+        cmbTipoSede.getSelectionModel().selectFirst();
+        tableStaff.setItems(FXCollections.emptyObservableList());
         chkActiva.setSelected(true);
         modalSede.setVisible(true);
     }
@@ -184,6 +211,22 @@ public class SedeController {
         modalTitle.setText("Modificar Sede");
         txtNombre.setText(sede.getNombre());
         txtDireccion.setText(sede.getDireccion());
+        txtTelefono.setText(sede.getTelefono());
+        
+        // Seleccionar manager actual si existe
+        if (sede.getAdministradorId() != null) {
+            cmbManager.getItems().stream()
+                .filter(u -> u.getId().equals(sede.getAdministradorId()))
+                .findFirst()
+                .ifPresent(u -> cmbManager.setValue(u));
+        }
+
+        // Cargar Personal asignado
+        try {
+            List<com.utp.meditrackapp.core.models.entity.Usuario> staff = sedeDAO.getStaffBySede(sede.getId());
+            tableStaff.setItems(FXCollections.observableArrayList(staff));
+        } catch (SQLException e) { e.printStackTrace(); }
+
         chkActiva.setSelected(sede.getIsActiva() == 1);
         modalSede.setVisible(true);
     }
@@ -192,22 +235,41 @@ public class SedeController {
     protected void onSaveSede() {
         String nombre = txtNombre.getText();
         String dir = txtDireccion.getText();
+        String tel = txtTelefono.getText(); // Capturar teléfono
         int activa = chkActiva.isSelected() ? 1 : 0;
 
-        if (nombre == null || nombre.trim().isEmpty()) return;
+        if (nombre == null || nombre.trim().isEmpty()) {
+            showAlert("Validación", "El nombre de la sede es obligatorio.");
+            return;
+        }
 
         try {
+            String sedeId;
+            SedeDetalleDTO dtoToSave;
+
             if (selectedSede == null) {
-                Sede ns = new Sede(IdGenerator.generateId(EntidadPrefix.SEDE), nombre, dir, activa);
-                sedeDAO.save(ns);
+                sedeId = IdGenerator.generateId(EntidadPrefix.SEDE);
+                dtoToSave = new SedeDetalleDTO(sedeId, nombre, dir, activa);
+                dtoToSave.setTelefono(tel);
+                sedeDAO.save(dtoToSave);
             } else {
+                sedeId = selectedSede.getId();
                 selectedSede.setNombre(nombre);
                 selectedSede.setDireccion(dir);
+                selectedSede.setTelefono(tel); // Actualizar en el DTO
                 selectedSede.setIsActiva(activa);
                 sedeDAO.update(selectedSede);
             }
+
+            // Lógica de Asignación de Jefe (via Usuarios table)
+            com.utp.meditrackapp.core.models.entity.Usuario selectedManager = cmbManager.getValue();
+            if (selectedManager != null) {
+                sedeDAO.assignUserToSede(selectedManager.getId(), sedeId, selectedManager.getRolId());
+            }
+
             loadData();
             onCloseModal();
+            showAlert("Éxito", "Sede y responsable actualizados correctamente.");
         } catch (SQLException e) {
             showAlert("Error", e.getMessage());
         }

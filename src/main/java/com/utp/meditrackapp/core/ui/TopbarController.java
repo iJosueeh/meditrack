@@ -116,8 +116,7 @@ public class TopbarController {
                     else if ("NAV_SEDE".equals(res.getId())) NavigationService.toSedes();
                 }
                 case PATIENT -> {
-                    // TODO: Implementar salto a paciente específico
-                    NavigationService.toAttention();
+                    NavigationService.toPatients(res.getTitle());
                 }
                 case PRODUCT, BATCH -> {
                     NavigationService.toInventory();

@@ -104,10 +104,37 @@
 .icon-success { -fx-icon-color: -color-success-fg; }
 
 /* Utility Helpers */
-.text-bold { -fx-font-weight: bold; }
-.card-title-custom {
-    -fx-font-size: 11px;
-    -fx-font-weight: 800;
-    -fx-text-fill: -color-fg-muted;
-    -fx-text-transform: uppercase;
+/* Modal Overlays & Centering */
+.modal-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.45);
+    -fx-alignment: center;
 }
+
+.modal-content {
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 12;
+    -fx-padding: 30;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 20, 0, 0, 10);
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.modal-header {
+    -fx-padding: 0 0 10 0;
+    -fx-border-color: -color-border-muted;
+    -fx-border-width: 0 0 1 0;
+}
+
+.modal-footer {
+    -fx-padding: 10 0 0 0;
+}
+
+/* Status Cards Coloring Extensions */
+.bg-danger-subtle { -fx-background-color: -color-danger-subtle; }
+.bg-success-subtle { -fx-background-color: -color-success-subtle; }
+.bg-danger-emphasis { -fx-background-color: -color-danger-emphasis; }
+.bg-success-emphasis { -fx-background-color: -color-success-emphasis; }
+
+.text-on-danger { -fx-text-fill: -color-danger-fg; }
+.text-on-success { -fx-text-fill: -color-success-fg; }
