@@ -2,29 +2,44 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import javafx.geometry.Insets?>
 
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.utp.meditrackapp.core.ui.TopbarController" 
       styleClass="navbar" alignment="CENTER_LEFT" spacing="20">
+    
+    <!-- Brand / Logo -->
     <HBox alignment="CENTER_LEFT" spacing="12">
-        <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" styleClass="brand-icon" />
+        <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" styleClass="icon-accent" />
         <Label text="MediTrack" styleClass="nav-brand-text" />
     </HBox>
     
-    <Region HBox.hgrow="ALWAYS" />
+    <!-- Central Search Bar -->
+    <HBox alignment="CENTER" HBox.hgrow="ALWAYS">
+        <StackPane maxWidth="500" HBox.hgrow="ALWAYS">
+            <TextField fx:id="txtGlobalSearch" promptText="Buscar pacientes, productos, lotes o módulos..." 
+                       styleClass="large" style="-fx-background-radius: 20; -fx-padding: 8 15 8 40;" />
+            <HBox alignment="CENTER_LEFT" pickOnBounds="false">
+                <padding><Insets left="15" /></padding>
+                <FontIcon iconLiteral="fas-search" iconSize="14" styleClass="icon-muted" />
+            </HBox>
+        </StackPane>
+    </HBox>
     
+    <!-- User Actions -->
     <HBox alignment="CENTER_RIGHT" spacing="15">
-        <HBox spacing="5" alignment="CENTER">
-            <Button onAction="#onToggleTheme" styleClass="icon-btn-nav">
+        <HBox spacing="8" alignment="CENTER">
+            <Button onAction="#onToggleTheme" styleClass="button, flat">
                 <graphic><FontIcon fx:id="themeIcon" iconLiteral="fas-moon" iconSize="18" styleClass="secondary-icon" /></graphic>
+                <tooltip><Tooltip text="Cambiar Tema" /></tooltip>
             </Button>
-            <Button onAction="#onGoToProfile" styleClass="icon-btn-nav">
+            <Button onAction="#onGoToProfile" styleClass="button, flat">
                 <graphic><FontIcon iconLiteral="fas-user-circle" iconSize="18" styleClass="secondary-icon" /></graphic>
+                <tooltip><Tooltip text="Mi Perfil" /></tooltip>
             </Button>
-            <Button styleClass="icon-btn-nav">
-                <graphic><FontIcon iconLiteral="fas-cog" iconSize="18" styleClass="secondary-icon" /></graphic>
-            </Button>
-            <Button onAction="#onLogout" styleClass="icon-btn-nav">
-                <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="18" iconColor="#ef4444" /></graphic>
+            <Separator orientation="VERTICAL" prefHeight="20" />
+            <Button onAction="#onLogout" styleClass="button, flat, danger">
+                <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="18" /></graphic>
+                <tooltip><Tooltip text="Cerrar Sesión" /></tooltip>
             </Button>
         </HBox>
     </HBox>

@@ -93,8 +93,8 @@ public class SidebarController {
 
     @FXML
     protected void onGoToCatalog() throws IOException {
-        // NavigationService.toCatalog();
-        System.out.println("[NAV] Navegando a Catálogo Maestro...");
+        NavigationService.toSedes();
+        System.out.println("[NAV] Navegando a Gestión de Sedes...");
     }
 
     @FXML

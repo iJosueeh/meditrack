@@ -1,6 +1,10 @@
 package com.utp.meditrackapp.core.config;
 
+import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
+import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -8,49 +12,78 @@ import java.io.IOException;
 
 /**
  * Navigation service to handle view transitions.
- * TODO: Integrate with session/auth service to manage state between views.
+ * Refactored to swap roots instead of scenes to prevent window resizing/flickering.
  */
 public class NavigationService {
 
     private static Stage primaryStage;
-    private static Scene loginScene;
-    private static Scene dashboardScene;
-    private static Scene profileScene;
     private static boolean darkThemeEnabled = isDarkThemeConfigured();
 
     public static void setPrimaryStage(Stage stage) {
         primaryStage = stage;
     }
 
+    private static void switchRoot(String fxmlPath, String title, boolean maximize) throws IOException {
+        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource(fxmlPath));
+        Parent root = loader.load();
+
+        if (primaryStage.getScene() == null) {
+            Scene scene = new Scene(root, 1100, 750);
+            applyTheme(scene);
+            primaryStage.setScene(scene);
+        } else {
+            primaryStage.getScene().setRoot(root);
+        }
+
+        primaryStage.setTitle(title);
+
+        if (maximize) {
+            if (!primaryStage.isMaximized()) {
+                primaryStage.setMaximized(true);
+            }
+        } else {
+            primaryStage.setMaximized(false);
+            primaryStage.setWidth(1100);
+            primaryStage.setHeight(750);
+            primaryStage.centerOnScreen();
+        }
+    }
+
     /**
      * Load and navigate to login view.
      */
     public static void toLogin() throws IOException {
-        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/login-view.fxml"));
-        loginScene = new Scene(loader.load(), 1000, 700);
-        applyTheme(loginScene);
-
-        if (primaryStage != null) {
-            primaryStage.setScene(loginScene);
-            primaryStage.setTitle("MediTrack — Iniciar Sesión");
-            primaryStage.setMaximized(false);
-            primaryStage.centerOnScreen();
-        }
+        switchRoot("/com/utp/meditrackapp/login-view.fxml", "MediTrack — Iniciar Sesión", false);
     }
 
     /**
      * Load and navigate to dashboard view.
      */
     public static void toDashboard() throws IOException {
-        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/dashboard-view.fxml"));
-        dashboardScene = new Scene(loader.load());
-        applyTheme(dashboardScene);
+        switchRoot("/com/utp/meditrackapp/dashboard-view.fxml", "MediTrack — Panel de Control", true);
+    }
 
-        if (primaryStage != null) {
-            primaryStage.setScene(dashboardScene);
-            primaryStage.setTitle("MediTrack — Panel de Control");
-            primaryStage.setMaximized(true);
-        }
+    /**
+     * Load and navigate to site management view.
+     */
+    public static void toSedes() throws IOException {
+        switchRoot("/com/utp/meditrackapp/sede-view.fxml", "MediTrack — Gestión de Sedes", true);
+    }
+
+    public static void toProfile() throws IOException {
+        switchRoot("/com/utp/meditrackapp/profile-view.fxml", "MediTrack — Mi Perfil", true);
+    }
+
+    public static void toPatients() throws IOException {
+        switchRoot("/com/utp/meditrackapp/pacientes-view.fxml", "MediTrack — Gestión de Pacientes", true);
+    }
+
+    public static void toAttention() throws IOException {
+        switchRoot("/com/utp/meditrackapp/atencion-view.fxml", "MediTrack — Registro de Atenciones", true);
+    }
+
+    public static void toInventory() throws IOException {
+        switchRoot("/com/utp/meditrackapp/inventory-view.fxml", "MediTrack — Inventario", true);
     }
 
     private static boolean isDarkThemeConfigured() {
@@ -62,6 +95,9 @@ public class NavigationService {
     public static void setDarkThemeEnabled(boolean enabled) {
         darkThemeEnabled = enabled;
         System.setProperty("app.theme", enabled ? "dark" : "light");
+        if (primaryStage != null && primaryStage.getScene() != null) {
+            applyTheme(primaryStage.getScene());
+        }
     }
 
     public static boolean isDarkThemeEnabled() {
@@ -70,67 +106,14 @@ public class NavigationService {
 
     private static void applyTheme(Scene scene) {
         if (darkThemeEnabled) {
-            if (!scene.getRoot().getStyleClass().contains("dark-theme")) {
-                scene.getRoot().getStyleClass().add("dark-theme");
-            }
+            Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
         } else {
-            scene.getRoot().getStyleClass().remove("dark-theme");
-        }
-    }
-
-    public static void toProfile() throws IOException {
-        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/profile-view.fxml"));
-        profileScene = new Scene(loader.load());
-        applyTheme(profileScene);
-
-        if (primaryStage != null) {
-            primaryStage.setScene(profileScene);
-            primaryStage.setTitle("MediTrack — Mi Perfil");
-            primaryStage.setMaximized(true);
-        }
-    }
-
-    public static void toPatients() throws IOException {
-        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/pacientes-view.fxml"));
-        Scene patientsScene = new Scene(loader.load());
-        applyTheme(patientsScene);
-
-        if (primaryStage != null) {
-            primaryStage.setScene(patientsScene);
-            primaryStage.setTitle("MediTrack — Gestión de Pacientes");
-            primaryStage.setMaximized(true);
-        }
-    }
-
-    /**
-     * TODO: Add methods for other views (Atención, Inventario, Catálogo, Usuarios)
-     */
-    public static void toAttention() throws IOException {
-        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/atencion-view.fxml"));
-        Scene attentionScene = new Scene(loader.load());
-        applyTheme(attentionScene);
-
-        if (primaryStage != null) {
-            primaryStage.setScene(attentionScene);
-            primaryStage.setTitle("MediTrack — Registro de Atenciones");
-            primaryStage.setMaximized(true);
-        }
-    }
-
-    public static void toInventory() throws IOException {
-        FXMLLoader loader = new FXMLLoader(NavigationService.class.getResource("/com/utp/meditrackapp/inventory-view.fxml"));
-        Scene inventoryScene = new Scene(loader.load());
-        applyTheme(inventoryScene);
-
-        if (primaryStage != null) {
-            primaryStage.setScene(inventoryScene);
-            primaryStage.setTitle("MediTrack — Inventario");
-            primaryStage.setMaximized(true);
+            Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         }
     }
 
     public static void toCatalog() throws IOException {
-        // TODO: Load catalog-view.fxml
+        toSedes();
     }
 
     public static void toUsers() throws IOException {

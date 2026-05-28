@@ -10,23 +10,23 @@
     <VBox styleClass="sidebar-profile">
         <HBox alignment="CENTER_LEFT" spacing="15">
             <VBox styleClass="profile-avatar-container">
-                <FontIcon iconLiteral="fas-user" iconSize="18" iconColor="#1f4e7a" />
+                <FontIcon iconLiteral="fas-user" iconSize="18" styleClass="icon-accent" />
             </VBox>
             <VBox alignment="CENTER_LEFT" spacing="2">
-                <Label fx:id="userNameLabel" text="Josué Arcas" styleClass="profile-name" />
+                <Label fx:id="userNameLabel" text="Cargando..." styleClass="profile-name" />
                 <Label fx:id="userSedeLabel" text="Sede Central" styleClass="profile-sede" />
             </VBox>
         </HBox>
     </VBox>
     
-    <Separator opacity="0.1" />
+    <Separator orientation="HORIZONTAL" styleClass="small" />
 
     <VBox spacing="2" VBox.vgrow="ALWAYS">
         <padding><Insets top="15" /></padding>
         <Button fx:id="btnDashboard" text="Panel de Control" onAction="#onGoToDashboard" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-th-large" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
-        <Button fx:id="btnPatients" text="Atenciones" onAction="#onGoToAttentions" styleClass="nav-button" maxWidth="Infinity">
+        <Button fx:id="btnPatients" text="Pacientes" onAction="#onGoToPatients" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-user-injured" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
         <Button fx:id="btnAttentions" text="Registrar Atenciones" onAction="#onGoToAttentions" styleClass="nav-button" maxWidth="Infinity">
@@ -35,13 +35,15 @@
         <Button fx:id="btnMovements" text="Movimientos / Mermas" onAction="#onGoToMovements" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-exchange-alt" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
-        <Button fx:id="btnInventory" text="Inventario" onAction="#onGoToInventory" styleClass="nav-button" maxWidth="Infinity">
+        <Button fx:id="btnInventory" text="Inventario de Sede" onAction="#onGoToInventory" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
-        <Button fx:id="btnCatalog" text="Sedes" onAction="#onGoToCatalog" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-book-medical" iconSize="16" styleClass="nav-icon" /></graphic>
+        <Region VBox.vgrow="ALWAYS" />
+        <Separator orientation="HORIZONTAL" styleClass="small" />
+        <Button fx:id="btnCatalog" text="Gestión de Sedes" onAction="#onGoToCatalog" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-hotel" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
-        <Button fx:id="btnUsers" text="Usuarios" onAction="#onGoToUsers" styleClass="nav-button" maxWidth="Infinity">
+        <Button fx:id="btnUsers" text="Configurar Usuarios" onAction="#onGoToUsers" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-users-cog" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
     </VBox>
