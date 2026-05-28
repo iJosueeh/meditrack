@@ -82,20 +82,25 @@ public class InventarioService {
 
     // --- Métodos Operacionales (Transaccionales) ---
 
-    public boolean registrarEntrada(Lote lote, String usuarioId, String observacion) {
+    public boolean registrarMovimiento(Lote lote, String usuarioId, TipoMovimientoEnum tipo, MotivoMovimientoEnum motivo, int cantidad, String observacion) {
         Connection conn = null;
         try {
             conn = dbConfig.getConnection();
             conn.setAutoCommit(false);
 
-            if (lote.getId() == null || lote.getId().isEmpty()) {
-                loteDAO.registrarIngreso(conn, lote);
-            } else {
-                loteDAO.aumentarStock(conn, lote.getId(), lote.getCantidad());
+            // 1. Actualizar o Registrar Lote
+            if (tipo == TipoMovimientoEnum.ENTRADA) {
+                if (lote.getId() == null || lote.getId().isEmpty()) {
+                    loteDAO.registrarIngreso(conn, lote);
+                } else {
+                    loteDAO.aumentarStock(conn, lote.getId(), cantidad);
+                }
+            } else { // SALIDA
+                loteDAO.reducirStock(conn, lote.getId(), cantidad);
             }
 
-            registrarMovimientoInterno(conn, lote, usuarioId, 
-                    TipoMovimientoEnum.ENTRADA, MotivoMovimientoEnum.COMPRA, lote.getCantidad(), observacion);
+            // 2. Registrar Movimiento
+            registrarMovimientoInterno(conn, lote, usuarioId, tipo, motivo, cantidad, observacion);
 
             conn.commit();
             return true;
@@ -108,29 +113,18 @@ public class InventarioService {
         }
     }
 
+    public boolean registrarEntrada(Lote lote, String usuarioId, String observacion) {
+        return registrarMovimiento(lote, usuarioId, TipoMovimientoEnum.ENTRADA, MotivoMovimientoEnum.COMPRA, lote.getCantidad(), observacion);
+    }
+
     public boolean registrarMerma(String loteId, int cantidad, String usuarioId, String observacion) {
-        Connection conn = null;
         try {
-            conn = dbConfig.getConnection();
-            conn.setAutoCommit(false);
-
             Optional<Lote> loteOpt = loteDAO.buscarPorId(loteId);
-            if (loteOpt.isEmpty()) throw new SQLException("Lote no encontrado.");
-            Lote lote = loteOpt.get();
-
-            loteDAO.reducirStock(conn, loteId, cantidad);
-
-            registrarMovimientoInterno(conn, lote, usuarioId, 
-                    TipoMovimientoEnum.SALIDA, MotivoMovimientoEnum.MERMA, cantidad, observacion);
-
-            conn.commit();
-            return true;
+            if (loteOpt.isEmpty()) return false;
+            return registrarMovimiento(loteOpt.get(), usuarioId, TipoMovimientoEnum.SALIDA, MotivoMovimientoEnum.MERMA, cantidad, observacion);
         } catch (SQLException e) {
-            rollback(conn);
             e.printStackTrace();
             return false;
-        } finally {
-            close(conn);
         }
     }
 

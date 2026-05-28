@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.users.ui.UsuarioController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css">
+    
+    <BorderPane fx:id="rootPane">
+        <top>
+            <fx:include source="navbar.fxml" fx:id="navbar" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" fx:id="sidebar" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Gestión de Usuarios" styleClass="title-2" />
+                            <Label text="Administración de cuentas, roles y accesos al sistema." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Nuevo Usuario" onAction="#onNewUser" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-user-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Filter Bar -->
+                    <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
+                        <TextField fx:id="searchField" promptText="Buscar por nombre o DNI..." prefWidth="400" onKeyReleased="#onSearch" />
+                        <Button text="Buscar" onAction="#onSearch" styleClass="button, sm">
+                            <graphic><FontIcon iconLiteral="fas-search" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Users Table -->
+                    <TableView fx:id="usersTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colDni" text="DNI" prefWidth="120" />
+                            <TableColumn fx:id="colNombres" text="Nombres y Apellidos" prefWidth="300" />
+                            <TableColumn fx:id="colRol" text="Rol" prefWidth="150" />
+                            <TableColumn fx:id="colSede" text="Sede" prefWidth="200" />
+                            <TableColumn fx:id="colEstado" text="Estado" prefWidth="120" />
+                            <TableColumn fx:id="colActions" text="Acciones" prefWidth="150" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Form Overlay / Modal -->
+    <StackPane fx:id="formOverlay" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="550" styleClass="modal-content" spacing="25">
+            <VBox styleClass="modal-header">
+                <Label fx:id="formTitle" text="Registrar Nuevo Usuario" styleClass="title-4" />
+                <Label text="Complete la información del colaborador." styleClass="text-muted" />
+            </VBox>
+            
+            <ScrollPane fitToWidth="true" prefHeight="400" styleClass="edge-to-edge">
+                <VBox spacing="20" style="-fx-padding: 5;">
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="TIPO DOCUMENTO" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="typeDocCombo" maxWidth="Infinity" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="N° DOCUMENTO" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="numDocField" promptText="Ingrese el DNI" />
+                        </VBox>
+                    </HBox>
+                    
+                    <VBox spacing="8">
+                        <Label text="NOMBRES" styleClass="text-caption, text-bold, text-muted" />
+                        <TextField fx:id="firstNameField" promptText="Nombres completos" />
+                    </VBox>
+                    
+                    <VBox spacing="8">
+                        <Label text="APELLIDOS" styleClass="text-caption, text-bold, text-muted" />
+                        <TextField fx:id="lastNameField" promptText="Apellidos completos" />
+                    </VBox>
+
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="ROL ASIGNADO" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="rolCombo" maxWidth="Infinity" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="SEDE" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="sedeCombo" maxWidth="Infinity" />
+                        </VBox>
+                    </HBox>
+                    
+                    <VBox fx:id="passwordContainer" spacing="8">
+                        <Label text="CONTRASEÑA TEMPORAL" styleClass="text-caption, text-bold, text-muted" />
+                        <PasswordField fx:id="passwordField" promptText="Mínimo 6 caracteres" />
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+            
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCancelForm" styleClass="button, flat" />
+                <Button text="Guardar Usuario" onAction="#onSaveUser" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

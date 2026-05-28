@@ -11,6 +11,7 @@ CREATE TABLE [sedes] (
 [id] varchar(50) PRIMARY KEY,
 [nombre] varchar(255) NOT NULL,
 [direccion] varchar(500),
+[telefono] varchar(50),
 [is_activa] int DEFAULT 1
 );
 

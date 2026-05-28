@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -28,7 +29,7 @@ public class PacienteController {
     @FXML private TableColumn<Paciente, Void> colActions;
 
     // Form Overlay Fields
-    @FXML private VBox formOverlay;
+    @FXML private StackPane formOverlay;
     @FXML private Label formTitle;
     @FXML private ComboBox<String> typeDocCombo;
     @FXML private TextField numDocField;
@@ -45,6 +46,22 @@ public class PacienteController {
         setupForm();
         loadPatients();
         applyRoleRestrictions();
+        handleInitialSearch();
+    }
+
+    private void handleInitialSearch() {
+        String initialQuery = com.utp.meditrackapp.core.config.NavigationService.getPatientInitialSearch();
+        if (initialQuery != null && !initialQuery.isEmpty()) {
+            searchField.setText(initialQuery);
+            onSearch();
+            
+            // Refinamiento: Seleccionar y hacer scroll al primer resultado
+            if (!patientsTable.getItems().isEmpty()) {
+                patientsTable.getSelectionModel().select(0);
+                patientsTable.scrollTo(0);
+                patientsTable.requestFocus();
+            }
+        }
     }
 
     private void applyRoleRestrictions() {
@@ -142,17 +159,19 @@ public class PacienteController {
                         SessionManager session = SessionManager.getInstance();
                         pane.setSpacing(10);
                         
-                        // Configurar botón Editar
+                        // Configurar botón Editar (Estilo AtlantaFX)
                         btnEdit.setGraphic(new FontIcon("fas-edit"));
-                        btnEdit.getStyleClass().add("btn-icon-edit");
+                        btnEdit.getStyleClass().addAll("button", "flat");
+                        btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
                         btnEdit.setOnAction(event -> {
                             Paciente p = getTableView().getItems().get(getIndex());
                             showEditForm(p);
                         });
 
-                        // Configurar botón Eliminar
+                        // Configurar botón Eliminar (Estilo AtlantaFX Peligro)
                         btnDelete.setGraphic(new FontIcon("fas-trash"));
-                        btnDelete.getStyleClass().add("btn-icon-delete");
+                        btnDelete.getStyleClass().addAll("button", "flat", "danger");
+                        btnDelete.setTooltip(new Tooltip("Dar de baja paciente"));
                         btnDelete.setOnAction(event -> {
                             Paciente p = getTableView().getItems().get(getIndex());
                             handleDelete(p);

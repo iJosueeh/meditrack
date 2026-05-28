@@ -13,6 +13,7 @@ public class Lote {
 
     // Transient fields for UI
     private String productoNombre;
+    private String codigoDigemid;
 
     public Lote() {
     }
@@ -34,4 +35,7 @@ public class Lote {
 
     public String getProductoNombre() { return productoNombre; }
     public void setProductoNombre(String productoNombre) { this.productoNombre = productoNombre; }
+
+    public String getCodigoDigemid() { return codigoDigemid; }
+    public void setCodigoDigemid(String codigoDigemid) { this.codigoDigemid = codigoDigemid; }
 }

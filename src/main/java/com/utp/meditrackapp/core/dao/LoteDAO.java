@@ -178,14 +178,13 @@ public class LoteDAO extends JdbcDaoSupport {
     }
 
     public List<Lote> listarLotesConProducto(String sedeId) throws SQLException {
-        String sql = "SELECT l.*, p.nombre as producto_nombre FROM lotes l JOIN productos p ON l.producto_id = p.id WHERE l.sede_id = ? ORDER BY l.fecha_vencimiento ASC";
+        String sql = "SELECT l.*, p.nombre as producto_nombre, p.codigo_digemid FROM lotes l JOIN productos p ON l.producto_id = p.id WHERE l.sede_id = ? ORDER BY l.fecha_vencimiento ASC";
         List<Lote> lotes = new ArrayList<>();
         try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, sedeId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     Lote lote = mapLote(resultSet);
-                    // Podríamos setear el nombre del producto si el modelo lo permite o usar un DTO
                     lotes.add(lote);
                 }
             }
@@ -271,8 +270,9 @@ public class LoteDAO extends JdbcDaoSupport {
         }
         lote.setCantidad(resultSet.getInt("cantidad"));
         
-        // Map transient field if present
+        // Map transient fields if present
         try { lote.setProductoNombre(resultSet.getString("producto_nombre")); } catch (SQLException e) {}
+        try { lote.setCodigoDigemid(resultSet.getString("codigo_digemid")); } catch (SQLException e) {}
         
         return lote;
     }

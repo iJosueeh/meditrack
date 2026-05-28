@@ -70,7 +70,7 @@ public class SidebarController {
 
     @FXML
     protected void onGoToPatients() throws IOException {
-        // NavigationService.toPatients();
+        NavigationService.toPatients();
     }
 
     @FXML
@@ -99,7 +99,6 @@ public class SidebarController {
 
     @FXML
     protected void onGoToUsers() throws IOException {
-        // NavigationService.toUsers();
-        System.out.println("[NAV] Navegando a Usuarios...");
+        NavigationService.toUsers();
     }
 }

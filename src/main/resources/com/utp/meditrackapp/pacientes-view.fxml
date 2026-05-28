@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.patients.ui.PacienteController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css">
+    
+    <BorderPane fx:id="rootPane">
+        <top>
+            <fx:include source="navbar.fxml" fx:id="navbar" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" fx:id="sidebar" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Gestión de Pacientes" styleClass="title-2" />
+                            <Label text="Administración de información personal y registros médicos." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Registrar Paciente" onAction="#onNewPatient" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-user-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Filter Bar -->
+                    <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
+                        <TextField fx:id="searchField" promptText="Buscar por nombre, apellido o DNI..." prefWidth="400" onKeyReleased="#onSearch" />
+                        <Button text="Buscar" onAction="#onSearch" styleClass="button, sm">
+                            <graphic><FontIcon iconLiteral="fas-search" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Patients Table -->
+                    <TableView fx:id="patientsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colTipoDoc" text="Tipo Doc." prefWidth="100" />
+                            <TableColumn fx:id="colNumDoc" text="N° Documento" prefWidth="150" />
+                            <TableColumn fx:id="colNombres" text="Nombres" prefWidth="250" />
+                            <TableColumn fx:id="colApellidos" text="Apellidos" prefWidth="250" />
+                            <TableColumn fx:id="colTelefono" text="Teléfono" prefWidth="150" />
+                            <TableColumn fx:id="colActions" text="Acciones" prefWidth="150" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Form Overlay / Modal -->
+    <StackPane fx:id="formOverlay" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="500" styleClass="modal-content" spacing="25">
+            <VBox styleClass="modal-header">
+                <Label fx:id="formTitle" text="Registrar Nuevo Paciente" styleClass="title-4" />
+                <Label text="Complete la información obligatoria del paciente." styleClass="text-muted" />
+            </VBox>
+            
+            <VBox spacing="20">
+                <HBox spacing="20">
+                    <VBox HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="TIPO DE DOCUMENTO" styleClass="text-caption, text-bold, text-muted" />
+                        <ComboBox fx:id="typeDocCombo" maxWidth="Infinity" />
+                    </VBox>
+                    <VBox HBox.hgrow="ALWAYS" spacing="8">
+                        <Label text="N° DOCUMENTO" styleClass="text-caption, text-bold, text-muted" />
+                        <TextField fx:id="numDocField" promptText="Ingrese el número" />
+                    </VBox>
+                </HBox>
+                
+                <VBox spacing="8">
+                    <Label text="NOMBRES" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="firstNameField" promptText="Nombres completos" />
+                </VBox>
+                
+                <VBox spacing="8">
+                    <Label text="APELLIDOS" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="lastNameField" promptText="Apellidos completos" />
+                </VBox>
+                
+                <VBox spacing="8">
+                    <Label text="TELÉFONO DE CONTACTO" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="phoneField" promptText="Ej: 987654321" />
+                </VBox>
+            </VBox>
+            
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCancelForm" styleClass="button, flat" />
+                <Button text="Guardar Cambios" onAction="#onSavePatient" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

@@ -74,8 +74,21 @@ public class NavigationService {
         switchRoot("/com/utp/meditrackapp/profile-view.fxml", "MediTrack — Mi Perfil", true);
     }
 
+    private static String patientInitialSearch;
+
     public static void toPatients() throws IOException {
+        toPatients(null);
+    }
+
+    public static void toPatients(String initialSearch) throws IOException {
+        patientInitialSearch = initialSearch;
         switchRoot("/com/utp/meditrackapp/pacientes-view.fxml", "MediTrack — Gestión de Pacientes", true);
+    }
+
+    public static String getPatientInitialSearch() {
+        String search = patientInitialSearch;
+        patientInitialSearch = null; // Clear after read
+        return search;
     }
 
     public static void toAttention() throws IOException {
@@ -117,6 +130,6 @@ public class NavigationService {
     }
 
     public static void toUsers() throws IOException {
-        // TODO: Load users-view.fxml
+        switchRoot("/com/utp/meditrackapp/users-view.fxml", "MediTrack — Gestión de Usuarios", true);
     }
 }
