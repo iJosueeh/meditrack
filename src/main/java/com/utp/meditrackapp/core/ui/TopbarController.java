@@ -2,85 +2,154 @@ package com.utp.meditrackapp.core.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
+import com.utp.meditrackapp.features.search.dao.GlobalSearchDAO;
+import com.utp.meditrackapp.features.search.models.SearchResult;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.paint.Color;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 public class TopbarController {
 
-    @FXML
-    private FontIcon themeIcon;
+    @FXML private FontIcon themeIcon;
+    @FXML private TextField txtGlobalSearch;
+    
+    private final GlobalSearchDAO searchDAO = new GlobalSearchDAO();
+    private ContextMenu searchResultsPopup;
 
     @FXML
-    private void initialize() {
-        if (themeIcon != null) {
-            themeIcon.setIconLiteral(NavigationService.isDarkThemeEnabled() ? "fas-sun" : "fas-moon");
+    public void initialize() {
+        updateThemeIcon();
+        setupGlobalSearch();
+    }
+
+    private void setupGlobalSearch() {
+        searchResultsPopup = new ContextMenu();
+        searchResultsPopup.getStyleClass().add("search-results-popup");
+        
+        txtGlobalSearch.textProperty().addListener((obs, old, newValue) -> {
+            if (newValue == null || newValue.trim().length() < 2) {
+                searchResultsPopup.hide();
+                return;
+            }
+            performSearch(newValue.trim());
+        });
+
+        // Evento para navegar con Enter si hay un solo resultado
+        txtGlobalSearch.setOnAction(event -> {
+            if (!searchResultsPopup.getItems().isEmpty()) {
+                searchResultsPopup.getItems().get(0).fire();
+            }
+        });
+    }
+
+    private void performSearch(String query) {
+        try {
+            List<SearchResult> results = searchDAO.searchGlobal(query);
+            searchResultsPopup.getItems().clear();
+
+            if (results.isEmpty()) {
+                MenuItem noResults = new MenuItem("No se encontraron resultados");
+                noResults.setDisable(true);
+                searchResultsPopup.getItems().add(noResults);
+            } else {
+                for (SearchResult res : results) {
+                    MenuItem item = createSearchResultItem(res);
+                    searchResultsPopup.getItems().add(item);
+                }
+            }
+
+            if (!searchResultsPopup.isShowing()) {
+                searchResultsPopup.show(txtGlobalSearch, javafx.geometry.Side.BOTTOM, 0, 5);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private MenuItem createSearchResultItem(SearchResult res) {
+        HBox box = new HBox(12);
+        box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        box.setPadding(new javafx.geometry.Insets(5, 10, 5, 10));
+
+        FontIcon icon = new FontIcon();
+        switch (res.getType()) {
+            case PATIENT -> icon.setIconLiteral("fas-user-injured");
+            case PRODUCT -> icon.setIconLiteral("fas-box");
+            case BATCH   -> icon.setIconLiteral("fas-barcode");
+            case MODULE  -> icon.setIconLiteral("fas-external-link-alt");
+        }
+        icon.setIconSize(14);
+        icon.getStyleClass().add("icon-accent");
+
+        VBox textData = new VBox(2);
+        Label title = new Label(res.getTitle());
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        Label subtitle = new Label(res.getSubtitle());
+        subtitle.getStyleClass().add("text-muted");
+        subtitle.setStyle("-fx-font-size: 11px;");
+
+        textData.getChildren().addAll(title, subtitle);
+        box.getChildren().addAll(icon, textData);
+
+        CustomMenuItem menuItem = new CustomMenuItem(box);
+        menuItem.setHideOnClick(true);
+        menuItem.setOnAction(e -> handleNavigation(res));
+        
+        return menuItem;
+    }
+
+    private void handleNavigation(SearchResult res) {
+        try {
+            switch (res.getType()) {
+                case MODULE -> {
+                    if ("NAV_INV".equals(res.getId())) NavigationService.toInventory();
+                    else if ("NAV_ATT".equals(res.getId())) NavigationService.toAttention();
+                    else if ("NAV_SEDE".equals(res.getId())) NavigationService.toSedes();
+                }
+                case PATIENT -> {
+                    // TODO: Implementar salto a paciente específico
+                    NavigationService.toAttention();
+                }
+                case PRODUCT, BATCH -> {
+                    NavigationService.toInventory();
+                }
+            }
+            txtGlobalSearch.clear();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
     @FXML
     protected void onToggleTheme() {
-        Scene scene = themeIcon.getScene();
-        if (scene == null) return;
+        boolean isDark = NavigationService.isDarkThemeEnabled();
+        NavigationService.setDarkThemeEnabled(!isDark);
+        updateThemeIcon();
         
-        javafx.scene.Parent root = scene.getRoot();
-        StackPane rootContainer;
-        if (root instanceof StackPane) {
-            rootContainer = (StackPane) root;
-        } else {
-            rootContainer = new StackPane();
-            rootContainer.getChildren().add(root);
-            scene.setRoot(rootContainer);
+        // Efecto suave al cambiar
+        if (txtGlobalSearch.getScene() != null) {
+            FadeTransition ft = new FadeTransition(Duration.millis(300), txtGlobalSearch.getScene().getRoot());
+            ft.setFromValue(0.8);
+            ft.setToValue(1.0);
+            ft.play();
         }
+    }
 
-        boolean currentlyDark = rootContainer.getStyleClass().contains("dark-theme") || root.getStyleClass().contains("dark-theme");
-        Rectangle transitionOverlay = new Rectangle();
-        transitionOverlay.setManaged(false);
-        transitionOverlay.setMouseTransparent(true);
-        transitionOverlay.setWidth(scene.getWidth());
-        transitionOverlay.setHeight(scene.getHeight());
-        transitionOverlay.widthProperty().bind(scene.widthProperty());
-        transitionOverlay.heightProperty().bind(scene.heightProperty());
-        transitionOverlay.setFill(currentlyDark ? Color.web("#f8fafc") : Color.web("#0f172a"));
-
-        rootContainer.getChildren().add(transitionOverlay);
-
-        Platform.runLater(() -> {
-            if (currentlyDark) {
-                rootContainer.getStyleClass().remove("dark-theme");
-                if (root != rootContainer) {
-                    root.getStyleClass().remove("dark-theme");
-                }
-                themeIcon.setIconLiteral("fas-moon");
-                NavigationService.setDarkThemeEnabled(false);
-            } else {
-                rootContainer.getStyleClass().add("dark-theme");
-                if (root != rootContainer) {
-                    root.getStyleClass().add("dark-theme");
-                }
-                themeIcon.setIconLiteral("fas-sun");
-                NavigationService.setDarkThemeEnabled(true);
-            }
-
-            FadeTransition fade = new FadeTransition(Duration.millis(260), transitionOverlay);
-            fade.setFromValue(0.92);
-            fade.setToValue(0.0);
-            fade.setOnFinished(e -> {
-                rootContainer.getChildren().remove(transitionOverlay);
-                transitionOverlay.widthProperty().unbind();
-                transitionOverlay.heightProperty().unbind();
-            });
-            fade.play();
-        });
+    private void updateThemeIcon() {
+        if (NavigationService.isDarkThemeEnabled()) {
+            themeIcon.setIconLiteral("fas-sun");
+        } else {
+            themeIcon.setIconLiteral("fas-moon");
+        }
     }
 
     @FXML

@@ -83,7 +83,8 @@ public class LoginController {
             try {
                 NavigationService.toDashboard();
             } catch (IOException e) {
-                showAlert(Alert.AlertType.ERROR, "Error de Navegación", "No se pudo cargar el panel de control.");
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Error de Navegación", "No se pudo cargar el panel de control. Detalles: " + e.getMessage());
             }
         } else {
             showAlert(Alert.AlertType.ERROR, "Error de Autenticación", "Número de documento o contraseña incorrectos.");

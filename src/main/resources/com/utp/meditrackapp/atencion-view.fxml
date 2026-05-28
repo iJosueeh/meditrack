@@ -16,54 +16,68 @@
             <fx:include source="sidebar.fxml" fx:id="sidebar" />
         </left>
         <center>
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
-                <VBox styleClass="content-area" spacing="25" maxWidth="1400">
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
                     <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
                     
                     <!-- Page Header -->
                     <VBox spacing="4">
-                        <Label text="Registro de Atenciones" styleClass="dashboard-title" />
-                        <Label text="Gestión de pacientes y dispensación de medicamentos." styleClass="section-subtitle" />
+                        <Label text="Registro de Atenciones" styleClass="title-2" />
+                        <Label text="Gestión de pacientes y dispensación controlada (Lógica FEFO)." styleClass="text-muted" />
                     </VBox>
 
-                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+                    <HBox spacing="25" VBox.vgrow="ALWAYS">
                         <!-- Left Panel: Paciente & Receta -->
-                        <VBox spacing="20" prefWidth="400">
+                        <VBox spacing="25" prefWidth="420">
                             <!-- Buscar Paciente -->
-                            <VBox styleClass="card-base" spacing="15" style="-fx-padding: 20;">
-                                <Label text="Datos del Paciente" styleClass="card-title" />
-                                <Label text="DNI/CE" styleClass="input-label" />
-                                <TextField fx:id="txtPacienteDni" promptText="Ingrese número de documento" styleClass="flat-text-field" />
+                            <VBox styleClass="card, elevated" spacing="15">
+                                <Label text="IDENTIFICACIÓN DEL PACIENTE" styleClass="text-caption, text-bold, text-muted" />
+                                <VBox spacing="8">
+                                    <Label text="DNI / Carnet de Extranjería" styleClass="text-bold" style="-fx-font-size: 13px;" />
+                                    <TextField fx:id="txtPacienteDni" promptText="Ingrese número de documento" styleClass="large" />
+                                </VBox>
                             </VBox>
 
                             <!-- Registro Receta -->
-                            <VBox styleClass="card-base" spacing="15" style="-fx-padding: 20;">
-                                <Label text="Registro de Receta" styleClass="card-title" />
-                                <VBox spacing="5">
-                                    <Label text="Medicamento" styleClass="input-label" />
-                                    <ComboBox fx:id="cmbProducto" maxWidth="Infinity" promptText="Seleccionar medicamento..." styleClass="flat-text-field" onAction="#onProductoSelected" />
-                                </VBox>
-                                <VBox spacing="5">
-                                    <Label text="Cantidad" styleClass="input-label" />
-                                    <TextField fx:id="txtCantidad" promptText="0" styleClass="flat-text-field" />
+                            <VBox styleClass="card, elevated" spacing="15">
+                                <Label text="DETALLE DE RECETA" styleClass="text-caption, text-bold, text-muted" />
+                                <VBox spacing="20">
+                                    <VBox spacing="8">
+                                        <Label text="Medicamento" styleClass="text-bold" style="-fx-font-size: 13px;" />
+                                        <ComboBox fx:id="cmbProducto" maxWidth="Infinity" promptText="Seleccionar de catálogo..." onAction="#onProductoSelected" />
+                                    </VBox>
+                                    <VBox spacing="8">
+                                        <Label text="Cantidad Solicitada" styleClass="text-bold" style="-fx-font-size: 13px;" />
+                                        <TextField fx:id="txtCantidad" promptText="0" />
+                                    </VBox>
                                 </VBox>
                             </VBox>
                         </VBox>
 
                         <!-- Right Panel: Lotes -->
-                        <VBox HBox.hgrow="ALWAYS" spacing="15" styleClass="card-base" style="-fx-padding: 20;">
-                            <Label fx:id="lblLotesTitulo" text="Lotes disponibles" styleClass="card-title" />
-                            <TableView fx:id="tableLotes" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <VBox HBox.hgrow="ALWAYS" spacing="15" styleClass="card, elevated">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <FontIcon iconLiteral="fas-clipboard-list" styleClass="icon-accent" />
+                                <Label fx:id="lblLotesTitulo" text="Lotes Sugeridos por Vencimiento" styleClass="text-bold" style="-fx-font-size: 16px;" />
+                            </HBox>
+                            
+                            <TableView fx:id="tableLotes" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="colLoteNum" text="Lote" prefWidth="100" />
-                                    <TableColumn fx:id="colLoteVenc" text="Vencimiento" prefWidth="120" />
-                                    <TableColumn fx:id="colLoteUbicacion" text="Ubicación" prefWidth="150" />
-                                    <TableColumn fx:id="colLoteStock" text="Stock" prefWidth="80" />
-                                    <TableColumn fx:id="colLoteAccion" text="Acción" prefWidth="100" />
+                                    <TableColumn fx:id="colLoteNum" text="Lote" prefWidth="120" />
+                                    <TableColumn fx:id="colLoteVenc" text="Vencimiento" prefWidth="140" />
+                                    <TableColumn fx:id="colLoteStock" text="Stock" prefWidth="100" />
+                                    <TableColumn fx:id="colLoteAccion" text="Estado" prefWidth="120" />
                                 </columns>
                                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                             </TableView>
-                            <Button text="Confirmar Entrega" onAction="#onConfirmarEntrega" styleClass="btn-report" maxWidth="Infinity" />
+                            
+                            <VBox spacing="15" style="-fx-padding: 10 0 0 0;">
+                                <Separator />
+                                <HBox spacing="15" alignment="CENTER_RIGHT">
+                                    <Button text="Limpiar Formulario" styleClass="button, flat" />
+                                    <Button text="Confirmar Dispensación" onAction="#onConfirmarEntrega" styleClass="button, accent, large" />
+                                </HBox>
+                            </VBox>
                         </VBox>
                     </HBox>
                 </VBox>
