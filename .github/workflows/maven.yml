@@ -10,18 +10,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        env:
-          ACCEPT_EULA: 'Y'
-          MSSQL_SA_PASSWORD: Password123!
-          MSSQL_PID: Developer
-        ports:
-          - 1433:1433
-
     steps:
     - uses: actions/checkout@v4
+
+    - name: Pull and Run SQL Server
+      run: |
+        IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
+        for i in {1..5}; do
+          echo "Attempting to pull $IMAGE (Attempt $i)..."
+          docker pull $IMAGE && break || {
+            if [ $i -lt 5 ]; then
+              WAIT=$((i * 30))
+              echo "Pull failed with MCR block. Retrying in ${WAIT}s..."
+              sleep $WAIT
+            else
+              echo "Failed to pull image after 5 attempts."
+              exit 1
+            fi
+          }
+        done
+        docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password123!" -e "MSSQL_PID=Developer" -p 1433:1433 -d --name sqlserver $IMAGE
     
     - name: Set up JDK 21
       uses: actions/setup-java@v4

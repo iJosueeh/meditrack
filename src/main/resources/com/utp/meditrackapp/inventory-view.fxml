@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.inventory.ui.InventoryController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane fx:id="rootPane">
+        <top>
+            <fx:include source="navbar.fxml" fx:id="navbar" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" fx:id="sidebar" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Gestión de Inventario" styleClass="title-2" />
+                            <Label text="Control centralizado de existencias y trazabilidad de lotes." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Registrar Operación" onAction="#onOpenMovementModal" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Tabs -->
+                    <TabPane fx:id="inventoryTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                        <tabs>
+                            <Tab text="Historial de Movimientos">
+                                <VBox spacing="20" style="-fx-padding: 25 0 0 0;">
+                                    <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
+                                        <TextField fx:id="txtSearchMovement" promptText="Buscar producto o lote..." prefWidth="300" />
+                                        <ComboBox fx:id="cmbMovementType" promptText="Tipo" prefWidth="180" />
+                                        <DatePicker fx:id="dpFromDate" promptText="Desde" prefWidth="140" />
+                                        <DatePicker fx:id="dpToDate" promptText="Hasta" prefWidth="140" />
+                                        <Button text="Aplicar Filtros" onAction="#onFilterMovements" styleClass="button, sm" />
+                                    </HBox>
+                                    
+                                    <HBox spacing="25" VBox.vgrow="ALWAYS">
+                                        <TableView fx:id="tableMovements" HBox.hgrow="ALWAYS">
+                                            <columns>
+                                                <TableColumn fx:id="colMovDate" text="Fecha/Hora" prefWidth="160" />
+                                                <TableColumn fx:id="colMovType" text="Tipo" prefWidth="100" />
+                                                <TableColumn fx:id="colMovProduct" text="Producto" prefWidth="250" />
+                                                <TableColumn fx:id="colMovBatch" text="Lote" prefWidth="120" />
+                                                <TableColumn fx:id="colMovQty" text="Cant." prefWidth="90" />
+                                                <TableColumn fx:id="colMovReason" text="Motivo" prefWidth="150" />
+                                            </columns>
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                        </TableView>
+                                        
+                                        <VBox fx:id="alertsContainer" prefWidth="320" spacing="15" styleClass="card, elevated">
+                                            <Label text="ALERTAS DEL SISTEMA" styleClass="text-caption, text-bold, text-muted" />
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </Tab>
+                            
+                            <Tab text="Monitor de Lotes">
+                                <VBox spacing="25" style="-fx-padding: 25 0 0 0;">
+                                    <HBox spacing="25" VBox.vgrow="ALWAYS">
+                                        <TableView fx:id="tableBatches" HBox.hgrow="ALWAYS">
+                                            <columns>
+                                                <TableColumn fx:id="colBatchDigemid" text="CÓDIGO DIGEMID" prefWidth="120" />
+                                                <TableColumn fx:id="colBatchProduct" text="Producto" prefWidth="280" />
+                                                <TableColumn fx:id="colBatchNum" text="LOTE" prefWidth="120" />
+                                                <TableColumn fx:id="colBatchFab" text="F. Fabricación" prefWidth="130" />
+                                                <TableColumn fx:id="colBatchExp" text="F. Vencimiento" prefWidth="130" />
+                                            </columns>
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                        </TableView>
+                                        
+                                        <VBox prefWidth="350" spacing="20">
+                                            <!-- Resumen de Estado -->
+                                            <VBox styleClass="card, elevated" spacing="15">
+                                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                                    <FontIcon iconLiteral="fas-chart-pie" iconSize="16" styleClass="icon-muted" />
+                                                    <Label text="RESUMEN DE ESTADO" styleClass="text-caption, text-bold, text-muted" />
+                                                </HBox>
+                                                
+                                                <HBox spacing="15">
+                                                    <!-- Tarjeta Activos -->
+                                                    <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="8" styleClass="bg-success-subtle" style="-fx-padding: 15; -fx-background-radius: 8;">
+                                                        <Label text="ACTIVOS" styleClass="text-caption, text-bold, text-on-success" />
+                                                        <Label fx:id="lblActiveBatches" text="0" styleClass="title-3, text-on-success" />
+                                                        <VBox prefHeight="4" maxWidth="Infinity" styleClass="bg-success-emphasis" style="-fx-background-radius: 2;" />
+                                                    </VBox>
+                                                    
+                                                    <!-- Tarjeta Críticos -->
+                                                    <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="8" styleClass="bg-danger-subtle" style="-fx-padding: 15; -fx-background-radius: 8;">
+                                                        <Label text="CRÍTICOS" styleClass="text-caption, text-bold, text-on-danger" />
+                                                        <Label fx:id="lblCriticalBatches" text="0" styleClass="title-3, text-on-danger" />
+                                                        <VBox prefHeight="4" maxWidth="Infinity" styleClass="bg-danger-emphasis" style="-fx-background-radius: 2;" />
+                                                    </VBox>
+                                                </HBox>
+                                            </VBox>
+
+                                            <!-- Registro Rápido -->
+                                            <VBox styleClass="card, elevated" spacing="15">
+                                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                                    <FontIcon iconLiteral="fas-bolt" iconSize="16" styleClass="icon-accent" />
+                                                    <Label text="REGISTRO RÁPIDO" styleClass="text-caption, text-bold, text-muted" />
+                                                </HBox>
+
+                                                <VBox spacing="12">
+                                                    <VBox spacing="5">
+                                                        <Label text="TIPO DE MOVIMIENTO" styleClass="text-caption, text-muted" />
+                                                        <ComboBox fx:id="cmbQuickType" maxWidth="Infinity" promptText="Seleccionar" />
+                                                    </VBox>
+                                                    <VBox spacing="5">
+                                                        <Label text="LOTE DESTINO" styleClass="text-caption, text-muted" />
+                                                        <ComboBox fx:id="cmbQuickBatch" maxWidth="Infinity" promptText="Seleccionar lote" />
+                                                    </VBox>
+                                                    <VBox spacing="5">
+                                                        <Label text="CANTIDAD" styleClass="text-caption, text-muted" />
+                                                        <TextField fx:id="txtQuickQty" promptText="0" />
+                                                    </VBox>
+                                                    <VBox spacing="5">
+                                                        <Label text="OBSERVACIONES" styleClass="text-caption, text-muted" />
+                                                        <TextField fx:id="txtQuickObs" promptText="Notas breves" />
+                                                    </VBox>
+                                                    
+                                                    <Button text="Actualizar Stock" onAction="#onQuickUpdate" maxWidth="Infinity" styleClass="button, accent">
+                                                        <graphic><FontIcon iconLiteral="fas-sync-alt" iconColor="white" /></graphic>
+                                                        <VBox.margin><Insets top="5" /></VBox.margin>
+                                                    </Button>
+                                                </VBox>
+                                            </VBox>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </Tab>
+                        </tabs>
+                    </TabPane>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Movement Modal -->
+    <StackPane fx:id="modalMovement" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="600" maxHeight="-Infinity" styleClass="modal-content" spacing="25">
+            <VBox styleClass="modal-header">
+                <Label text="Registrar Operación de Inventario" styleClass="title-4" />
+                <Label text="Ingrese los detalles de la entrada o salida a continuación." styleClass="text-muted" />
+            </VBox>
+            
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                <VBox spacing="25">
+                    <VBox spacing="8">
+                        <Label text="PRODUCTO / MEDICAMENTO" styleClass="text-caption, text-bold, text-muted" />
+                        <ComboBox fx:id="cmbModalProduct" maxWidth="Infinity" promptText="Seleccionar de la lista" onAction="#onModalProductChanged" styleClass="large" />
+                    </VBox>
+                    
+                    <HBox spacing="25">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="TIPO DE MOVIMIENTO" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbModalType" maxWidth="Infinity" promptText="Operación" onAction="#onModalTypeChanged" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="MOTIVO" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbModalMotivo" maxWidth="Infinity" promptText="Razón del registro" />
+                        </VBox>
+                    </HBox>
+                    
+                    <VBox fx:id="vboxEntradaDetails" visible="false" managed="false" spacing="20" style="-fx-padding: 15; -fx-background-color: -color-bg-subtle; -fx-background-radius: 10;">
+                        <VBox spacing="8">
+                            <Label text="IDENTIFICACIÓN DE LOTE (PROVEEDOR)" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtNewLote" promptText="Ej: LOT-2026-X" />
+                        </VBox>
+                        <HBox spacing="20">
+                            <VBox HBox.hgrow="ALWAYS" spacing="8">
+                                <Label text="FECHA FABRICACIÓN" styleClass="text-caption, text-bold, text-muted" />
+                                <DatePicker fx:id="dpNewFab" maxWidth="Infinity" />
+                            </VBox>
+                            <VBox HBox.hgrow="ALWAYS" spacing="8">
+                                <Label text="FECHA VENCIMIENTO" styleClass="text-caption, text-bold, text-muted" />
+                                <DatePicker fx:id="dpNewVenc" maxWidth="Infinity" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    
+                    <VBox fx:id="cmbModalBatchContainer" visible="false" managed="false" spacing="8">
+                        <Label text="SELECCIONAR LOTE DISPONIBLE" styleClass="text-caption, text-bold, text-muted" />
+                        <ComboBox fx:id="cmbModalBatch" maxWidth="Infinity" promptText="Lotes activos en sede" />
+                    </VBox>
+                    
+                    <HBox spacing="25">
+                        <VBox prefWidth="180" spacing="8">
+                            <Label text="CANTIDAD" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtModalQty" promptText="0" styleClass="large" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="OBSERVACIONES" styleClass="text-caption, text-bold, text-muted" />
+                            <TextArea fx:id="txtModalObs" prefHeight="90" wrapText="true" promptText="Notas adicionales del movimiento..." />
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+            
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button text="Confirmar y Guardar" onAction="#onSaveMovement" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

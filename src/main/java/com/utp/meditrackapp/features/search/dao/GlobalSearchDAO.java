@@ -1,0 +1,72 @@
+package com.utp.meditrackapp.features.search.dao;
+
+import com.utp.meditrackapp.core.config.DatabaseConfig;
+import com.utp.meditrackapp.features.search.models.SearchResult;
+import com.utp.meditrackapp.features.search.models.SearchResult.ResultType;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class GlobalSearchDAO {
+
+    public List<SearchResult> searchGlobal(String query) throws SQLException {
+        List<SearchResult> results = new ArrayList<>();
+        String pattern = "%" + query + "%";
+
+        // Query para pacientes
+        String sqlPatients = "SELECT TOP 5 id, (nombres + ' ' + apellidos) as title, numero_documento as subtitle FROM pacientes " +
+                             "WHERE nombres LIKE ? OR apellidos LIKE ? OR numero_documento LIKE ?";
+        
+        // Query para productos
+        String sqlProducts = "SELECT TOP 5 id, nombre as title, codigo_digemid as subtitle FROM productos " +
+                             "WHERE nombre LIKE ? OR codigo_digemid LIKE ?";
+
+        // Query para lotes
+        String sqlBatches = "SELECT TOP 5 l.id, l.numero_lote as title, p.nombre as subtitle FROM lotes l " +
+                            "JOIN productos p ON l.producto_id = p.id " +
+                            "WHERE l.numero_lote LIKE ?";
+
+        try (Connection conn = DatabaseConfig.getInstance().getConnection()) {
+            // Buscar Pacientes
+            try (PreparedStatement ps = conn.prepareStatement(sqlPatients)) {
+                ps.setString(1, pattern);
+                ps.setString(2, pattern);
+                ps.setString(3, pattern);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        results.add(new SearchResult(rs.getString("title"), rs.getString("subtitle"), ResultType.PATIENT, rs.getString("id")));
+                    }
+                }
+            }
+
+            // Buscar Productos
+            try (PreparedStatement ps = conn.prepareStatement(sqlProducts)) {
+                ps.setString(1, pattern);
+                ps.setString(2, pattern);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        results.add(new SearchResult(rs.getString("title"), rs.getString("subtitle"), ResultType.PRODUCT, rs.getString("id")));
+                    }
+                }
+            }
+
+            // Buscar Lotes
+            try (PreparedStatement ps = conn.prepareStatement(sqlBatches)) {
+                ps.setString(1, pattern);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        results.add(new SearchResult(rs.getString("title"), rs.getString("subtitle"), ResultType.BATCH, rs.getString("id")));
+                    }
+                }
+            }
+        }
+
+        // Búsqueda estática de módulos (hardcoded para velocidad)
+        if ("inventario".contains(query.toLowerCase())) results.add(new SearchResult("Módulo de Inventario", "Navegar a existencias", ResultType.MODULE, "NAV_INV"));
+        if ("atenciones".contains(query.toLowerCase()) || "dispensacion".contains(query.toLowerCase())) results.add(new SearchResult("Registro de Atenciones", "Navegar a dispensación", ResultType.MODULE, "NAV_ATT"));
+        if ("sedes".contains(query.toLowerCase())) results.add(new SearchResult("Gestión de Sedes", "Administración global", ResultType.MODULE, "NAV_SEDE"));
+
+        return results;
+    }
+}

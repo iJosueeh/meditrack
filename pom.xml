@@ -43,6 +43,7 @@
         <dependency>
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
+            
             <version>3.0.0</version>
         </dependency>
         <dependency>
@@ -76,6 +77,12 @@
             <artifactId>jasperreports</artifactId>
             <version>6.20.0</version>
         </dependency>
+        <!-- AtlantaFX for Modern UI -->
+        <dependency>
+            <groupId>io.github.mkpaz</groupId>
+            <artifactId>atlantafx-base</artifactId>
+            <version>2.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -98,7 +105,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.utp.meditrackapp/com.utp.meditrackapp.core.App</mainClass>
+                            <mainClass>com.utp.meditrackapp.core.App</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>

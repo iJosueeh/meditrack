@@ -1,93 +1,40 @@
-/* --- Global Theme Variables --- */
+/* --- MediTrack Global Overrides (AtlantaFX Primer Based) --- */
+
 .root {
-    /* Light Theme Variables (Default) */
-    -fx-bg-color: #f8fafc;
-    -fx-surface-color: #ffffff;
-    -fx-surface-hover: #f1f5f9;
-    -fx-border-color-var: #f1f5f9;
-    
-    /* Text Colors */
-    -fx-text-primary: #1e293b;
-    -fx-text-secondary: #64748b;
-    -fx-text-muted: #94a3b8;
-    
-    /* Brand Colors */
-    -fx-brand-primary: #1f4e7a;
-    -fx-brand-success: #16a34a;
-    -fx-brand-danger: #ef4444;
-    
-    /* UI Specific */
-    -fx-navbar-bg: #ffffff;
-    -fx-sidebar-bg: #ffffff;
-    -fx-nav-active-bg: #f0f7ff;
-
-    -fx-font-family: "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+    /* Custom Brand Colors (Aligned with AtlantaFX palette) */
+    -fx-brand-primary: -color-accent-fg;
+    -fx-brand-success: -color-success-fg;
+    -fx-brand-danger: -color-danger-fg;
 }
 
-/* Forzar el fondo en el contenedor principal de la escena */
+/* Base backgrounds for main containers */
 .stack-pane, .dashboard-root, .profile-root {
-    -fx-background-color: -fx-bg-color;
+    -fx-background-color: -color-bg-default;
 }
 
-.dark-theme {
-    /* Dark Theme Variables */
-    -fx-bg-color: #0f172a;
-    -fx-surface-color: #1e293b;
-    -fx-surface-hover: #334155;
-    -fx-border-color-var: #334155;
-    
-    -fx-text-primary: #f1f5f9;
-    -fx-text-secondary: #94a3b8;
-    -fx-text-muted: #64748b;
-    
-    -fx-brand-primary: #38bdf8;
-    
-    -fx-navbar-bg: #1e293b;
-    -fx-sidebar-bg: #1e293b;
-    -fx-nav-active-bg: #1e293b;
-}
+/* --- Shared Components Refactoring --- */
 
-/* --- Shared Components --- */
-
-/* Navbar */
+/* Navbar Overlay */
 .navbar {
-    -fx-background-color: -fx-navbar-bg;
+    -fx-background-color: -color-bg-overlay;
     -fx-padding: 0 40;
     -fx-min-height: 70;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 10, 0, 0, 2);
-    -fx-border-color: -fx-border-color-var;
+    -fx-border-color: -color-border-default;
     -fx-border-width: 0 0 1 0;
 }
 
 .nav-brand-text {
-    -fx-text-fill: -fx-brand-primary;
+    -fx-text-fill: -color-accent-fg;
     -fx-font-weight: 800;
     -fx-font-size: 20px;
 }
 
-.icon-btn-nav {
-    -fx-background-color: transparent;
-    -fx-background-radius: 10;
-    -fx-min-width: 38;
-    -fx-min-height: 38;
-    -fx-cursor: hand;
-    -fx-border-color: transparent;
-}
-
-.icon-btn-nav:hover {
-    -fx-background-color: -fx-surface-hover;
-}
-
-.secondary-icon {
-    -fx-icon-color: -fx-text-secondary;
-}
-
-/* Sidebar */
+/* Sidebar Styling using AtlantaFX tokens */
 .sidebar {
-    -fx-background-color: -fx-sidebar-bg;
+    -fx-background-color: -color-bg-subtle;
     -fx-padding: 20 0;
     -fx-pref-width: 260;
-    -fx-border-color: -fx-border-color-var;
+    -fx-border-color: -color-border-default;
     -fx-border-width: 0 1 0 0;
 }
 
@@ -96,30 +43,31 @@
 }
 
 .profile-avatar-container {
-    -fx-background-color: -fx-bg-color;
+    -fx-background-color: -color-bg-default;
     -fx-background-radius: 50;
     -fx-min-width: 42;
     -fx-min-height: 42;
     -fx-alignment: center;
-    -fx-border-color: -fx-border-color-var;
+    -fx-border-color: -color-border-default;
     -fx-border-radius: 50;
 }
 
 .profile-name {
     -fx-font-weight: 700;
-    -fx-text-fill: -fx-text-primary;
+    -fx-text-fill: -color-fg-default;
     -fx-font-size: 14px;
 }
 
 .profile-sede {
     -fx-font-size: 12px;
-    -fx-text-fill: -fx-text-muted;
+    -fx-text-fill: -color-fg-muted;
     -fx-font-weight: 500;
 }
 
+/* Custom Navigation Buttons (AtlantaFX Button Style extension) */
 .nav-button {
     -fx-background-color: transparent;
-    -fx-text-fill: -fx-text-secondary;
+    -fx-text-fill: -color-fg-muted;
     -fx-alignment: center_left;
     -fx-padding: 14 25;
     -fx-font-weight: 600;
@@ -131,20 +79,64 @@
 }
 
 .nav-button:hover {
-    -fx-background-color: -fx-bg-color;
-    -fx-text-fill: -fx-brand-primary;
+    -fx-background-color: -color-bg-default;
+    -fx-text-fill: -color-accent-fg;
 }
 
 .nav-button-active {
-    -fx-background-color: -fx-nav-active-bg;
-    -fx-text-fill: -fx-brand-primary;
-    -fx-border-color: -fx-brand-primary;
+    -fx-background-color: -color-accent-subtle;
+    -fx-text-fill: -color-accent-fg;
+    -fx-border-color: -color-accent-fg;
 }
 
 .nav-icon {
-    -fx-icon-color: -fx-text-muted;
+    -fx-icon-color: -color-fg-muted;
 }
 
 .nav-button:hover .nav-icon, .nav-button-active .nav-icon {
-    -fx-icon-color: -fx-brand-primary;
+    -fx-icon-color: -color-accent-fg;
 }
+
+/* Icon Color Helpers */
+.icon-accent { -fx-icon-color: -color-accent-fg; }
+.icon-muted  { -fx-icon-color: -color-fg-muted; }
+.icon-danger { -fx-icon-color: -color-danger-fg; }
+.icon-success { -fx-icon-color: -color-success-fg; }
+.icon-info    { -fx-icon-color: -color-accent-fg; }
+.icon-warning { -fx-icon-color: -color-warning-emphasis; }
+
+/* Utility Helpers */
+/* Modal Overlays & Centering */
+.modal-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.45);
+    -fx-alignment: center;
+}
+
+.modal-content {
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 12;
+    -fx-padding: 30;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 20, 0, 0, 10);
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.modal-header {
+    -fx-padding: 0 0 10 0;
+    -fx-border-color: -color-border-muted;
+    -fx-border-width: 0 0 1 0;
+}
+
+.modal-footer {
+    -fx-padding: 10 0 0 0;
+}
+
+/* Status Cards Coloring Extensions */
+.bg-danger-subtle { -fx-background-color: -color-danger-subtle; }
+.bg-success-subtle { -fx-background-color: -color-success-subtle; }
+.bg-danger-emphasis { -fx-background-color: -color-danger-emphasis; }
+.bg-success-emphasis { -fx-background-color: -color-success-emphasis; }
+
+.text-on-danger { -fx-text-fill: -color-danger-fg; }
+.text-on-success { -fx-text-fill: -color-success-fg; }

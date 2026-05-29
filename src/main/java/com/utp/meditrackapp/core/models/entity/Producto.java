@@ -8,6 +8,7 @@ public class Producto {
     private String detalle;
     private String unidadMedida;
     private int isActivo;
+    private Integer stockMinimo;
 
     public Producto() {}
 
@@ -40,5 +41,8 @@ public class Producto {
     public void setUnidadMedida(String unidadMedida) { this.unidadMedida = unidadMedida; }
 
     public int getIsActivo() { return isActivo; }
-    public void setIsActivo(int isActiva) { this.isActivo = isActiva; }
+    public void setIsActivo(int isActivo) { this.isActivo = isActivo; }
+
+    public Integer getStockMinimo() { return stockMinimo; }
+    public void setStockMinimo(Integer stockMinimo) { this.stockMinimo = stockMinimo; }
 }

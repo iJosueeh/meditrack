@@ -18,11 +18,11 @@ public class ProfileController {
     @FXML private Label fullNameLabel, fullNameLabelSmall, roleLabel, roleLabelSmall, sedeLabel, lastAccessValue, accountStatusValue;
     @FXML private TextField nombresField, apellidosField, tipoDocField, numDocField;
 
-    // Edit Modal
+    
     @FXML private VBox editModal;
     @FXML private TextField editNombresField, editApellidosField, editTipoDocField, editNumDocField;
 
-    // Password Modal
+    
     @FXML private VBox passwordModal;
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
     @FXML private TextField currentPasswordTextField, newPasswordTextField, confirmPasswordTextField;
@@ -59,7 +59,7 @@ public class ProfileController {
         }
     }
 
-    // --- Visibility Toggles ---
+   
     @FXML protected void onToggleCurrentVisibility() {
         isCurrentVisible = toggleVisibility(currentPasswordField, currentPasswordTextField, currentEyeIcon, isCurrentVisible);
     }
@@ -85,7 +85,7 @@ public class ProfileController {
         return !visible;
     }
 
-    // --- Modal Actions ---
+  
     @FXML protected void onOpenEditModal() {
         Usuario user = SessionManager.getInstance().getCurrentUser();
         if (user != null) {

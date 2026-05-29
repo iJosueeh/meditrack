@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.sedes.ui.SedeController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane>
+        <top>
+            <fx:include source="navbar.fxml" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Modern Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Gestión de Sedes" styleClass="title-2" />
+                            <Label text="Administración centralizada de locales, personal y estado de salud de inventario." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Registrar Nueva Sede" onAction="#onOpenRegisterModal" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Advanced Summary Cards -->
+                    <FlowPane hgap="25" vgap="25">
+                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-hotel" iconSize="18" styleClass="icon-accent" />
+                                <Label text="TOTAL DE SEDES" styleClass="text-caption, text-bold, text-muted" />
+                            </HBox>
+                            <Label fx:id="lblTotalSedes" text="0" styleClass="title-2" />
+                            <Label text="Locales registrados globalmente" styleClass="text-caption, text-muted" />
+                        </VBox>
+                        
+                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-users" iconSize="18" styleClass="icon-accent" />
+                                <Label text="TOTAL EMPLEADOS" styleClass="text-caption, text-bold, text-muted" />
+                            </HBox>
+                            <Label fx:id="lblTotalEmpleados" text="0" styleClass="title-2" />
+                            <Label text="Personal activo en red" styleClass="text-caption, text-muted" />
+                        </VBox>
+
+                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-exclamation-triangle" iconSize="18" styleClass="icon-danger" />
+                                <Label text="STOCK CRÍTICO" styleClass="text-caption, text-bold, text-muted" />
+                            </HBox>
+                            <Label fx:id="lblSedesCriticas" text="0" styleClass="title-2, text-danger" />
+                            <Label text="Sedes con alertas urgentes" styleClass="text-caption, text-muted" />
+                        </VBox>
+                    </FlowPane>
+
+                    <!-- Main Table with Advanced Filters -->
+                    <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
+                            <HBox styleClass="icon-box-subtle" alignment="CENTER">
+                                <FontIcon iconLiteral="fas-search" />
+                            </HBox>
+                            <TextField fx:id="txtSearchSede" promptText="Buscar por nombre, dirección o administrador..." prefWidth="450" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Pagination fx:id="pagination" maxPageIndicatorCount="5" pageCount="1" />
+                            <Button text="Actualizar Datos" onAction="#initialize" styleClass="button, flat, sm">
+                                <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
+                            </Button>
+                        </HBox>
+                        
+                        <TableView fx:id="tableSedes" VBox.vgrow="ALWAYS" fixedCellSize="55">
+                            <columns>
+                                <TableColumn fx:id="colId" text="CÓDIGO" prefWidth="100" />
+                                <TableColumn fx:id="colNombre" text="POSTA MÉDICA" prefWidth="220" />
+                                <TableColumn fx:id="colAdmin" text="JEFE ASIGNADO" prefWidth="180" />
+                                <TableColumn fx:id="colEmp" text="PERSONAL" prefWidth="90" />
+                                <TableColumn fx:id="colStockStatus" text="ESTADO INV." prefWidth="130" />
+                                <TableColumn fx:id="colEstado" text="ESTADO OP." prefWidth="110" />
+                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="110" sortable="false" />
+                            </columns>
+                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                            <placeholder>
+                                <Label text="No se encontraron registros." styleClass="text-muted" />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Modal Form -->
+    <StackPane fx:id="modalSede" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="650" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+            <VBox styleClass="modal-header">
+                <Label fx:id="modalTitle" text="Registrar Sede" styleClass="title-4" />
+                <Label text="Configure el local, asigne un responsable y gestione el personal." styleClass="text-muted" />
+            </VBox>
+            
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+                <VBox spacing="20" style="-fx-padding: 5;">
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="NOMBRE DE LA SEDE" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtNombre" styleClass="large" />
+                        </VBox>
+                        <VBox prefWidth="180" spacing="8">
+                            <Label text="TELÉFONO DE CONTACTO" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtTelefono" promptText="Ej: 01 2345678" />
+                        </VBox>
+                    </HBox>
+                    
+                    <VBox spacing="8">
+                        <Label text="DIRECCIÓN" styleClass="text-caption, text-bold, text-muted" />
+                        <TextArea fx:id="txtDireccion" prefHeight="60" wrapText="true" />
+                    </VBox>
+
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="JEFE DE SEDE ASIGNADO" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbManager" maxWidth="Infinity" promptText="Seleccionar administrador" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="TIPO DE ESTABLECIMIENTO" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbTipoSede" maxWidth="Infinity" />
+                        </VBox>
+                    </HBox>
+
+                    <Separator />
+
+                    <VBox spacing="10">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <FontIcon iconLiteral="fas-users" iconSize="14" styleClass="icon-muted" />
+                            <Label text="PERSONAL ASIGNADO ACTUALMENTE" styleClass="text-caption, text-bold, text-muted" />
+                        </HBox>
+                        <TableView fx:id="tableStaff" prefHeight="180">
+                            <columns>
+                                <TableColumn fx:id="colStaffName" text="Colaborador" prefWidth="250" />
+                                <TableColumn fx:id="colStaffRol" text="Rol / Cargo" prefWidth="150" />
+                            </columns>
+                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                    
+                    <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 10; -fx-background-color: -color-bg-subtle; -fx-background-radius: 8;">
+                        <CheckBox fx:id="chkActiva" text="Sede operativa (Habilitar acceso)" styleClass="text-bold" />
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button text="Guardar Cambios" onAction="#onSaveSede" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

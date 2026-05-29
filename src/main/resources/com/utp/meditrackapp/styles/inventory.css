@@ -1,0 +1,36 @@
+/* Inventory Specific Styles (AtlantaFX Integration) */
+
+.filter-bar {
+    -fx-background-color: -color-bg-subtle;
+    -fx-padding: 20;
+    -fx-background-radius: 12;
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+}
+
+/* Specialized Card styling (Extending AtlantaFX .card) */
+.card-info-custom {
+    -fx-pref-width: 400;
+    -fx-padding: 30;
+}
+
+.icon-box-subtle {
+    -fx-background-color: -color-bg-subtle;
+    -fx-padding: 10;
+    -fx-background-radius: 10;
+}
+
+/* Alert styling */
+.alert-card-danger {
+    -fx-background-color: -color-danger-subtle;
+    -fx-border-color: -color-danger-muted;
+    -fx-padding: 12;
+    -fx-background-radius: 8;
+}
+
+.alert-card-warning {
+    -fx-background-color: -color-warning-subtle;
+    -fx-border-color: -color-warning-muted;
+    -fx-padding: 12;
+    -fx-background-radius: 8;
+}

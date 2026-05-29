@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.features.auth.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
+import com.utp.meditrackapp.core.session.SessionContext;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -56,7 +57,16 @@ public class LoginController {
 
     @FXML
     protected void onForgotPassword() {
-        // TODO: Implementar recuperación de contraseña
+        // Implementación futura: Recuperación de contraseña
+    }
+
+    @FXML
+    protected void onDniAction() {
+        if (isPasswordVisible) {
+            passwordTextField.requestFocus();
+        } else {
+            passwordField.requestFocus();
+        }
     }
 
     @FXML
@@ -73,7 +83,8 @@ public class LoginController {
             try {
                 NavigationService.toDashboard();
             } catch (IOException e) {
-                showAlert(Alert.AlertType.ERROR, "Error de Navegación", "No se pudo cargar el panel de control.");
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Error de Navegación", "No se pudo cargar el panel de control. Detalles: " + e.getMessage());
             }
         } else {
             showAlert(Alert.AlertType.ERROR, "Error de Autenticación", "Número de documento o contraseña incorrectos.");

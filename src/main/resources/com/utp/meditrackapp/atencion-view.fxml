@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.attentions.ui.AtencionController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane fx:id="rootPane">
+        <top>
+            <fx:include source="navbar.fxml" fx:id="navbar" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" fx:id="sidebar" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Page Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Atención al Paciente" styleClass="title-2" />
+                            <Label text="Búsqueda de pacientes, validación de recetas y dispensación de medicamentos." styleClass="text-muted" />
+                        </VBox>
+                        <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="icon-box-subtle">
+                             <FontIcon iconLiteral="fas-clinic-medical" iconSize="24" styleClass="icon-accent" />
+                        </HBox>
+                    </HBox>
+
+                    <HBox spacing="25" VBox.vgrow="ALWAYS">
+                        <!-- Left Panel: Paciente & Receta -->
+                        <VBox spacing="25" prefWidth="460">
+                            <!-- Buscar Paciente -->
+                            <VBox styleClass="card" spacing="0">
+                                <HBox style="-fx-background-color: -color-bg-subtle; -fx-padding: 15; -fx-background-radius: 8 8 0 0; -fx-border-color: -color-border-default; -fx-border-width: 0 0 1 0;" spacing="10" alignment="CENTER_LEFT">
+                                    <FontIcon iconLiteral="fas-search" styleClass="icon-accent" iconSize="16" />
+                                    <Label text="Búsqueda de Paciente" styleClass="text-bold" />
+                                </HBox>
+                                <VBox spacing="20" style="-fx-padding: 20;">
+                                    <VBox spacing="8">
+                                        <Label text="DNI / DOCUMENTO" styleClass="text-caption, text-bold, text-muted" />
+                                        <HBox spacing="10">
+                                            <TextField fx:id="txtPacienteDni" promptText="Ingrese N° de documento..." styleClass="large" HBox.hgrow="ALWAYS" />
+                                            <Button text="Buscar" onAction="#onSearchPatient" styleClass="button, accent">
+                                                <graphic><FontIcon iconLiteral="fas-search" iconColor="white" /></graphic>
+                                            </Button>
+                                        </HBox>
+                                    </VBox>
+                                    
+                                    <!-- Patient Info Placeholder (to be populated via Controller) -->
+                                    <VBox fx:id="vboxPatientInfo" visible="false" managed="false" spacing="10" style="-fx-padding: 15; -fx-background-color: -color-accent-subtle; -fx-background-radius: 8; -fx-border-color: -color-accent-muted; -fx-border-width: 1;">
+                                        <HBox spacing="10" alignment="CENTER_LEFT">
+                                            <FontIcon iconLiteral="fas-user-check" styleClass="icon-accent" />
+                                            <Label fx:id="lblPatientName" text="Juan Pérez García" styleClass="text-bold" />
+                                        </HBox>
+                                        <HBox spacing="20">
+                                            <VBox>
+                                                <Label text="ESTADO" styleClass="text-caption, text-muted" />
+                                                <Label text="ACTIVO" styleClass="text-bold, text-success" style="-fx-font-size: 11px;" />
+                                            </VBox>
+                                            <VBox>
+                                                <Label text="TELÉFONO" styleClass="text-caption, text-muted" />
+                                                <Label fx:id="lblPatientPhone" text="987 654 321" />
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
+                                </VBox>
+                            </VBox>
+
+                            <!-- Registro Receta -->
+                            <VBox styleClass="card" spacing="0">
+                                <HBox style="-fx-background-color: -color-bg-subtle; -fx-padding: 15; -fx-background-radius: 8 8 0 0; -fx-border-color: -color-border-default; -fx-border-width: 0 0 1 0;" spacing="10" alignment="CENTER_LEFT">
+                                    <FontIcon iconLiteral="fas-file-medical" styleClass="icon-accent" iconSize="16" />
+                                    <Label text="Registro de Receta Médica" styleClass="text-bold" />
+                                </HBox>
+                                <VBox spacing="25" style="-fx-padding: 20;">
+                                    <VBox spacing="8">
+                                        <Label text="MEDICAMENTO SOLICITADO" styleClass="text-caption, text-bold, text-muted" />
+                                        <ComboBox fx:id="cmbProducto" maxWidth="Infinity" promptText="Seleccione del catálogo de la sede..." onAction="#onProductoSelected" styleClass="large" />
+                                    </VBox>
+                                    
+                                    <HBox spacing="20">
+                                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                            <Label text="DOSIS / INDICACIÓN" styleClass="text-caption, text-bold, text-muted" />
+                                            <TextField fx:id="txtDosis" promptText="Ej: 1 tab cada 8h" />
+                                        </VBox>
+                                        <VBox spacing="8" prefWidth="120">
+                                            <Label text="CANTIDAD" styleClass="text-caption, text-bold, text-muted" />
+                                            <TextField fx:id="txtCantidad" promptText="0" />
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Right Panel: Lotes -->
+                        <VBox HBox.hgrow="ALWAYS" spacing="0" styleClass="card">
+                            <HBox style="-fx-background-color: -color-bg-subtle; -fx-padding: 15; -fx-background-radius: 8 8 0 0; -fx-border-color: -color-border-default; -fx-border-width: 0 0 1 0;" alignment="CENTER_LEFT" spacing="10">
+                                <HBox alignment="CENTER_LEFT" spacing="10" HBox.hgrow="ALWAYS">
+                                    <FontIcon iconLiteral="fas-boxes" styleClass="icon-accent" iconSize="16" />
+                                    <Label fx:id="lblLotesTitulo" text="Lotes Disponibles" styleClass="text-bold" />
+                                </HBox>
+                                <HBox styleClass="badge, success" alignment="CENTER" spacing="8">
+                                    <FontIcon iconLiteral="fas-warehouse" iconSize="12" />
+                                    <Label fx:id="lblStockTotal" text="Stock Total: 0" styleClass="text-bold" />
+                                </HBox>
+                            </HBox>
+                            
+                            <VBox spacing="15" VBox.vgrow="ALWAYS" style="-fx-padding: 20;">
+                                <TableView fx:id="tableLotes" VBox.vgrow="ALWAYS" styleClass="striped">
+                                    <columns>
+                                        <TableColumn fx:id="colLoteNum" text="LOTE" prefWidth="130" />
+                                        <TableColumn fx:id="colLoteVenc" text="VENCIMIENTO" prefWidth="140" />
+                                        <TableColumn fx:id="colLoteUbicacion" text="UBICACIÓN" prefWidth="160" />
+                                        <TableColumn fx:id="colLoteStock" text="STOCK DISP." prefWidth="110" />
+                                        <TableColumn fx:id="colLoteAccion" text="ACCIÓN" prefWidth="130" />
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                    <placeholder>
+                                        <VBox alignment="CENTER" spacing="10">
+                                            <FontIcon iconLiteral="fas-info-circle" iconSize="32" styleClass="icon-muted" />
+                                            <Label text="Seleccione un medicamento para ver los lotes FEFO." styleClass="text-muted" />
+                                        </VBox>
+                                    </placeholder>
+                                </TableView>
+                                
+                                <HBox alignment="CENTER_RIGHT" spacing="15">
+                                    <Button text="Limpiar Todo" styleClass="button, flat" />
+                                    <Button text="Confirmar Dispensación" onAction="#onConfirmarEntrega" styleClass="button, accent, large">
+                                        <graphic><FontIcon iconLiteral="fas-check-circle" iconColor="white" /></graphic>
+                                    </Button>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+</StackPane>

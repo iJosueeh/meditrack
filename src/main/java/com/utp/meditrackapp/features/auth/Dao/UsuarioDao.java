@@ -11,6 +11,7 @@ public class UsuarioDao {
     private final DatabaseConfig dbConfig = DatabaseConfig.getInstance();
 
     public Usuario login(String numeroDocumento, String password) {
+        System.out.println("[AUTH DEBUG] Intento de login para DNI: " + numeroDocumento);
         String sql = "SELECT u.*, s.nombre as sede_nombre, r.nombre as rol_nombre " +
                      "FROM usuarios u " +
                      "LEFT JOIN sedes s ON u.sede_id = s.id " +
@@ -25,8 +26,10 @@ public class UsuarioDao {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String storedHash = rs.getString("password");
+                    System.out.println("[AUTH DEBUG] Usuario encontrado, verificando contraseña...");
                     
                     if (PasswordHasher.checkPassword(password, storedHash)) {
+                        System.out.println("[AUTH DEBUG] Login exitoso para: " + rs.getString("nombres"));
                         Usuario usuario = new Usuario(
                             rs.getString("id"),
                             rs.getString("sede_id"),
@@ -41,11 +44,16 @@ public class UsuarioDao {
                         usuario.setSedeNombre(rs.getString("sede_nombre"));
                         usuario.setRolNombre(rs.getString("rol_nombre"));
                         return usuario;
+                    } else {
+                        System.out.println("[AUTH DEBUG] Contraseña incorrecta.");
                     }
+                } else {
+                    System.out.println("[AUTH DEBUG] Usuario no encontrado en la BD.");
                 }
             }
         } catch (SQLException e) {
             System.err.println("[DB ERROR] Error en login: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -109,6 +117,110 @@ public class UsuarioDao {
             System.err.println("[DB ERROR] Error al actualizar contraseña: " + e.getMessage());
             return false;
         }
+    }
+
+    public java.util.List<Usuario> listarTodos() {
+        String sql = "SELECT u.*, s.nombre as sede_nombre, r.nombre as rol_nombre " +
+                     "FROM usuarios u " +
+                     "LEFT JOIN sedes s ON u.sede_id = s.id " +
+                     "LEFT JOIN roles r ON u.rol_id = r.id " +
+                     "ORDER BY u.nombres ASC";
+        java.util.List<Usuario> list = new java.util.ArrayList<>();
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Usuario u = new Usuario(
+                    rs.getString("id"),
+                    rs.getString("sede_id"),
+                    rs.getString("rol_id"),
+                    rs.getString("tipo_documento"),
+                    rs.getString("numero_documento"),
+                    rs.getString("nombres"),
+                    rs.getString("apellidos"),
+                    null, 
+                    rs.getInt("is_activo")
+                );
+                u.setSedeNombre(rs.getString("sede_nombre"));
+                u.setRolNombre(rs.getString("rol_nombre"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean registrar(Usuario usuario, String rawPassword) {
+        String sql = "INSERT INTO usuarios (id, sede_id, rol_id, tipo_documento, numero_documento, nombres, apellidos, password, is_activo) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            String hashedPassword = PasswordHasher.hashPassword(rawPassword);
+            
+            ps.setString(1, usuario.getId());
+            ps.setString(2, usuario.getSedeId());
+            ps.setString(3, usuario.getRolId());
+            ps.setString(4, usuario.getTipoDocumento());
+            ps.setString(5, usuario.getNumeroDocumento());
+            ps.setString(6, usuario.getNombres());
+            ps.setString(7, usuario.getApellidos());
+            ps.setString(8, hashedPassword);
+            ps.setInt(9, 1);
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean delete(String id) {
+        String sql = "UPDATE usuarios SET is_activo = 0 WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public java.util.List<com.utp.meditrackapp.core.models.entity.Rol> listarRoles() {
+        String sql = "SELECT * FROM roles ORDER BY nombre";
+        java.util.List<com.utp.meditrackapp.core.models.entity.Rol> roles = new java.util.ArrayList<>();
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                roles.add(new com.utp.meditrackapp.core.models.entity.Rol(rs.getString("id"), rs.getString("nombre")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roles;
+    }
+
+    public java.util.List<com.utp.meditrackapp.core.models.entity.Sede> listarSedes() {
+        String sql = "SELECT * FROM sedes WHERE is_activa = 1 ORDER BY nombre";
+        java.util.List<com.utp.meditrackapp.core.models.entity.Sede> sedes = new java.util.ArrayList<>();
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                sedes.add(new com.utp.meditrackapp.core.models.entity.Sede(
+                    rs.getString("id"),
+                    rs.getString("nombre"),
+                    rs.getString("direccion"),
+                    rs.getInt("is_activa")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return sedes;
     }
         
 }
