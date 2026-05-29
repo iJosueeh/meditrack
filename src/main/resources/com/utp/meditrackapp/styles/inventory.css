@@ -8,32 +8,6 @@
     -fx-border-width: 1;
 }
 
-/* --- Fixed Modal Styling --- */
-.modal-overlay {
-    /* Overlay stays transparent to see the background app, but the content must be solid */
-    -fx-background-color: rgba(0, 0, 0, 0.05); /* Minimal tint for depth */
-}
-
-.modal-content {
-    /* Critical: Ensure a solid background for the modal content */
-    -fx-background-color: -color-bg-overlay;
-    -fx-background-radius: 12;
-    -fx-border-color: -color-border-default;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 20, 0, 0, 10);
-    -fx-padding: 30;
-}
-
-/* Ensure the scrollpane inside modal is also well-behaved */
-.modal-content .scroll-pane {
-    -fx-background-color: transparent;
-    -fx-background: transparent;
-}
-
-.modal-content .scroll-pane .viewport {
-    -fx-background-color: transparent;
-}
-
 /* Specialized Card styling (Extending AtlantaFX .card) */
 .card-info-custom {
     -fx-pref-width: 400;

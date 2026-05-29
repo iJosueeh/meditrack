@@ -16,7 +16,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     @Override
     public List<Paciente> findAll() {
         List<Paciente> pacientes = new ArrayList<>();
-        String sql = "SELECT * FROM pacientes WHERE is_activo = 1";
+        String sql = "SELECT * FROM pacientes ORDER BY apellidos ASC";
         try (Connection conn = dbConfig.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -32,7 +32,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     @Override
     public List<Paciente> findByQuery(String query) {
         List<Paciente> pacientes = new ArrayList<>();
-        String sql = "SELECT * FROM pacientes WHERE (numero_documento LIKE ? OR nombres LIKE ? OR apellidos LIKE ?) AND is_activo = 1";
+        String sql = "SELECT * FROM pacientes WHERE (numero_documento LIKE ? OR nombres LIKE ? OR apellidos LIKE ?)";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             String pattern = "%" + query + "%";
@@ -52,7 +52,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
 
     @Override
     public Paciente findByDocumento(String numeroDocumento) {
-        String sql = "SELECT * FROM pacientes WHERE numero_documento = ? AND is_activo = 1";
+        String sql = "SELECT * FROM pacientes WHERE numero_documento = ?";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numeroDocumento);
@@ -77,7 +77,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
             ps.setString(4, paciente.getNombres());
             ps.setString(5, paciente.getApellidos());
             ps.setString(6, paciente.getTelefono());
-            ps.setInt(7, 1);
+            ps.setInt(7, paciente.getIsActivo() != 0 ? paciente.getIsActivo() : 1);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[DB ERROR] Error en save: " + e.getMessage());
@@ -87,7 +87,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
 
     @Override
     public boolean update(Paciente paciente) {
-        String sql = "UPDATE pacientes SET tipo_documento = ?, numero_documento = ?, nombres = ?, apellidos = ?, telefono = ? WHERE id = ?";
+        String sql = "UPDATE pacientes SET tipo_documento = ?, numero_documento = ?, nombres = ?, apellidos = ?, telefono = ?, is_activo = ? WHERE id = ?";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, paciente.getTipoDocumento());
@@ -95,7 +95,8 @@ public class PacienteRepositoryImpl implements PacienteRepository {
             ps.setString(3, paciente.getNombres());
             ps.setString(4, paciente.getApellidos());
             ps.setString(5, paciente.getTelefono());
-            ps.setString(6, paciente.getId());
+            ps.setInt(6, paciente.getIsActivo());
+            ps.setString(7, paciente.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[DB ERROR] Error en update: " + e.getMessage());

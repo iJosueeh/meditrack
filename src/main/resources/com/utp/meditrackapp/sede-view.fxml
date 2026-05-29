@@ -98,13 +98,13 @@
 
     <!-- Modal Form -->
     <StackPane fx:id="modalSede" visible="false" styleClass="modal-overlay">
-        <VBox maxWidth="650" maxHeight="850" styleClass="modal-content" spacing="20">
+        <VBox maxWidth="650" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
             <VBox styleClass="modal-header">
                 <Label fx:id="modalTitle" text="Registrar Sede" styleClass="title-4" />
                 <Label text="Configure el local, asigne un responsable y gestione el personal." styleClass="text-muted" />
             </VBox>
             
-            <ScrollPane fitToWidth="true" styleClass="edge-to-edge" prefHeight="550">
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
                 <VBox spacing="20" style="-fx-padding: 5;">
                     <HBox spacing="20">
                         <VBox HBox.hgrow="ALWAYS" spacing="8">

@@ -102,6 +102,8 @@
 .icon-muted  { -fx-icon-color: -color-fg-muted; }
 .icon-danger { -fx-icon-color: -color-danger-fg; }
 .icon-success { -fx-icon-color: -color-success-fg; }
+.icon-info    { -fx-icon-color: -color-accent-fg; }
+.icon-warning { -fx-icon-color: -color-warning-emphasis; }
 
 /* Utility Helpers */
 /* Modal Overlays & Centering */

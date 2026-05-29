@@ -6,10 +6,12 @@ import com.utp.meditrackapp.core.dao.LoteDAO;
 import com.utp.meditrackapp.core.dao.MovimientoDAO;
 import com.utp.meditrackapp.core.dao.ProductoDAO;
 import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
+import com.utp.meditrackapp.core.dao.TipoMovimientoDAO;
 import com.utp.meditrackapp.core.models.entity.Categoria;
 import com.utp.meditrackapp.core.models.entity.Lote;
 import com.utp.meditrackapp.core.models.entity.Movimiento;
 import com.utp.meditrackapp.core.models.entity.Producto;
+import com.utp.meditrackapp.core.models.entity.TipoMovimiento;
 import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.core.service.InventoryHealthCalculator;
@@ -24,6 +26,7 @@ public class InventarioService {
     private final ProductoDAO productoDAO;
     private final LoteDAO loteDAO;
     private final MovimientoDAO movimientoDAO;
+    private final TipoMovimientoDAO tipoMovimientoDAO;
     private final DatabaseConfig dbConfig;
 
     public InventarioService() {
@@ -31,6 +34,7 @@ public class InventarioService {
         this.productoDAO = new ProductoDAO();
         this.loteDAO = new LoteDAO();
         this.movimientoDAO = new MovimientoDAO();
+        this.tipoMovimientoDAO = new TipoMovimientoDAO();
         this.dbConfig = DatabaseConfig.getInstance();
     }
 
@@ -42,6 +46,10 @@ public class InventarioService {
 
     public List<Producto> listarProductosActivos() throws SQLException {
         return productoDAO.listarActivos();
+    }
+
+    public List<TipoMovimiento> listarTiposMovimiento() throws SQLException {
+        return tipoMovimientoDAO.listarTodas();
     }
 
     public List<Lote> listarLotesConProducto(String sedeId) throws SQLException {
