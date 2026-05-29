@@ -101,4 +101,15 @@ public class SidebarController {
     protected void onGoToUsers() throws IOException {
         NavigationService.toUsers();
     }
+
+    @FXML
+    protected void onGoToProfile() throws IOException {
+        NavigationService.toProfile();
+    }
+
+    @FXML
+    protected void onLogout() throws IOException {
+        com.utp.meditrackapp.core.config.SessionManager.getInstance().logout();
+        NavigationService.toLogin();
+    }
 }

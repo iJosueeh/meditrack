@@ -6,9 +6,11 @@ import com.utp.meditrackapp.features.patients.service.PacienteService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
@@ -26,7 +28,13 @@ public class PacienteController {
     @FXML private TableColumn<Paciente, String> colNombres;
     @FXML private TableColumn<Paciente, String> colApellidos;
     @FXML private TableColumn<Paciente, String> colTelefono;
+    @FXML private TableColumn<Paciente, Integer> colEstado;
     @FXML private TableColumn<Paciente, Void> colActions;
+
+    // Summary Labels
+    @FXML private Label lblTotalPatients;
+    @FXML private Label lblTodayAttentions;
+    @FXML private Label lblNewPatientsMonth;
 
     // Form Overlay Fields
     @FXML private StackPane formOverlay;
@@ -36,6 +44,7 @@ public class PacienteController {
     @FXML private TextField firstNameField;
     @FXML private TextField lastNameField;
     @FXML private TextField phoneField;
+    @FXML private CheckBox chkActivo;
 
     private final PacienteService pacienteService = new PacienteService();
     private Paciente currentPaciente; // Para edición
@@ -55,7 +64,6 @@ public class PacienteController {
             searchField.setText(initialQuery);
             onSearch();
             
-            // Refinamiento: Seleccionar y hacer scroll al primer resultado
             if (!patientsTable.getItems().isEmpty()) {
                 patientsTable.getSelectionModel().select(0);
                 patientsTable.scrollTo(0);
@@ -66,9 +74,6 @@ public class PacienteController {
 
     private void applyRoleRestrictions() {
         SessionManager session = SessionManager.getInstance();
-        
-        // El Administrador y el Químico pueden ver todo.
-        // El Técnico tiene restricciones en la tabla (se maneja en el cellFactory)
         if (session.isTecnico()) {
             System.out.println("[AUTH] El Técnico tiene acceso limitado a edición/borrado.");
         }
@@ -80,8 +85,36 @@ public class PacienteController {
         colNombres.setCellValueFactory(new PropertyValueFactory<>("nombres"));
         colApellidos.setCellValueFactory(new PropertyValueFactory<>("apellidos"));
         colTelefono.setCellValueFactory(new PropertyValueFactory<>("telefono"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("isActivo"));
 
+        setupEstadoColumn();
         addButtonToTable();
+    }
+
+    private void setupEstadoColumn() {
+        colEstado.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    Label badge = new Label();
+                    badge.getStyleClass().add("badge");
+                    if (item == 1) {
+                        badge.setText("ACTIVO");
+                        badge.getStyleClass().add("success");
+                    } else {
+                        badge.setText("INACTIVO");
+                        badge.getStyleClass().add("danger");
+                    }
+                    HBox box = new HBox(badge);
+                    box.setAlignment(Pos.CENTER);
+                    setGraphic(box);
+                }
+            }
+        });
     }
 
     private void setupForm() {
@@ -92,6 +125,22 @@ public class PacienteController {
     private void loadPatients() {
         List<Paciente> pacientes = pacienteService.listarPacientes();
         patientsTable.setItems(FXCollections.observableArrayList(pacientes));
+        updateSummary();
+    }
+
+    private void updateSummary() {
+        if (lblTotalPatients == null) return;
+        
+        javafx.application.Platform.runLater(() -> {
+            ObservableList<Paciente> patients = patientsTable.getItems();
+            long total = patients.size();
+            long active = patients.stream().filter(p -> p.getIsActivo() == 1).count();
+            
+            lblTotalPatients.setText(String.valueOf(total));
+            // placeholders con lógica mínima para que no se vean vacíos
+            lblTodayAttentions.setText(String.valueOf(active)); 
+            lblNewPatientsMonth.setText(String.valueOf(total));
+        });
     }
 
     @FXML
@@ -99,6 +148,7 @@ public class PacienteController {
         String query = searchField.getText();
         List<Paciente> resultados = pacienteService.buscarPacientes(query);
         patientsTable.setItems(FXCollections.observableArrayList(resultados));
+        updateSummary();
     }
 
     @FXML
@@ -120,6 +170,7 @@ public class PacienteController {
         currentPaciente.setNombres(firstNameField.getText());
         currentPaciente.setApellidos(lastNameField.getText());
         currentPaciente.setTelefono(phoneField.getText());
+        currentPaciente.setIsActivo(chkActivo.isSelected() ? 1 : 0);
 
         String result = pacienteService.guardarPaciente(currentPaciente);
 
@@ -144,6 +195,7 @@ public class PacienteController {
         lastNameField.clear();
         phoneField.clear();
         typeDocCombo.getSelectionModel().selectFirst();
+        chkActivo.setSelected(true);
     }
 
     private void addButtonToTable() {
@@ -158,8 +210,8 @@ public class PacienteController {
                     {
                         SessionManager session = SessionManager.getInstance();
                         pane.setSpacing(10);
+                        pane.setAlignment(Pos.CENTER);
                         
-                        // Configurar botón Editar (Estilo AtlantaFX)
                         btnEdit.setGraphic(new FontIcon("fas-edit"));
                         btnEdit.getStyleClass().addAll("button", "flat");
                         btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
@@ -168,7 +220,6 @@ public class PacienteController {
                             showEditForm(p);
                         });
 
-                        // Configurar botón Eliminar (Estilo AtlantaFX Peligro)
                         btnDelete.setGraphic(new FontIcon("fas-trash"));
                         btnDelete.getStyleClass().addAll("button", "flat", "danger");
                         btnDelete.setTooltip(new Tooltip("Dar de baja paciente"));
@@ -177,8 +228,6 @@ public class PacienteController {
                             handleDelete(p);
                         });
 
-                        // REGLA DE ROL: Solo Químico y Admin pueden editar/eliminar.
-                        // El Técnico (Operativo) solo puede visualizar y registrar nuevos.
                         if (session.isTecnico()) {
                             btnEdit.setVisible(false);
                             btnEdit.setManaged(false);
@@ -186,7 +235,6 @@ public class PacienteController {
                             btnDelete.setManaged(false);
                         }
                         
-                        // REGLA DE ROL: El Químico puede editar pero NO eliminar (borrado es estratégico)
                         if (session.isQuimico()) {
                             btnDelete.setVisible(false);
                             btnDelete.setManaged(false);
@@ -199,7 +247,6 @@ public class PacienteController {
                         if (empty) {
                             setGraphic(null);
                         } else {
-                            // Si es técnico, el panel de acciones estará vacío (oculto)
                             setGraphic(pane);
                         }
                     }
@@ -218,13 +265,14 @@ public class PacienteController {
         firstNameField.setText(p.getNombres());
         lastNameField.setText(p.getApellidos());
         phoneField.setText(p.getTelefono());
+        chkActivo.setSelected(p.getIsActivo() == 1);
         formOverlay.setVisible(true);
     }
 
     private void handleDelete(Paciente p) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmar Eliminación");
-        alert.setHeaderText("¿Está seguro de eliminar al paciente?");
+        alert.setTitle("Confirmar Baja");
+        alert.setHeaderText("¿Está seguro de dar de baja al paciente?");
         alert.setContentText(p.getNombres() + " " + p.getApellidos());
 
         Optional<ButtonType> result = alert.showAndWait();
@@ -232,7 +280,7 @@ public class PacienteController {
             if (pacienteService.eliminarPaciente(p.getId())) {
                 loadPatients();
             } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo eliminar el paciente.");
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo dar de baja al paciente.");
             }
         }
     }
@@ -240,6 +288,7 @@ public class PacienteController {
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
+        alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }

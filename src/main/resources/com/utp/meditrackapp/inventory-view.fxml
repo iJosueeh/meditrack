@@ -147,13 +147,13 @@
 
     <!-- Movement Modal -->
     <StackPane fx:id="modalMovement" visible="false" styleClass="modal-overlay">
-        <VBox maxWidth="600" maxHeight="700" styleClass="modal-content" spacing="25">
+        <VBox maxWidth="600" maxHeight="-Infinity" styleClass="modal-content" spacing="25">
             <VBox styleClass="modal-header">
                 <Label text="Registrar Operación de Inventario" styleClass="title-4" />
                 <Label text="Ingrese los detalles de la entrada o salida a continuación." styleClass="text-muted" />
             </VBox>
             
-            <ScrollPane fitToWidth="true" prefHeight="450">
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
                 <VBox spacing="25">
                     <VBox spacing="8">
                         <Label text="PRODUCTO / MEDICAMENTO" styleClass="text-caption, text-bold, text-muted" />

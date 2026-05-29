@@ -31,6 +31,11 @@ public class InventoryController {
     @FXML private TableView<Lote> tableBatches;
     @FXML private VBox alertsContainer;
     
+    // Filters
+    @FXML private TextField txtSearchMovement;
+    @FXML private ComboBox<TipoMovimiento> cmbMovementType;
+    @FXML private DatePicker dpFromDate, dpToDate;
+    
     // Columns
     @FXML private TableColumn<Movimiento, String> colMovDate, colMovType, colMovProduct, colMovBatch, colMovReason;
     @FXML private TableColumn<Movimiento, Integer> colMovQty;
@@ -39,7 +44,7 @@ public class InventoryController {
     @FXML private Label lblActiveBatches, lblCriticalBatches;
 
     // Quick Registration
-    @FXML private ComboBox<String> cmbQuickType;
+    @FXML private ComboBox<TipoMovimiento> cmbQuickType;
     @FXML private ComboBox<Lote> cmbQuickBatch;
     @FXML private TextField txtQuickQty, txtQuickObs;
 
@@ -47,7 +52,7 @@ public class InventoryController {
     @FXML private StackPane modalMovement;
     @FXML private VBox vboxEntradaDetails;
     @FXML private ComboBox<Producto> cmbModalProduct;
-    @FXML private ComboBox<String> cmbModalType;
+    @FXML private ComboBox<TipoMovimiento> cmbModalType;
     @FXML private ComboBox<MotivoMovimiento> cmbModalMotivo;
     @FXML private ComboBox<Lote> cmbModalBatch;
     @FXML private VBox cmbModalBatchContainer;
@@ -81,7 +86,6 @@ public class InventoryController {
     }
 
     private void setupMovementCellFactories() {
-        // Factory para Tipo de Movimiento (Entrada/Salida)
         colMovType.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -111,7 +115,6 @@ public class InventoryController {
             }
         });
 
-        // Factory para Motivo de Movimiento
         colMovReason.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -183,12 +186,26 @@ public class InventoryController {
             List<Producto> productos = inventarioService.listarProductosActivos();
             cmbModalProduct.setItems(FXCollections.observableArrayList(productos));
             
-            ObservableList<String> types = FXCollections.observableArrayList(
-                TipoMovimientoEnum.ENTRADA.name(), 
-                TipoMovimientoEnum.SALIDA.name()
-            );
-            cmbModalType.setItems(types);
-            cmbQuickType.setItems(types);
+            List<TipoMovimiento> tipos = inventarioService.listarTiposMovimiento();
+            ObservableList<TipoMovimiento> obsTipos = FXCollections.observableArrayList(tipos);
+            
+            cmbModalType.setItems(obsTipos);
+            cmbQuickType.setItems(obsTipos);
+            
+            ObservableList<TipoMovimiento> filterTipos = FXCollections.observableArrayList();
+            filterTipos.add(new TipoMovimiento("", "TODOS"));
+            filterTipos.addAll(tipos);
+            cmbMovementType.setItems(filterTipos);
+            cmbMovementType.getSelectionModel().selectFirst();
+
+            StringConverter<TipoMovimiento> tipoConverter = new StringConverter<>() {
+                @Override public String toString(TipoMovimiento t) { return t != null ? t.getNombre().toUpperCase() : ""; }
+                @Override public TipoMovimiento fromString(String s) { return null; }
+            };
+
+            cmbModalType.setConverter(tipoConverter);
+            cmbQuickType.setConverter(tipoConverter);
+            cmbMovementType.setConverter(tipoConverter);
             
             cmbModalProduct.setConverter(new StringConverter<>() {
                 @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
@@ -204,7 +221,6 @@ public class InventoryController {
                 @Override public Lote fromString(String s) { return null; }
             });
 
-            // Populate Quick Batch combo
             refreshQuickBatchCombo();
 
         } catch (Exception e) { e.printStackTrace(); }
@@ -222,26 +238,23 @@ public class InventoryController {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    @FXML
-    protected void onOpenMovementModal() {
-        modalMovement.setVisible(true);
-    }
-
-    @FXML
-    protected void onCloseModal() {
-        modalMovement.setVisible(false);
-    }
+    @FXML protected void onOpenMovementModal() { modalMovement.setVisible(true); }
+    @FXML protected void onCloseModal() { modalMovement.setVisible(false); }
 
     @FXML
     protected void onModalProductChanged() {
-        if (TipoMovimientoEnum.SALIDA.name().equals(cmbModalType.getValue())) {
+        TipoMovimiento selectedType = cmbModalType.getValue();
+        if (selectedType != null && TipoMovimientoEnum.SALIDA.getId().equals(selectedType.getId())) {
             loadBatchesForProduct(cmbModalProduct.getValue());
         }
     }
 
     @FXML
     protected void onModalTypeChanged() {
-        boolean isEntrada = TipoMovimientoEnum.ENTRADA.name().equals(cmbModalType.getValue());
+        TipoMovimiento selectedType = cmbModalType.getValue();
+        if (selectedType == null) return;
+
+        boolean isEntrada = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId());
         vboxEntradaDetails.setVisible(isEntrada);
         vboxEntradaDetails.setManaged(isEntrada);
         cmbModalBatchContainer.setVisible(!isEntrada);
@@ -278,22 +291,24 @@ public class InventoryController {
     protected void onSaveMovement() {
         try {
             Producto producto = cmbModalProduct.getValue();
-            String tipoStr = cmbModalType.getValue();
+            TipoMovimiento selectedType = cmbModalType.getValue();
             MotivoMovimiento motivo = cmbModalMotivo.getValue();
             String qtyStr = txtModalQty.getText();
 
-            if (producto == null || tipoStr == null || motivo == null || qtyStr.isEmpty()) {
+            if (producto == null || selectedType == null || motivo == null || qtyStr.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Campos Incompletos", "Por favor complete todos los campos obligatorios.");
                 return;
             }
 
             int cantidad = Integer.parseInt(qtyStr);
-            TipoMovimientoEnum tipo = TipoMovimientoEnum.valueOf(tipoStr);
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId()) ? 
+                TipoMovimientoEnum.ENTRADA : TipoMovimientoEnum.SALIDA;
+                
             Usuario user = sessionManager.getCurrentUser();
             String obs = txtModalObs.getText();
 
             boolean success;
-            if (tipo == TipoMovimientoEnum.ENTRADA) {
+            if (tipoEnum == TipoMovimientoEnum.ENTRADA) {
                 Lote nuevoLote = new Lote();
                 nuevoLote.setProductoId(producto.getId());
                 nuevoLote.setSedeId(user.getSedeId());
@@ -302,16 +317,16 @@ public class InventoryController {
                 nuevoLote.setFechaVencimiento(dpNewVenc.getValue());
                 nuevoLote.setCantidad(cantidad);
                 
-                success = inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipo, 
-                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase()), cantidad, obs);
+                success = inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipoEnum, 
+                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION").replace(" ", "_")), cantidad, obs);
             } else {
                 Lote loteExistente = cmbModalBatch.getValue();
                 if (loteExistente == null) {
                     showAlert(Alert.AlertType.WARNING, "Lote no seleccionado", "Debe seleccionar un lote para realizar una salida.");
                     return;
                 }
-                success = inventarioService.registrarMovimiento(loteExistente, user.getId(), tipo, 
-                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION")), cantidad, obs);
+                success = inventarioService.registrarMovimiento(loteExistente, user.getId(), tipoEnum, 
+                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION").replace(" ", "_")), cantidad, obs);
             }
 
             if (success) {
@@ -334,21 +349,23 @@ public class InventoryController {
     @FXML
     protected void onQuickUpdate() {
         try {
-            String tipoStr = cmbQuickType.getValue();
+            TipoMovimiento selectedType = cmbQuickType.getValue();
             Lote lote = cmbQuickBatch.getValue();
             String qtyStr = txtQuickQty.getText();
 
-            if (tipoStr == null || lote == null || qtyStr.isEmpty()) {
+            if (selectedType == null || lote == null || qtyStr.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Campos Incompletos", "Por favor complete los campos de la actualización rápida.");
                 return;
             }
 
             int cantidad = Integer.parseInt(qtyStr);
-            TipoMovimientoEnum tipo = TipoMovimientoEnum.valueOf(tipoStr);
-            MotivoMovimientoEnum motivo = (tipo == TipoMovimientoEnum.ENTRADA) ? MotivoMovimientoEnum.COMPRA : MotivoMovimientoEnum.MERMA;
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId()) ? 
+                TipoMovimientoEnum.ENTRADA : TipoMovimientoEnum.SALIDA;
+            
+            MotivoMovimientoEnum motivo = (tipoEnum == TipoMovimientoEnum.ENTRADA) ? MotivoMovimientoEnum.COMPRA : MotivoMovimientoEnum.MERMA;
             Usuario user = sessionManager.getCurrentUser();
 
-            boolean success = inventarioService.registrarMovimiento(lote, user.getId(), tipo, motivo, cantidad, txtQuickObs.getText());
+            boolean success = inventarioService.registrarMovimiento(lote, user.getId(), tipoEnum, motivo, cantidad, txtQuickObs.getText());
 
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
@@ -381,8 +398,14 @@ public class InventoryController {
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
-            List<Movimiento> movements = inventarioService.listarMovimientos(user.getSedeId(), null, ""); 
+            
+            String searchText = txtSearchMovement != null ? txtSearchMovement.getText() : "";
+            TipoMovimiento selectedType = cmbMovementType != null ? cmbMovementType.getValue() : null;
+            String tipoId = (selectedType != null && !selectedType.getId().isEmpty()) ? selectedType.getId() : null;
+
+            List<Movimiento> movements = inventarioService.listarMovimientos(user.getSedeId(), tipoId, searchText); 
             tableMovements.setItems(FXCollections.observableArrayList(movements));
+            tableMovements.refresh();
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
@@ -392,24 +415,19 @@ public class InventoryController {
             if (user == null) return;
             List<Lote> batches = inventarioService.listarLotesConProducto(user.getSedeId());
             tableBatches.setItems(FXCollections.observableArrayList(batches));
+            tableBatches.refresh();
             updateBatchSummary(user.getSedeId(), batches);
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
     private void updateBatchSummary(String sedeId, List<Lote> batches) {
         if (lblActiveBatches == null || lblCriticalBatches == null) return;
-        
         try {
-            // Ya no filtramos manualmente en Java, usamos el servicio que encapsula la lógica
             List<StockCriticoItem> criticos = inventarioService.obtenerStockCritico(sedeId);
-            
             long active = batches.stream().filter(l -> l.getCantidad() > 0).count();
             long critical = criticos.stream().filter(StockCriticoItem::isVencePronto).count();
-            
             lblActiveBatches.setText(String.valueOf(active));
             lblCriticalBatches.setText(String.valueOf(critical));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 }

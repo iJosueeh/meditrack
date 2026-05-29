@@ -58,13 +58,13 @@
 
     <!-- Form Overlay / Modal -->
     <StackPane fx:id="formOverlay" visible="false" styleClass="modal-overlay">
-        <VBox maxWidth="550" styleClass="modal-content" spacing="25">
+        <VBox maxWidth="550" maxHeight="-Infinity" styleClass="modal-content" spacing="25">
             <VBox styleClass="modal-header">
                 <Label fx:id="formTitle" text="Registrar Nuevo Usuario" styleClass="title-4" />
                 <Label text="Complete la información del colaborador." styleClass="text-muted" />
             </VBox>
             
-            <ScrollPane fitToWidth="true" prefHeight="400" styleClass="edge-to-edge">
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
                 <VBox spacing="20" style="-fx-padding: 5;">
                     <HBox spacing="20">
                         <VBox HBox.hgrow="ALWAYS" spacing="8">
