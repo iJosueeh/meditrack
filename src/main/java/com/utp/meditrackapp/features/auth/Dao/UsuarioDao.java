@@ -157,6 +157,11 @@ public class UsuarioDao {
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
+            if (usuario.getId() == null || usuario.getId().isBlank()) {
+                usuario.setId(com.utp.meditrackapp.core.util.IdGenerator.generateSedeDependentId(
+                    conn, "usuarios", com.utp.meditrackapp.core.models.enums.EntidadPrefix.USUARIO, usuario.getSedeId(), 4));
+            }
+
             String hashedPassword = PasswordHasher.hashPassword(rawPassword);
             
             ps.setString(1, usuario.getId());

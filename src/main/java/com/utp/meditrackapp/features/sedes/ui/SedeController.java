@@ -245,13 +245,12 @@ public class SedeController {
 
         try {
             String sedeId;
-            SedeDetalleDTO dtoToSave;
 
             if (selectedSede == null) {
-                sedeId = IdGenerator.generateId(EntidadPrefix.SEDE);
-                dtoToSave = new SedeDetalleDTO(sedeId, nombre, dir, activa);
+                SedeDetalleDTO dtoToSave = new SedeDetalleDTO(null, nombre, dir, activa);
                 dtoToSave.setTelefono(tel);
                 sedeDAO.save(dtoToSave);
+                sedeId = dtoToSave.getId();
             } else {
                 sedeId = selectedSede.getId();
                 selectedSede.setNombre(nombre);

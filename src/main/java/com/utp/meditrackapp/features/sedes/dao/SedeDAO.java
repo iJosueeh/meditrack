@@ -13,8 +13,16 @@ public class SedeDAO {
         List<SedeDetalleDTO> list = new ArrayList<>();
         // Query que identifica al admin por rol (ROL-001) y cuenta personal
         String sql = "SELECT s.*, " +
-                     "(SELECT TOP 1 (nombres + ' ' + apellidos) FROM usuarios WHERE sede_id = s.id AND rol_id LIKE '%001%') as admin_name, " +
-                     "(SELECT TOP 1 id FROM usuarios WHERE sede_id = s.id AND rol_id LIKE '%001%') as admin_id, " +
+                     "(SELECT TOP 1 (u.nombres + ' ' + u.apellidos) " +
+                     " FROM usuarios u " +
+                     " JOIN roles r ON u.rol_id = r.id " +
+                     " WHERE u.sede_id = s.id " +
+                     " AND (UPPER(r.nombre) LIKE '%ADMIN%' OR UPPER(r.nombre) LIKE '%JEFE%')) as admin_name, " +
+                     "(SELECT TOP 1 u.id " +
+                     " FROM usuarios u " +
+                     " JOIN roles r ON u.rol_id = r.id " +
+                     " WHERE u.sede_id = s.id " +
+                     " AND (UPPER(r.nombre) LIKE '%ADMIN%' OR UPPER(r.nombre) LIKE '%JEFE%')) as admin_id, " +
                      "(SELECT COUNT(*) FROM usuarios WHERE sede_id = s.id) as emp_count, " +
                      "(SELECT COUNT(*) FROM lotes l WHERE l.sede_id = s.id AND l.cantidad < 10) as critico_count " +
                      "FROM sedes s ORDER BY s.nombre";
@@ -91,16 +99,20 @@ public class SedeDAO {
     }
 
     public boolean save(Sede sede) throws SQLException {
-        String tel = (sede instanceof SedeDetalleDTO) ? ((SedeDetalleDTO) sede).getTelefono() : null;
-        String sql = "INSERT INTO sedes (id, nombre, direccion, is_activa, telefono) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, sede.getId());
-            ps.setString(2, sede.getNombre());
-            ps.setString(3, sede.getDireccion());
-            ps.setInt(4, sede.getIsActiva());
-            ps.setString(5, tel);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DatabaseConfig.getInstance().getConnection()) {
+            if (sede.getId() == null || sede.getId().isBlank()) {
+                sede.setId(com.utp.meditrackapp.core.util.IdGenerator.generateId(conn, "sedes", com.utp.meditrackapp.core.models.enums.EntidadPrefix.SEDE, 3));
+            }
+            String tel = (sede instanceof SedeDetalleDTO) ? ((SedeDetalleDTO) sede).getTelefono() : null;
+            String sql = "INSERT INTO sedes (id, nombre, direccion, is_activa, telefono) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, sede.getId());
+                ps.setString(2, sede.getNombre());
+                ps.setString(3, sede.getDireccion());
+                ps.setInt(4, sede.getIsActiva());
+                ps.setString(5, tel);
+                return ps.executeUpdate() > 0;
+            }
         }
     }
 

@@ -132,4 +132,20 @@ public class NavigationService {
     public static void toUsers() throws IOException {
         switchRoot("/com/utp/meditrackapp/users-view.fxml", "MediTrack — Gestión de Usuarios", true);
     }
+
+    public static void toCategorias() throws IOException {
+        switchRoot("/com/utp/meditrackapp/categorias-view.fxml", "MediTrack — Gestión de Categorías", true);
+    }
+
+    public static void toRoles() throws IOException {
+        switchRoot("/com/utp/meditrackapp/roles-view.fxml", "MediTrack — Gestión de Roles", true);
+    }
+
+    public static void toCatalogosMovimiento() throws IOException {
+        switchRoot("/com/utp/meditrackapp/catalogos-mov-view.fxml", "MediTrack — Catálogos de Movimiento", true);
+    }
+
+    public static void toProductos() throws IOException {
+        switchRoot("/com/utp/meditrackapp/productos-view.fxml", "MediTrack — Catálogo de Productos", true);
+    }
 }

@@ -9,6 +9,7 @@ public class Producto {
     private String unidadMedida;
     private int isActivo;
     private Integer stockMinimo;
+    private String categoriaNombre; // Transient field for UI
 
     public Producto() {}
 
@@ -45,4 +46,7 @@ public class Producto {
 
     public Integer getStockMinimo() { return stockMinimo; }
     public void setStockMinimo(Integer stockMinimo) { this.stockMinimo = stockMinimo; }
+
+    public String getCategoriaNombre() { return categoriaNombre; }
+    public void setCategoriaNombre(String categoriaNombre) { this.categoriaNombre = categoriaNombre; }
 }

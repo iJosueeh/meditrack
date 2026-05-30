@@ -68,17 +68,20 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     @Override
     public boolean save(Paciente paciente) {
         String sql = "INSERT INTO pacientes (id, tipo_documento, numero_documento, nombres, apellidos, telefono, is_activo) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            String id = IdGenerator.generateId(EntidadPrefix.PACIENTE);
-            ps.setString(1, id);
-            ps.setString(2, paciente.getTipoDocumento());
-            ps.setString(3, paciente.getNumeroDocumento());
-            ps.setString(4, paciente.getNombres());
-            ps.setString(5, paciente.getApellidos());
-            ps.setString(6, paciente.getTelefono());
-            ps.setInt(7, paciente.getIsActivo() != 0 ? paciente.getIsActivo() : 1);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = dbConfig.getConnection()) {
+            String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+            String id = IdGenerator.generateSedeDependentId(conn, "pacientes", EntidadPrefix.PACIENTE, sedeId, 6);
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, id);
+                ps.setString(2, paciente.getTipoDocumento());
+                ps.setString(3, paciente.getNumeroDocumento());
+                ps.setString(4, paciente.getNombres());
+                ps.setString(5, paciente.getApellidos());
+                ps.setString(6, paciente.getTelefono());
+                ps.setInt(7, paciente.getIsActivo() != 0 ? paciente.getIsActivo() : 1);
+                return ps.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.err.println("[DB ERROR] Error en save: " + e.getMessage());
             return false;

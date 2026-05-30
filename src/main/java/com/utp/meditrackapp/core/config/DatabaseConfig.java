@@ -26,7 +26,7 @@ public class DatabaseConfig {
 
         // URL simplificada para evitar problemas de cifrado/certificados en local
         String url = String.format(
-                "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=false;loginTimeout=10;",
+                "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=false;loginTimeout=10;sendStringParametersAsUnicode=true;characterEncoding=UTF-8;",
                 dbHost, dbPort, dbName
         );
 

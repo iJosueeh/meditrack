@@ -5,6 +5,8 @@ public class AtencionDetalle {
     private String atencionId;
     private String loteId;
     private int cantidadEntregada;
+    private String productoNombre; // UI only
+    private String loteNumero;    // UI only
 
     public AtencionDetalle() {}
 
@@ -26,4 +28,10 @@ public class AtencionDetalle {
 
     public int getCantidadEntregada() { return cantidadEntregada; }
     public void setCantidadEntregada(int cantidadEntregada) { this.cantidadEntregada = cantidadEntregada; }
+
+    public String getProductoNombre() { return productoNombre; }
+    public void setProductoNombre(String productoNombre) { this.productoNombre = productoNombre; }
+
+    public String getLoteNumero() { return loteNumero; }
+    public void setLoteNumero(String loteNumero) { this.loteNumero = loteNumero; }
 }

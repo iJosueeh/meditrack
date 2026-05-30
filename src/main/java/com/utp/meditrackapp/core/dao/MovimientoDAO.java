@@ -12,7 +12,7 @@ public class MovimientoDAO extends JdbcDaoSupport {
 
     public void registrarMovimiento(Connection connection, Movimiento movimiento) throws SQLException {
         if (movimiento.getId() == null || movimiento.getId().isBlank()) {
-            movimiento.setId(IdGenerator.generateId(EntidadPrefix.MOVIMIENTO));
+            movimiento.setId(IdGenerator.generateSedeDependentId(connection, "movimientos", EntidadPrefix.MOVIMIENTO, movimiento.getSedeId(), 6));
         }
 
         String sql = "INSERT INTO movimientos (id, tipo_id, motivo_id, sede_id, usuario_id, lote_id, cantidad, observacion, fecha_registro) " +
