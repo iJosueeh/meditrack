@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.catalogs.ui.CategoriaController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane>
+        <top>
+            <fx:include source="navbar.fxml" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Gestión de Categorías" styleClass="title-2" />
+                            <Label text="Administre las categorías de productos para una mejor organización del inventario." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Nueva Categoría" onAction="#onOpenRegisterModal" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Summary Card -->
+                    <FlowPane hgap="25" vgap="25">
+                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-tags" iconSize="18" styleClass="icon-accent" />
+                                <Label text="TOTAL DE CATEGORÍAS" styleClass="text-caption, text-bold, text-muted" />
+                            </HBox>
+                            <Label fx:id="lblTotalCategorias" text="0" styleClass="title-2" />
+                            <Label text="Clasificaciones registradas" styleClass="text-caption, text-muted" />
+                        </VBox>
+                    </FlowPane>
+
+                    <!-- Main Table -->
+                    <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
+                            <HBox styleClass="icon-box-subtle" alignment="CENTER">
+                                <FontIcon iconLiteral="fas-search" />
+                            </HBox>
+                            <TextField fx:id="txtSearch" promptText="Buscar categoría..." prefWidth="450" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button text="Actualizar" onAction="#loadData" styleClass="button, flat, sm">
+                                <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
+                            </Button>
+                        </HBox>
+                        
+                        <TableView fx:id="tableCategorias" VBox.vgrow="ALWAYS" fixedCellSize="55">
+                            <columns>
+                                <TableColumn fx:id="colId" text="CÓDIGO" prefWidth="150" />
+                                <TableColumn fx:id="colNombre" text="NOMBRE DE CATEGORÍA" prefWidth="400" />
+                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="150" sortable="false" />
+                            </columns>
+                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                            <placeholder>
+                                <Label text="No se encontraron categorías." styleClass="text-muted" />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Modal Form -->
+    <StackPane fx:id="modalCategoria" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="500" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+            <VBox styleClass="modal-header">
+                <Label fx:id="modalTitle" text="Registrar Categoría" styleClass="title-4" />
+                <Label text="Ingrese el nombre de la categoría para clasificar sus productos." styleClass="text-muted" />
+            </VBox>
+            
+            <VBox spacing="20" style="-fx-padding: 5;">
+                <VBox spacing="8">
+                    <Label text="NOMBRE DE LA CATEGORÍA" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="txtNombre" styleClass="large" promptText="Ej: Antibióticos, Analgésicos..." />
+                </VBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button text="Guardar Categoría" onAction="#onSave" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

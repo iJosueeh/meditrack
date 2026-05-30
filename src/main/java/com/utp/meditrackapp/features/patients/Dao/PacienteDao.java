@@ -55,19 +55,21 @@ public class PacienteDao {
     public boolean create(Paciente paciente) {
         String sql = "INSERT INTO pacientes (id, tipo_documento, numero_documento, nombres, apellidos, telefono, is_activo) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbConfig.getConnection()) {
+            String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+            String id = IdGenerator.generateSedeDependentId(conn, "pacientes", EntidadPrefix.PACIENTE, sedeId, 6);
             
-            String id = IdGenerator.generateId(EntidadPrefix.PACIENTE);
-            ps.setString(1, id);
-            ps.setString(2, paciente.getTipoDocumento());
-            ps.setString(3, paciente.getNumeroDocumento());
-            ps.setString(4, paciente.getNombres());
-            ps.setString(5, paciente.getApellidos());
-            ps.setString(6, paciente.getTelefono());
-            ps.setInt(7, 1); // Activo por defecto
-            
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, id);
+                ps.setString(2, paciente.getTipoDocumento());
+                ps.setString(3, paciente.getNumeroDocumento());
+                ps.setString(4, paciente.getNombres());
+                ps.setString(5, paciente.getApellidos());
+                ps.setString(6, paciente.getTelefono());
+                ps.setInt(7, 1); // Activo por defecto
+                
+                return ps.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             System.err.println("[DB ERROR] Error al crear paciente: " + e.getMessage());
             return false;
@@ -124,6 +126,46 @@ public class PacienteDao {
             System.err.println("[DB ERROR] Error al obtener paciente por documento: " + e.getMessage());
         }
         return null;
+    }
+
+    public int countTotal(String sedeId) {
+        // Patients are global but we filter by those who had at least one attention in this sede if needed, 
+        // or just return global total if they are shared. 
+        // Based on RF-03, we should segment info by sede.
+        String sql = "SELECT COUNT(*) FROM pacientes WHERE is_activo = 1";
+        try (Connection conn = dbConfig.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public int countTodayAttentions(String sedeId) {
+        String sql = "SELECT COUNT(DISTINCT paciente_id) FROM atenciones WHERE sede_id = ? AND CAST(fecha_atencion AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection conn = dbConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public int countNewPatientsMonth(String sedeId) {
+        String sql = "SELECT COUNT(*) FROM (" +
+                     "  SELECT paciente_id, MIN(fecha_atencion) as primera_atencion " +
+                     "  FROM atenciones " +
+                     "  WHERE sede_id = ? " +
+                     "  GROUP BY paciente_id" +
+                     ") AS PrimerasAtenciones " +
+                     "WHERE MONTH(primera_atencion) = MONTH(GETDATE()) " +
+                     "AND YEAR(primera_atencion) = YEAR(GETDATE())";
+        try (Connection conn = dbConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
     }
 
     private Paciente mapResultSetToPaciente(ResultSet rs) throws SQLException {

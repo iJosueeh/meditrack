@@ -300,14 +300,21 @@ public class InventoryController {
                 return;
             }
 
-            int cantidad = Integer.parseInt(qtyStr);
-            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId()) ? 
-                TipoMovimientoEnum.ENTRADA : TipoMovimientoEnum.SALIDA;
+            int cantidad;
+            try {
+                cantidad = Integer.parseInt(qtyStr);
+                if (cantidad <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "La cantidad debe ser un número entero mayor a cero.");
+                return;
+            }
+
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
+            MotivoMovimientoEnum motivoEnum = MotivoMovimientoEnum.fromId(motivo.getId());
                 
             Usuario user = sessionManager.getCurrentUser();
             String obs = txtModalObs.getText();
 
-            boolean success;
             if (tipoEnum == TipoMovimientoEnum.ENTRADA) {
                 Lote nuevoLote = new Lote();
                 nuevoLote.setProductoId(producto.getId());
@@ -317,33 +324,46 @@ public class InventoryController {
                 nuevoLote.setFechaVencimiento(dpNewVenc.getValue());
                 nuevoLote.setCantidad(cantidad);
                 
-                success = inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipoEnum, 
-                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION").replace(" ", "_")), cantidad, obs);
+                if (nuevoLote.getNumeroLote() == null || nuevoLote.getNumeroLote().isBlank() || nuevoLote.getFechaVencimiento() == null) {
+                    showAlert(Alert.AlertType.WARNING, "Datos de Lote", "Debe ingresar el N° de Lote y la Fecha de Vencimiento.");
+                    return;
+                }
+
+                inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipoEnum, motivoEnum, cantidad, obs);
             } else {
                 Lote loteExistente = cmbModalBatch.getValue();
                 if (loteExistente == null) {
                     showAlert(Alert.AlertType.WARNING, "Lote no seleccionado", "Debe seleccionar un lote para realizar una salida.");
                     return;
                 }
-                success = inventarioService.registrarMovimiento(loteExistente, user.getId(), tipoEnum, 
-                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION").replace(" ", "_")), cantidad, obs);
+                inventarioService.registrarMovimiento(loteExistente, user.getId(), tipoEnum, motivoEnum, cantidad, obs);
             }
 
-            if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Operación Exitosa", "El movimiento se ha registrado correctamente.");
-                onCloseModal();
-                refreshMovements();
-                refreshBatches();
-                refreshQuickBatchCombo();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo registrar el movimiento. Verifique el stock disponible.");
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Error de Formato", "La cantidad debe ser un número entero válido.");
+            showAlert(Alert.AlertType.INFORMATION, "Operación Exitosa", "El movimiento se ha registrado correctamente.");
+            onCloseModal();
+            refreshMovements();
+            refreshBatches();
+            refreshQuickBatchCombo();
+            clearModalFields();
+
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error de Inventario", e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error Inesperado", e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error al procesar el movimiento.");
         }
+    }
+
+    private void clearModalFields() {
+        txtModalQty.clear();
+        txtModalObs.clear();
+        txtNewLote.clear();
+        dpNewFab.setValue(null);
+        dpNewVenc.setValue(null);
+        cmbModalProduct.getSelectionModel().clearSelection();
+        cmbModalType.getSelectionModel().clearSelection();
+        cmbModalMotivo.getSelectionModel().clearSelection();
+        cmbModalBatch.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -358,26 +378,31 @@ public class InventoryController {
                 return;
             }
 
-            int cantidad = Integer.parseInt(qtyStr);
-            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId()) ? 
-                TipoMovimientoEnum.ENTRADA : TipoMovimientoEnum.SALIDA;
-            
+            int cantidad;
+            try {
+                cantidad = Integer.parseInt(qtyStr);
+                if (cantidad <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "La cantidad debe ser un número entero mayor a cero.");
+                return;
+            }
+
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
             MotivoMovimientoEnum motivo = (tipoEnum == TipoMovimientoEnum.ENTRADA) ? MotivoMovimientoEnum.COMPRA : MotivoMovimientoEnum.MERMA;
             Usuario user = sessionManager.getCurrentUser();
 
-            boolean success = inventarioService.registrarMovimiento(lote, user.getId(), tipoEnum, motivo, cantidad, txtQuickObs.getText());
+            inventarioService.registrarMovimiento(lote, user.getId(), tipoEnum, motivo, cantidad, txtQuickObs.getText());
 
-            if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
-                txtQuickQty.clear();
-                txtQuickObs.clear();
-                refreshMovements();
-                refreshBatches();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo actualizar el stock.");
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Error de Formato", "La cantidad debe ser un número entero válido.");
+            showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
+            txtQuickQty.clear();
+            txtQuickObs.clear();
+            refreshMovements();
+            refreshBatches();
+
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error de Inventario", e.getMessage());
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo realizar la actualización rápida.");
         }
     }
 

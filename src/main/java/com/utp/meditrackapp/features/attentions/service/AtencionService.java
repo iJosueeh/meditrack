@@ -49,12 +49,12 @@ public class AtencionService {
             conn.setAutoCommit(false);
 
             // 1. Cabecera
-            atencion.setId(IdGenerator.generateId(EntidadPrefix.ATENCION));
+            atencion.setId(IdGenerator.generateSedeDependentId(conn, "atenciones", EntidadPrefix.ATENCION, atencion.getSedeId(), 6));
             atencionDAO.insertar(conn, atencion);
 
             // 2. Detalles y Stock
             for (AtencionDetalle det : detalles) {
-                det.setId(IdGenerator.generateId(EntidadPrefix.ATENCION_DETALLE));
+                det.setId(IdGenerator.generateId(conn, "atencion_detalles", EntidadPrefix.ATENCION_DETALLE, 8));
                 det.setAtencionId(atencion.getId());
                 atencionDAO.insertarDetalle(conn, det);
 
@@ -90,6 +90,44 @@ public class AtencionService {
             e.printStackTrace();
             return List.of();
         }
+    }
+
+    public List<Atencion> buscarHistorialPorPaciente(String pacienteId) {
+        try {
+            return atencionDAO.listarPorPaciente(pacienteId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    /**
+     * Sugiere qué lotes utilizar siguiendo la lógica FEFO (First Expire, First Out).
+     */
+    public java.util.List<AtencionDetalle> sugerirDispensacion(String sedeId, String productoId, int cantidadSolicitada) throws SQLException {
+        java.util.List<Lote> lotesFefo = loteDAO.listarLotesFefo(sedeId, productoId);
+        java.util.List<AtencionDetalle> sugerencia = new java.util.ArrayList<>();
+        int restante = cantidadSolicitada;
+
+        for (Lote lote : lotesFefo) {
+            if (restante <= 0) break;
+
+            int aTomar = Math.min(lote.getCantidad(), restante);
+            AtencionDetalle det = new AtencionDetalle();
+            det.setLoteId(lote.getId());
+            det.setCantidadEntregada(aTomar);
+            // Estos campos se pueden usar para mostrar en la UI
+            // det.setLoteNumero(lote.getNumeroLote()); 
+            
+            sugerencia.add(det);
+            restante -= aTomar;
+        }
+
+        if (restante > 0) {
+            throw new SQLException("Stock insuficiente para cubrir la cantidad solicitada (" + cantidadSolicitada + ").");
+        }
+
+        return sugerencia;
     }
 
     private boolean isAuthorized(Usuario user) {

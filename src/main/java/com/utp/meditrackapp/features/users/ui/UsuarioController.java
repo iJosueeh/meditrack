@@ -119,7 +119,6 @@ public class UsuarioController {
             boolean isNew = (currentUsuario == null);
             if (isNew) {
                 currentUsuario = new Usuario();
-                currentUsuario.setId(IdGenerator.generateId(EntidadPrefix.USUARIO));
             }
 
             currentUsuario.setTipoDocumento(typeDocCombo.getValue());

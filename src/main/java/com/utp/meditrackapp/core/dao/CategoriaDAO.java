@@ -15,7 +15,7 @@ import java.util.Optional;
 public class CategoriaDAO extends JdbcDaoSupport {
 
     public List<Categoria> listarTodas() throws SQLException {
-        String sql = "SELECT id, nombre FROM categorias ORDER BY nombre";
+        String sql = "SELECT id, nombre FROM categorias ORDER BY id ASC";
         List<Categoria> categorias = new ArrayList<>();
 
         try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery()) {
@@ -64,7 +64,7 @@ public class CategoriaDAO extends JdbcDaoSupport {
             }
 
             if (categoria.getId() == null || categoria.getId().isBlank()) {
-                categoria.setId(IdGenerator.generateId(EntidadPrefix.CATEGORIA));
+                categoria.setId(IdGenerator.generateId(connection, "categorias", EntidadPrefix.CATEGORIA, 3));
             }
 
             String sql = "INSERT INTO categorias (id, nombre) VALUES (?, ?)";

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.products.ui.ProductoController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane>
+        <top>
+            <fx:include source="navbar.fxml" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Catálogo de Productos" styleClass="title-2" />
+                            <Label text="Gestione el maestro de medicamentos e insumos médicos del sistema." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Nuevo Producto" onAction="#onOpenRegisterModal" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Summary Cards -->
+                    <FlowPane hgap="25" vgap="25">
+                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-pills" iconSize="18" styleClass="icon-accent" />
+                                <Label text="TOTAL PRODUCTOS" styleClass="text-caption, text-bold, text-muted" />
+                            </HBox>
+                            <Label fx:id="lblTotalProductos" text="0" styleClass="title-2" />
+                            <Label text="Ítems registrados en catálogo" styleClass="text-caption, text-muted" />
+                        </VBox>
+                    </FlowPane>
+
+                    <!-- Main Table Card -->
+                    <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
+                            <HBox styleClass="icon-box-subtle" alignment="CENTER">
+                                <FontIcon iconLiteral="fas-search" />
+                            </HBox>
+                            <TextField fx:id="txtSearch" promptText="Buscar por nombre o código DIGEMID..." prefWidth="450" onKeyReleased="#onSearch" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button text="Actualizar" onAction="#loadData" styleClass="button, flat, sm">
+                                <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
+                            </Button>
+                        </HBox>
+                        
+                        <TableView fx:id="tableProductos" VBox.vgrow="ALWAYS" fixedCellSize="55">
+                            <columns>
+                                <TableColumn fx:id="colId" text="ID" prefWidth="100" />
+                                <TableColumn fx:id="colDigemid" text="CÓD. DIGEMID" prefWidth="120" />
+                                <TableColumn fx:id="colNombre" text="NOMBRE DEL PRODUCTO" prefWidth="300" />
+                                <TableColumn fx:id="colCategoria" text="CATEGORÍA" prefWidth="150" />
+                                <TableColumn fx:id="colUnidad" text="U. MEDIDA" prefWidth="120" />
+                                <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="100" />
+                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="150" sortable="false" />
+                            </columns>
+                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                            <placeholder>
+                                <Label text="No se encontraron productos." styleClass="text-muted" />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Modal Form -->
+    <StackPane fx:id="modalProducto" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="600" maxHeight="-Infinity" styleClass="modal-content" spacing="25">
+            <VBox styleClass="modal-header">
+                <Label fx:id="modalTitle" text="Registrar Producto" styleClass="title-4" />
+                <Label text="Ingrese la información técnica del medicamento o insumo." styleClass="text-muted" />
+            </VBox>
+            
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge" maxHeight="450">
+                <VBox spacing="20" style="-fx-padding: 5;">
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="NOMBRE COMERCIAL/GENÉRICO" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtNombre" promptText="Ej: Paracetamol 500mg" styleClass="large" />
+                        </VBox>
+                        <VBox prefWidth="200" spacing="8">
+                            <Label text="CÓDIGO DIGEMID" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtDigemid" promptText="Ej: 12345" styleClass="large" />
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="CATEGORÍA" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbCategoria" maxWidth="Infinity" promptText="Seleccione categoría" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="UNIDAD DE MEDIDA" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbUnidad" maxWidth="Infinity" />
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="8">
+                        <Label text="DESCRIPCIÓN / DETALLE" styleClass="text-caption, text-bold, text-muted" />
+                        <TextArea fx:id="txtDetalle" prefHeight="80" wrapText="true" promptText="Composición, presentación, etc." />
+                    </VBox>
+
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="STOCK MÍNIMO DE ALERTA" styleClass="text-caption, text-bold, text-muted" />
+                            <Spinner fx:id="spnStockMinimo" maxWidth="Infinity" editable="true" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" alignment="BOTTOM_LEFT">
+                            <CheckBox fx:id="chkActivo" text="Producto habilitado" selected="true" styleClass="text-bold" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button text="Guardar Producto" onAction="#onSave" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

@@ -33,7 +33,7 @@ public class LoteDAO extends JdbcDaoSupport {
         validarLote(lote);
 
         if (lote.getId() == null || lote.getId().isBlank()) {
-            lote.setId(IdGenerator.generateId(EntidadPrefix.LOTE));
+            lote.setId(IdGenerator.generateSedeDependentId(connection, "lotes", EntidadPrefix.LOTE, lote.getSedeId(), 5));
         }
 
         String sql = "INSERT INTO lotes (id, producto_id, sede_id, numero_lote, fecha_vencimiento, fecha_fabricacion, cantidad) VALUES (?, ?, ?, ?, ?, ?, ?)";

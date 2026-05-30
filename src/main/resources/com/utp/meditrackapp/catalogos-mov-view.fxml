@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.catalogs.ui.CatalogoMovimientosController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane>
+        <top>
+            <fx:include source="navbar.fxml" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <VBox spacing="4">
+                        <Label text="Catálogos de Movimiento" styleClass="title-2" />
+                        <Label text="Administre los Tipos y Motivos de movimiento para el control de inventario." styleClass="text-muted" />
+                    </VBox>
+
+                    <!-- TabPane for Tipos and Motivos -->
+                    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" styleClass="card, elevated">
+                        <!-- Tab Tipos de Movimiento -->
+                        <Tab text="Tipos de Movimiento">
+                            <graphic><FontIcon iconLiteral="fas-exchange-alt" /></graphic>
+                            <VBox spacing="20" style="-fx-padding: 20;">
+                                <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
+                                    <HBox styleClass="icon-box-subtle" alignment="CENTER">
+                                        <FontIcon iconLiteral="fas-search" />
+                                    </HBox>
+                                    <TextField fx:id="txtSearchTipo" promptText="Buscar tipo..." prefWidth="350" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button text="Actualizar" onAction="#loadTipos" styleClass="button, flat, sm">
+                                        <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
+                                    </Button>
+                                    <Button text="Nuevo Tipo" onAction="#onOpenRegisterTipo" styleClass="button, accent">
+                                        <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                                    </Button>
+                                </HBox>
+                                
+                                <TableView fx:id="tableTipos" VBox.vgrow="ALWAYS" fixedCellSize="55">
+                                    <columns>
+                                        <TableColumn fx:id="colIdTipo" text="CÓDIGO" prefWidth="150" />
+                                        <TableColumn fx:id="colNombreTipo" text="NOMBRE DEL TIPO" prefWidth="400" />
+                                        <TableColumn fx:id="colAccionesTipo" text="ACCIONES" prefWidth="150" sortable="false" />
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                    <placeholder>
+                                        <Label text="No se encontraron tipos de movimiento." styleClass="text-muted" />
+                                    </placeholder>
+                                </TableView>
+                            </VBox>
+                        </Tab>
+                        
+                        <!-- Tab Motivos de Movimiento -->
+                        <Tab text="Motivos de Movimiento">
+                            <graphic><FontIcon iconLiteral="fas-list-ul" /></graphic>
+                            <VBox spacing="20" style="-fx-padding: 20;">
+                                <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
+                                    <HBox styleClass="icon-box-subtle" alignment="CENTER">
+                                        <FontIcon iconLiteral="fas-search" />
+                                    </HBox>
+                                    <TextField fx:id="txtSearchMotivo" promptText="Buscar motivo..." prefWidth="350" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button text="Actualizar" onAction="#loadMotivos" styleClass="button, flat, sm">
+                                        <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
+                                    </Button>
+                                    <Button text="Nuevo Motivo" onAction="#onOpenRegisterMotivo" styleClass="button, accent">
+                                        <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                                    </Button>
+                                </HBox>
+                                
+                                <TableView fx:id="tableMotivos" VBox.vgrow="ALWAYS" fixedCellSize="55">
+                                    <columns>
+                                        <TableColumn fx:id="colIdMotivo" text="CÓDIGO" prefWidth="150" />
+                                        <TableColumn fx:id="colNombreMotivo" text="NOMBRE DEL MOTIVO" prefWidth="400" />
+                                        <TableColumn fx:id="colAccionesMotivo" text="ACCIONES" prefWidth="150" sortable="false" />
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                    <placeholder>
+                                        <Label text="No se encontraron motivos de movimiento." styleClass="text-muted" />
+                                    </placeholder>
+                                </TableView>
+                            </VBox>
+                        </Tab>
+                    </TabPane>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Modal Form for both (Reused) -->
+    <StackPane fx:id="modalCatalogo" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="500" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+            <VBox styleClass="modal-header">
+                <Label fx:id="modalTitle" text="Registrar Item" styleClass="title-4" />
+                <Label fx:id="modalSubtitle" text="Ingrese el nombre del registro." styleClass="text-muted" />
+            </VBox>
+            
+            <VBox spacing="20" style="-fx-padding: 5;">
+                <VBox spacing="8">
+                    <Label fx:id="lblFieldName" text="NOMBRE" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="txtNombre" styleClass="large" />
+                </VBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button text="Guardar" onAction="#onSave" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

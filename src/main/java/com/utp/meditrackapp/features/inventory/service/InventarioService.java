@@ -90,7 +90,7 @@ public class InventarioService {
 
     // --- Métodos Operacionales (Transaccionales) ---
 
-    public boolean registrarMovimiento(Lote lote, String usuarioId, TipoMovimientoEnum tipo, MotivoMovimientoEnum motivo, int cantidad, String observacion) {
+    public void registrarMovimiento(Lote lote, String usuarioId, TipoMovimientoEnum tipo, MotivoMovimientoEnum motivo, int cantidad, String observacion) throws SQLException {
         Connection conn = null;
         try {
             conn = dbConfig.getConnection();
@@ -111,29 +111,22 @@ public class InventarioService {
             registrarMovimientoInterno(conn, lote, usuarioId, tipo, motivo, cantidad, observacion);
 
             conn.commit();
-            return true;
         } catch (SQLException e) {
             rollback(conn);
-            e.printStackTrace();
-            return false;
+            throw e; // Rethrow to let UI handle the specific error message
         } finally {
             close(conn);
         }
     }
 
-    public boolean registrarEntrada(Lote lote, String usuarioId, String observacion) {
-        return registrarMovimiento(lote, usuarioId, TipoMovimientoEnum.ENTRADA, MotivoMovimientoEnum.COMPRA, lote.getCantidad(), observacion);
+    public void registrarEntrada(Lote lote, String usuarioId, String observacion) throws SQLException {
+        registrarMovimiento(lote, usuarioId, TipoMovimientoEnum.ENTRADA, MotivoMovimientoEnum.COMPRA, lote.getCantidad(), observacion);
     }
 
-    public boolean registrarMerma(String loteId, int cantidad, String usuarioId, String observacion) {
-        try {
-            Optional<Lote> loteOpt = loteDAO.buscarPorId(loteId);
-            if (loteOpt.isEmpty()) return false;
-            return registrarMovimiento(loteOpt.get(), usuarioId, TipoMovimientoEnum.SALIDA, MotivoMovimientoEnum.MERMA, cantidad, observacion);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public void registrarMerma(String loteId, int cantidad, String usuarioId, String observacion) throws SQLException {
+        Optional<Lote> loteOpt = loteDAO.buscarPorId(loteId);
+        if (loteOpt.isEmpty()) throw new SQLException("El lote con ID " + loteId + " no existe.");
+        registrarMovimiento(loteOpt.get(), usuarioId, TipoMovimientoEnum.SALIDA, MotivoMovimientoEnum.MERMA, cantidad, observacion);
     }
 
     private void registrarMovimientoInterno(Connection conn, Lote lote, String usuarioId, 

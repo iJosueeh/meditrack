@@ -81,7 +81,7 @@ public class ProductoDAO extends JdbcDaoSupport {
             }
 
             if (producto.getId() == null || producto.getId().isBlank()) {
-                producto.setId(IdGenerator.generateId(EntidadPrefix.PRODUCTO));
+                producto.setId(IdGenerator.generateId(connection, "productos", EntidadPrefix.PRODUCTO, 5));
             }
 
             String sql = hasStockMinimoColumn(connection)
@@ -219,6 +219,11 @@ public class ProductoDAO extends JdbcDaoSupport {
         producto.setUnidadMedida(resultSet.getString("unidad_medida"));
         producto.setIsActivo(resultSet.getInt("is_activo"));
         producto.setStockMinimo(hasStockMinimoColumn(connection) ? resultSet.getObject("stock_minimo", Integer.class) : STOCK_MINIMO_DEFAULT);
+        try {
+            producto.setCategoriaNombre(resultSet.getString("categoria_nombre"));
+        } catch (SQLException e) {
+            // Field not present in ResultSet
+        }
         return producto;
     }
 }

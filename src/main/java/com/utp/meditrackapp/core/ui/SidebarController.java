@@ -20,6 +20,10 @@ public class SidebarController {
     @FXML private Button btnInventory;
     @FXML private Button btnCatalog;
     @FXML private Button btnUsers;
+    @FXML private Button btnCategorias;
+    @FXML private Button btnProductos;
+    @FXML private Button btnRoles;
+    @FXML private Button btnMovCatalog;
 
     @FXML
     public void initialize() {
@@ -44,6 +48,7 @@ public class SidebarController {
             btnCatalog.setManaged(false);
             btnUsers.setVisible(false);
             btnUsers.setManaged(false);
+            hideMaintenanceButtons();
         }
         
         // 2. Químico Farmacéutico (Táctico)
@@ -52,6 +57,7 @@ public class SidebarController {
             btnCatalog.setManaged(false);
             btnUsers.setVisible(false);
             btnUsers.setManaged(false);
+            hideMaintenanceButtons();
         }
         
         // 3. Administrador (Estratégico)
@@ -61,6 +67,17 @@ public class SidebarController {
             btnMovements.setVisible(false);
             btnMovements.setManaged(false);
         }
+    }
+
+    private void hideMaintenanceButtons() {
+        btnCategorias.setVisible(false);
+        btnCategorias.setManaged(false);
+        btnProductos.setVisible(false);
+        btnProductos.setManaged(false);
+        btnRoles.setVisible(false);
+        btnRoles.setManaged(false);
+        btnMovCatalog.setVisible(false);
+        btnMovCatalog.setManaged(false);
     }
 
     @FXML
@@ -100,6 +117,26 @@ public class SidebarController {
     @FXML
     protected void onGoToUsers() throws IOException {
         NavigationService.toUsers();
+    }
+
+    @FXML
+    protected void onGoToCategorias() throws IOException {
+        NavigationService.toCategorias();
+    }
+
+    @FXML
+    protected void onGoToProductos() throws IOException {
+        NavigationService.toProductos();
+    }
+
+    @FXML
+    protected void onGoToRoles() throws IOException {
+        NavigationService.toRoles();
+    }
+
+    @FXML
+    protected void onGoToMovCatalog() throws IOException {
+        NavigationService.toCatalogosMovimiento();
     }
 
     @FXML
