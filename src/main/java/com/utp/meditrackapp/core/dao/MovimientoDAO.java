@@ -74,6 +74,53 @@ public class MovimientoDAO extends JdbcDaoSupport {
         return lista;
     }
 
+    public List<Movimiento> listarConFiltros(String sedeId, String tipoId, String buscar, java.time.LocalDate desde, java.time.LocalDate hasta) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+            "SELECT m.*, tm.nombre as tipo_nombre, mm.nombre as motivo_nombre, p.nombre as producto_nombre, l.numero_lote " +
+            "FROM movimientos m " +
+            "JOIN tipos_movimiento tm ON m.tipo_id = tm.id " +
+            "JOIN motivos_movimiento mm ON m.motivo_id = mm.id " +
+            "JOIN lotes l ON m.lote_id = l.id " +
+            "JOIN productos p ON l.producto_id = p.id " +
+            "WHERE m.sede_id = ?"
+        );
+
+        if (tipoId != null && !tipoId.isEmpty()) {
+            sql.append(" AND m.tipo_id = ?");
+        }
+        if (buscar != null && !buscar.isEmpty()) {
+            sql.append(" AND (p.nombre LIKE ? OR l.numero_lote LIKE ?)");
+        }
+        if (desde != null) {
+            sql.append(" AND CAST(m.fecha_registro AS DATE) >= ?");
+        }
+        if (hasta != null) {
+            sql.append(" AND CAST(m.fecha_registro AS DATE) <= ?");
+        }
+        sql.append(" ORDER BY m.fecha_registro DESC");
+
+        List<Movimiento> lista = new ArrayList<>();
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setString(i++, sedeId);
+            if (tipoId != null && !tipoId.isEmpty()) ps.setString(i++, tipoId);
+            if (buscar != null && !buscar.isEmpty()) {
+                String pattern = "%" + buscar + "%";
+                ps.setString(i++, pattern);
+                ps.setString(i++, pattern);
+            }
+            if (desde != null) ps.setDate(i++, java.sql.Date.valueOf(desde));
+            if (hasta != null) ps.setDate(i++, java.sql.Date.valueOf(hasta));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapMovimiento(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
     private Movimiento mapMovimiento(ResultSet rs) throws SQLException {
         Movimiento m = new Movimiento();
         m.setId(rs.getString("id"));

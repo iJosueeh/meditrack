@@ -71,6 +71,10 @@
         <Button fx:id="btnMovCatalog" text="Catálogos de Movimiento" onAction="#onGoToMovCatalog" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-list-alt" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
+
+        <Button fx:id="btnReports" text="Reportes y Auditoría" onAction="#onGoToReports" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-file-pdf" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
         
         <Button text="Mi Perfil" onAction="#onGoToProfile" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-id-card" iconSize="16" styleClass="nav-icon" /></graphic>

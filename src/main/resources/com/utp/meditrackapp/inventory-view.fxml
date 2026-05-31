@@ -42,6 +42,26 @@
                                         <DatePicker fx:id="dpFromDate" promptText="Desde" prefWidth="140" />
                                         <DatePicker fx:id="dpToDate" promptText="Hasta" prefWidth="140" />
                                         <Button text="Aplicar Filtros" onAction="#onFilterMovements" styleClass="button, sm" />
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Button text="PDF" onAction="#onGenerateReport" styleClass="button, sm, danger">
+                                            <graphic><FontIcon iconLiteral="fas-file-pdf" iconColor="white" /></graphic>
+                                        </Button>
+                                    </HBox>
+                                    
+                                    <!-- Summary KPIs -->
+                                    <HBox spacing="20">
+                                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8; -fx-border-color: -color-border-default; -fx-border-width: 0.5;">
+                                            <Label text="TOTAL MOVIMIENTOS" styleClass="text-caption, text-bold, text-muted" />
+                                            <Label fx:id="lblTotalMovs" text="0" styleClass="title-2, text-primary" />
+                                        </VBox>
+                                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8; -fx-border-color: -color-border-default; -fx-border-width: 0.5;">
+                                            <Label text="PRODUCTOS ENTRANTES" styleClass="text-caption, text-bold, text-muted" />
+                                            <Label fx:id="lblEntryQty" text="0" styleClass="title-2, text-success" />
+                                        </VBox>
+                                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="8" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8; -fx-border-color: -color-border-default; -fx-border-width: 0.5;">
+                                            <Label text="PRODUCTOS SALIENTES" styleClass="text-caption, text-bold, text-muted" />
+                                            <Label fx:id="lblExitQty" text="0" styleClass="title-2, text-danger" />
+                                        </VBox>
                                     </HBox>
                                     
                                     <HBox spacing="25" VBox.vgrow="ALWAYS">

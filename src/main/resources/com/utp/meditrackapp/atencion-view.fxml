@@ -26,6 +26,13 @@
                             <Label text="Atención y Dispensación" styleClass="title-2" />
                             <Label text="Registre la entrega de medicamentos basada en recetas médicas." styleClass="text-muted" />
                         </VBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <DatePicker fx:id="dpFromDate" promptText="Desde" prefWidth="120" />
+                            <DatePicker fx:id="dpToDate" promptText="Hasta" prefWidth="120" />
+                            <Button text="Reporte PDF" onAction="#onGenerateReport" styleClass="button, sm, danger">
+                                <graphic><FontIcon iconLiteral="fas-file-pdf" iconColor="white" /></graphic>
+                            </Button>
+                        </HBox>
                         <Button text="Nueva Atención" onAction="#onLimpiarTodo" styleClass="button, flat">
                             <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
                         </Button>

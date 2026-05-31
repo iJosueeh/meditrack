@@ -16,11 +16,14 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import javafx.stage.FileChooser;
+import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
+import com.utp.meditrackapp.core.models.dto.DispensacionReportItem;
 
 public class AtencionController {
 
@@ -28,9 +31,11 @@ public class AtencionController {
     private final InventarioService inventarioService = new InventarioService();
     private final PacienteService pacienteService = new PacienteService();
     private final SessionManager sessionManager = SessionManager.getInstance();
+    private final HtmlReportService reportService = new HtmlReportService();
 
     // Patient & Prescription
     @FXML private TextField txtPacienteDni, txtReceta, txtMedico;
+    @FXML private DatePicker dpFromDate, dpToDate;
     @FXML private Label lblPatientName, lblPatientPhone;
     @FXML private VBox vboxPatientInfo;
     @FXML private ListView<String> listHistory;
@@ -53,6 +58,55 @@ public class AtencionController {
         setupTables();
         setupProductCombo();
         loadInitialData();
+    }
+
+    @FXML
+    protected void onGenerateReport() {
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+
+            java.time.LocalDate desde = dpFromDate.getValue();
+            java.time.LocalDate hasta = dpToDate.getValue();
+
+            List<DispensacionReportItem> items = atencionService.listarDispensacionesReporte(user.getSedeId(), desde, hasta);
+
+            if (items.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay dispensaciones registradas en el periodo seleccionado.");
+                return;
+            }
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Guardar Reporte de Dispensaciones");
+            fileChooser.setInitialFileName("reporte_dispensaciones_" + java.time.LocalDate.now() + ".pdf");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(txtPacienteDni.getScene().getWindow());
+
+            if (file != null) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("REPORT_DATE", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                params.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
+                params.put("SEDE", com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user));
+                
+                String period = (desde != null ? desde.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Inicio") 
+                              + " al " + 
+                              (hasta != null ? hasta.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Hoy");
+                params.put("DATE_RANGE", period);
+                
+                long totalAttentions = items.stream().map(DispensacionReportItem::getNumeroReceta).distinct().count();
+                int totalMeds = items.stream().mapToInt(DispensacionReportItem::getCantidad).sum();
+                
+                params.put("TOTAL_ATTENTIONS", String.valueOf(totalAttentions));
+                params.put("TOTAL_MEDICINES", String.valueOf(totalMeds));
+                params.put("items", items);
+
+                reportService.generatePdf("dispensaciones", params, file);
+                showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "Ocurrió un error al generar el reporte: " + e.getMessage());
+        }
     }
 
     private void setupTables() {

@@ -18,6 +18,7 @@ import com.utp.meditrackapp.core.service.InventoryHealthCalculator;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +51,10 @@ public class InventarioService {
 
     public List<TipoMovimiento> listarTiposMovimiento() throws SQLException {
         return tipoMovimientoDAO.listarTodas();
+    }
+
+    public List<Movimiento> listarMovimientosConFiltros(String sedeId, String tipoId, String buscar, LocalDate desde, LocalDate hasta) throws SQLException {
+        return movimientoDAO.listarConFiltros(sedeId, tipoId, buscar, desde, hasta);
     }
 
     public List<Lote> listarLotesConProducto(String sedeId) throws SQLException {

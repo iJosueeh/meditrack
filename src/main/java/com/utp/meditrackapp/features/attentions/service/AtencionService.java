@@ -130,6 +130,10 @@ public class AtencionService {
         return sugerencia;
     }
 
+    public List<com.utp.meditrackapp.core.models.dto.DispensacionReportItem> listarDispensacionesReporte(String sedeId, java.time.LocalDate desde, java.time.LocalDate hasta) throws SQLException {
+        return atencionDAO.listarDispensacionesReporte(sedeId, desde, hasta);
+    }
+
     private boolean isAuthorized(Usuario user) {
         return sessionManager.isAdmin() || sessionManager.isQuimico() || sessionManager.isTecnico();
     }

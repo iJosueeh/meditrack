@@ -95,6 +95,10 @@ public class NavigationService {
         switchRoot("/com/utp/meditrackapp/atencion-view.fxml", "MediTrack — Registro de Atenciones", true);
     }
 
+    public static void toReports() throws IOException {
+        switchRoot("/com/utp/meditrackapp/reports-view.fxml", "MediTrack — Centro de Reportes", true);
+    }
+
     public static void toInventory() throws IOException {
         switchRoot("/com/utp/meditrackapp/inventory-view.fxml", "MediTrack — Inventario", true);
     }
