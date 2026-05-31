@@ -26,6 +26,7 @@ Este documento enumera los requerimientos funcionales del sistema MediTrack y su
 | RF-20 | M9 – Dispensación | Técnico | Registrar el detalle de medicamentos entregados por atención: lote dispensado y cantidad entregada. | **Implementado** |
 | RF-21 | M9 – Dispensación | Técnico | Aplicar FEFO automáticamente durante la dispensación: mostrar explícitamente el lote sugerido y su fecha de vencimiento antes de confirmar. | **Implementado** |
 | RF-22 | M9 – Dispensación | Técnico | Descontar el stock del lote correspondiente únicamente tras la confirmación explícita del usuario, dentro de una transacción ACID. | **Implementado** |
-| RF-23 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Mostrar dashboard con indicadores: stock crítico, lotes por vencer, movimientos recientes y resumen de atenciones del día. | **Implementado** |
-| RF-24 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Generar reporte PDF de movimientos de inventario filtrado por sede, rango de fechas y tipo de movimiento. | **Parcial** (Generación PDF lista, filtros específicos en progreso) |
-| RF-25 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Generar reporte PDF de dispensaciones filtrado por paciente, sede y rango de fechas. | Pendiente |
+| RF-23 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Mostrar dashboard interactivo con indicadores: stock crítico, lotes por vencer, movimientos recientes y resumen de atenciones del día. | **Implementado** |
+| RF-24 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Generar reporte PDF de movimientos de inventario filtrado por sede, rango de fechas y tipo de movimiento. | **Pendiente** (Infraestructura base lista, falta plantilla JRXML específica) |
+| RF-25 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Generar reporte PDF de dispensaciones filtrado por paciente, sede y rango de fechas. | **Pendiente** |
+| RF-26 | M10 – Reportes y Dashboard | Jefe de Sede, Admin | Generar reporte PDF de resumen ejecutivo (Dashboard) con KPIs, gráficos de tendencias y distribución de stock. | **Implementado** |

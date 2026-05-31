@@ -24,6 +24,7 @@ public class SidebarController {
     @FXML private Button btnProductos;
     @FXML private Button btnRoles;
     @FXML private Button btnMovCatalog;
+    @FXML private Button btnReports;
 
     @FXML
     public void initialize() {
@@ -137,6 +138,12 @@ public class SidebarController {
     @FXML
     protected void onGoToMovCatalog() throws IOException {
         NavigationService.toCatalogosMovimiento();
+    }
+
+    @FXML
+    protected void onGoToReports() throws IOException {
+        NavigationService.toReports();
+        System.out.println("[NAV] Navegando a Centro de Reportes...");
     }
 
     @FXML

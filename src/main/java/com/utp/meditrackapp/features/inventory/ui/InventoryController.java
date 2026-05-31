@@ -21,10 +21,17 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import javafx.stage.FileChooser;
+import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
+
 public class InventoryController {
 
     private final InventarioService inventarioService = new InventarioService();
     private final SessionManager sessionManager = SessionManager.getInstance();
+    private final HtmlReportService reportService = new HtmlReportService();
 
     @FXML private TabPane inventoryTabPane;
     @FXML private TableView<Movimiento> tableMovements;
@@ -42,6 +49,7 @@ public class InventoryController {
     @FXML private TableColumn<Lote, String> colBatchDigemid, colBatchProduct, colBatchNum;
     @FXML private TableColumn<Lote, LocalDate> colBatchExp, colBatchFab;
     @FXML private Label lblActiveBatches, lblCriticalBatches;
+    @FXML private Label lblTotalMovs, lblEntryQty, lblExitQty;
 
     // Quick Registration
     @FXML private ComboBox<TipoMovimiento> cmbQuickType;
@@ -427,10 +435,22 @@ public class InventoryController {
             String searchText = txtSearchMovement != null ? txtSearchMovement.getText() : "";
             TipoMovimiento selectedType = cmbMovementType != null ? cmbMovementType.getValue() : null;
             String tipoId = (selectedType != null && !selectedType.getId().isEmpty()) ? selectedType.getId() : null;
+            LocalDate desde = dpFromDate != null ? dpFromDate.getValue() : null;
+            LocalDate hasta = dpToDate != null ? dpToDate.getValue() : null;
 
-            List<Movimiento> movements = inventarioService.listarMovimientos(user.getSedeId(), tipoId, searchText); 
+            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta); 
             tableMovements.setItems(FXCollections.observableArrayList(movements));
             tableMovements.refresh();
+
+            // Update KPIs
+            int total = movements.size();
+            int entry = movements.stream().filter(m -> "ENTRADA".equalsIgnoreCase(m.getTipoNombre())).mapToInt(Movimiento::getCantidad).sum();
+            int exit = movements.stream().filter(m -> "SALIDA".equalsIgnoreCase(m.getTipoNombre())).mapToInt(Movimiento::getCantidad).sum();
+
+            if (lblTotalMovs != null) lblTotalMovs.setText(String.valueOf(total));
+            if (lblEntryQty != null) lblEntryQty.setText(String.valueOf(entry));
+            if (lblExitQty != null) lblExitQty.setText(String.valueOf(exit));
+
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
@@ -443,6 +463,57 @@ public class InventoryController {
             tableBatches.refresh();
             updateBatchSummary(user.getSedeId(), batches);
         } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    protected void onGenerateReport() {
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+
+            LocalDate desde = dpFromDate.getValue();
+            LocalDate hasta = dpToDate.getValue();
+            String searchText = txtSearchMovement.getText();
+            TipoMovimiento selectedType = cmbMovementType.getValue();
+            String tipoId = (selectedType != null && !selectedType.getId().isEmpty()) ? selectedType.getId() : null;
+
+            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta);
+
+            if (movements.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay movimientos que coincidan con los filtros seleccionados.");
+                return;
+            }
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Guardar Reporte de Movimientos");
+            fileChooser.setInitialFileName("reporte_movimientos_" + LocalDate.now() + ".pdf");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(tableMovements.getScene().getWindow());
+
+            if (file != null) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("REPORT_DATE", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                params.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
+                params.put("SEDE", com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user));
+                
+                String period = (desde != null ? desde.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Inicio") 
+                              + " al " + 
+                              (hasta != null ? hasta.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Hoy");
+                params.put("DATE_RANGE", period);
+                
+                params.put("TOTAL_MOVEMENTS", String.valueOf(movements.size()));
+                
+                int totalQty = movements.stream().mapToInt(Movimiento::getCantidad).sum();
+                params.put("TOTAL_QUANTITY", String.valueOf(totalQty));
+                params.put("items", movements);
+
+                reportService.generatePdf("movimientos", params, file);
+                showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente en:\n" + file.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error al Generar Reporte", "Ocurrió un error: " + e.getMessage());
+        }
     }
 
     private void updateBatchSummary(String sedeId, List<Lote> batches) {

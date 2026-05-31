@@ -72,6 +72,50 @@ public class AtencionDAO extends JdbcDaoSupport {
         return lista;
     }
 
+    public List<com.utp.meditrackapp.core.models.dto.DispensacionReportItem> listarDispensacionesReporte(String sedeId, java.time.LocalDate desde, java.time.LocalDate hasta) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+            "SELECT a.fecha_atencion, p.nombres + ' ' + p.apellidos as paciente_nombre, a.numero_receta, " +
+            "prod.nombre as producto_nombre, l.numero_lote, ad.cantidad_entregada " +
+            "FROM atenciones a " +
+            "JOIN atencion_detalles ad ON a.id = ad.atencion_id " +
+            "JOIN pacientes p ON a.paciente_id = p.id " +
+            "JOIN lotes l ON ad.lote_id = l.id " +
+            "JOIN productos prod ON l.producto_id = prod.id " +
+            "WHERE a.sede_id = ?"
+        );
+
+        if (desde != null) {
+            sql.append(" AND CAST(a.fecha_atencion AS DATE) >= ?");
+        }
+        if (hasta != null) {
+            sql.append(" AND CAST(a.fecha_atencion AS DATE) <= ?");
+        }
+        sql.append(" ORDER BY a.fecha_atencion DESC");
+
+        List<com.utp.meditrackapp.core.models.dto.DispensacionReportItem> lista = new ArrayList<>();
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setString(i++, sedeId);
+            if (desde != null) ps.setDate(i++, java.sql.Date.valueOf(desde));
+            if (hasta != null) ps.setDate(i++, java.sql.Date.valueOf(hasta));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    com.utp.meditrackapp.core.models.dto.DispensacionReportItem item = new com.utp.meditrackapp.core.models.dto.DispensacionReportItem();
+                    Timestamp ts = rs.getTimestamp("fecha_atencion");
+                    if (ts != null) item.setFecha(ts.toLocalDateTime());
+                    item.setPaciente(rs.getString("paciente_nombre"));
+                    item.setNumeroReceta(rs.getString("numero_receta"));
+                    item.setProducto(rs.getString("producto_nombre"));
+                    item.setLote(rs.getString("numero_lote"));
+                    item.setCantidad(rs.getInt("cantidad_entregada"));
+                    lista.add(item);
+                }
+            }
+        }
+        return lista;
+    }
+
     private Atencion mapAtencion(ResultSet rs) throws SQLException {
         Atencion a = new Atencion();
         a.setId(rs.getString("id"));

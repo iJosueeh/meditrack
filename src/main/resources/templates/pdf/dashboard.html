@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Reporte Consolidado de Gestión</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 1.2cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: 'Helvetica', sans-serif;
+                font-size: 8pt;
+                color: #64748b;
+            }
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+        }
+
+        /* Branding Colors */
+        .text-primary { color: #0284c7; }
+        .text-success { color: #10b981; }
+        .text-danger { color: #ef4444; }
+        .text-muted { color: #64748b; }
+        .bg-slate-800 { background-color: #1e293b; }
+        .bg-slate-50 { background-color: #f8fafc; }
+
+        /* Step 1: Main Header */
+        .main-header {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .header-line {
+            border-top: 2px solid #0284c7;
+            margin: 10px 0 20px 0;
+        }
+        .logo-box {
+            background-color: #0284c7;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 18pt;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        /* Step 2: Executive Summary (KPIs) */
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        .kpi-table {
+            width: 100%;
+            border-spacing: 10px 0;
+            margin-bottom: 30px;
+        }
+        /* KPI Card Variations */
+        .kpi-card {
+            border-radius: 10px;
+            padding: 15px;
+            width: 25%;
+            vertical-align: top;
+        }
+        .bg-blue-subtle { background-color: #f0f9ff; border: 1px solid #bae6fd; }
+        .bg-red-subtle { background-color: #fef2f2; border: 1px solid #fecaca; }
+        .bg-slate-subtle { background-color: #f8fafc; border: 1px solid #e2e8f0; }
+        .bg-teal-subtle { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
+
+        .kpi-label {
+            font-size: 7pt;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 15pt;
+            font-weight: bold;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+        .kpi-sub {
+            font-size: 7.5pt;
+            font-weight: bold;
+        }
+        .val-blue { color: #0369a1; }
+        .val-red { color: #dc2626; }
+        .val-slate { color: #334155; }
+        .val-teal { color: #059669; }
+/* Step 3: Statistical Charts */
+.charts-table {
+    width: 100%;
+    border-spacing: 15px 0;
+    margin-bottom: 30px;
+    table-layout: fixed;
+}
+.chart-box {
+    width: 50%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    background-color: white;
+    vertical-align: top;
+}
+.chart-title {
+    font-size: 11pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #1e293b;
+}
+.chart-img {
+    max-width: 100%;
+    max-height: 220px;
+    height: auto;
+}
+
+        /* Step 4: Top Products Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+        }
+        .data-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 7pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-high {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+        .badge-low {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 400px;
+            left: 100px;
+            transform: rotate(-45deg);
+            font-size: 90pt;
+            color: #f8fafc;
+            z-index: -100;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">MEDITRACK</div>
+
+    <!-- Step 1: Main Header -->
+    <table class="main-header">
+        <tr>
+            <td style="width: 60%;">
+                <table>
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <div class="logo-box">M</div>
+                        </td>
+                        <td style="vertical-align: middle;">
+                            <div style="font-size: 20pt; font-weight: bold; color: #1e293b;">MediTrack</div>
+                        </td>
+                    </tr>
+                </table>
+                <div style="font-size: 16pt; font-weight: bold; margin-top: 10px;">Reporte Consolidado de Gestión</div>
+            </td>
+            <td style="width: 40%; text-align: right; vertical-align: bottom;">
+                <div style="font-size: 9pt; font-weight: bold;">EMISIÓN: <span th:text="${REPORT_DATE}">24/05/2024</span></div>
+                <div class="text-muted" style="font-size: 8.5pt;">Generado por: <span th:text="${GENERATED_BY}">Dr. Alejandro Méndez</span></div>
+                <div class="text-muted" style="font-size: 8.5pt;">Sede: <span th:text="${SEDE}">Hospital Central - Unidad Norte</span></div>
+            </td>
+        </tr>
+    </table>
+    <div class="header-line"></div>
+
+    <!-- Step 2: Executive Summary -->
+    <div class="section-title">Resumen Ejecutivo</div>
+    <table class="kpi-table">
+        <tr>
+            <td class="kpi-card bg-blue-subtle">
+                <div class="kpi-label">Valor de Inventario</div>
+                <div class="kpi-value val-blue" th:text="${VALOR_INVENTARIO}">S/ 0.00</div>
+                <div class="kpi-sub val-blue" th:text="${CRECIMIENTO_VALOR}">+0.0% vs. mes anterior</div>
+            </td>
+            <td class="kpi-card bg-red-subtle">
+                <div class="kpi-label">Alertas de Stock</div>
+                <div class="kpi-value val-red" th:text="${ALERTAS_STOCK}">0 Críticos</div>
+                <div class="kpi-sub val-red">Requieren acción inmediata</div>
+            </td>
+            <td class="kpi-card bg-slate-subtle">
+                <div class="kpi-label">Volumen de Movimiento</div>
+                <div class="kpi-value val-slate" th:text="${VOLUMEN_MOVIMIENTOS}">0</div>
+                <div class="kpi-sub val-slate">Entradas y Salidas (30d)</div>
+            </td>
+            <td class="kpi-card bg-teal-subtle">
+                <div class="kpi-label">Eficiencia Operativa</div>
+                <div class="kpi-value val-teal" th:text="${EFICIENCIA_OPERATIVA}">0%</div>
+                <div class="kpi-sub val-teal">Cumplimiento de Rotación</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Step 3: Analytical Charts -->
+    <table class="charts-table">
+        <tr>
+            <td class="chart-box">
+                <div class="chart-title">Tendencias de Inventario</div>
+                <img th:if="${CHART_TREND != null}" th:src="${CHART_TREND}" class="chart-img" alt="Tendencia" />
+                <div class="text-muted" style="font-size: 7pt; margin-top: 5px; text-align: left;">
+                    * Representación del crecimiento en los últimos 6 meses.
+                </div>
+            </td>
+            <td class="chart-box">
+                <div class="chart-title">Distribución por Categoría</div>
+                <img th:if="${CHART_CAT != null}" th:src="${CHART_CAT}" class="chart-img" alt="Distribución" />
+                <div class="text-muted" style="font-size: 7pt; margin-top: 5px; text-align: left;">
+                    * Distribución porcentual según tipo de insumo.
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Step 4: Top Products Table -->
+    <div class="section-title">Productos de Alta Rotación</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">CÓDIGO</th>
+                <th style="width: 30%;">PRODUCTO</th>
+                <th style="width: 20%;">CATEGORÍA</th>
+                <th style="width: 10%; text-align: center;">UNIDADES</th>
+                <th style="width: 15%; text-align: right;">VALOR TOTAL</th>
+                <th style="width: 10%; text-align: center;">ESTADO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="prod : ${items}">
+                <td th:text="${prod.code}">P-001</td>
+                <td style="font-weight: bold;" th:text="${prod.name}">Paracetamol 500mg</td>
+                <td th:text="${prod.category}">Medicamentos</td>
+                <td style="text-align: center;" th:text="${prod.currentStock}">1,200</td>
+                <td style="text-align: right;" th:text="${prod.formattedTotalValue}">S/ 12,000.00</td>
+                <td style="text-align: center;">
+                    <span th:if="${prod.currentStock > prod.minStock}" class="badge badge-high">ALTO</span>
+                    <span th:if="${prod.currentStock <= prod.minStock}" class="badge badge-low">STOCK BAJO</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; color: #94a3b8; font-size: 7.5pt;">
+        Este documento es para uso exclusivo de gestión administrativa. MediTrack Intelligence System © 2026.
+    </div>
+
+</body>
+</html>
