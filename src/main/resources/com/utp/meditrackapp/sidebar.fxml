@@ -40,10 +40,6 @@
             <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
         
-        <Button fx:id="btnMovements" text="Movimientos / Mermas" onAction="#onGoToMovements" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-exchange-alt" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-
         <Button fx:id="btnCatalog" text="Gestión de Sedes" onAction="#onGoToCatalog" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-hotel" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>

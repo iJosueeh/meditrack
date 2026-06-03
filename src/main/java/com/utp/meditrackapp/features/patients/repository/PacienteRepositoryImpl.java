@@ -32,13 +32,27 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     @Override
     public List<Paciente> findByQuery(String query) {
         List<Paciente> pacientes = new ArrayList<>();
-        String sql = "SELECT * FROM pacientes WHERE (numero_documento LIKE ? OR nombres LIKE ? OR apellidos LIKE ?)";
+        if (query == null || query.trim().isEmpty()) {
+            return findAll();
+        }
+        
+        String[] terms = query.trim().split("\\s+");
+        StringBuilder sql = new StringBuilder("SELECT * FROM pacientes WHERE 1=1");
+        for (int i = 0; i < terms.length; i++) {
+            sql.append(" AND (numero_documento LIKE ? OR nombres LIKE ? OR apellidos LIKE ?)");
+        }
+        
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            String pattern = "%" + query + "%";
-            ps.setString(1, pattern);
-            ps.setString(2, pattern);
-            ps.setString(3, pattern);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+             
+            int paramIndex = 1;
+            for (String term : terms) {
+                String pattern = "%" + term + "%";
+                ps.setString(paramIndex++, pattern);
+                ps.setString(paramIndex++, pattern);
+                ps.setString(paramIndex++, pattern);
+            }
+            
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     pacientes.add(mapResultSetToPaciente(rs));

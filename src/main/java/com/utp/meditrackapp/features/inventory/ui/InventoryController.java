@@ -1,5 +1,6 @@
 package com.utp.meditrackapp.features.inventory.ui;
 
+import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
 import com.utp.meditrackapp.core.models.entity.*;
@@ -24,6 +25,8 @@ import java.util.List;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javafx.stage.FileChooser;
 import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
 
@@ -40,9 +43,10 @@ public class InventoryController {
     
     // Filters
     @FXML private TextField txtSearchMovement;
+    @FXML private TextField txtSearchBatch;
     @FXML private ComboBox<TipoMovimiento> cmbMovementType;
     @FXML private DatePicker dpFromDate, dpToDate;
-    
+
     // Columns
     @FXML private TableColumn<Movimiento, String> colMovDate, colMovType, colMovProduct, colMovBatch, colMovReason;
     @FXML private TableColumn<Movimiento, Integer> colMovQty;
@@ -72,6 +76,23 @@ public class InventoryController {
     public void initialize() {
         setupTables();
         loadInitialData();
+        handleInitialSearch();
+    }
+
+    private void handleInitialSearch() {
+        String initialSearch = NavigationService.getInventoryInitialSearch();
+        if (initialSearch != null && !initialSearch.isEmpty()) {
+            if (txtSearchMovement != null) txtSearchMovement.setText(initialSearch);
+            if (txtSearchBatch != null) txtSearchBatch.setText(initialSearch);
+
+            // Switch to Batch Monitor tab if searching for a specific product/batch
+            if (inventoryTabPane != null && inventoryTabPane.getTabs().size() > 1) {
+                inventoryTabPane.getSelectionModel().select(1);
+            }
+
+            refreshMovements();
+            refreshBatches();
+        }
     }
 
     private void setupTables() {
@@ -454,11 +475,31 @@ public class InventoryController {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
+    @FXML
+    protected void onFilterBatches() {
+        refreshBatches();
+    }
+
     private void refreshBatches() {
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
+            
             List<Lote> batches = inventarioService.listarLotesConProducto(user.getSedeId());
+            
+            // Apply Filter
+            String query = (txtSearchBatch != null) ? txtSearchBatch.getText().toLowerCase().trim() : "";
+            if (!query.isEmpty()) {
+                String[] terms = query.split("\\s+");
+                batches = batches.stream().filter(l -> {
+                    String data = (l.getProductoNombre() + " " + l.getNumeroLote() + " " + (l.getCodigoDigemid() != null ? l.getCodigoDigemid() : "")).toLowerCase();
+                    for (String term : terms) {
+                        if (!data.contains(term)) return false;
+                    }
+                    return true;
+                }).collect(Collectors.toList());
+            }
+
             tableBatches.setItems(FXCollections.observableArrayList(batches));
             tableBatches.refresh();
             updateBatchSummary(user.getSedeId(), batches);

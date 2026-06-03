@@ -215,7 +215,8 @@ INSERT INTO [dbo].[tipos_movimiento] ([id], [nombre]) VALUES
 
 INSERT INTO [dbo].[roles] ([id], [nombre]) VALUES
 ('ROL-00-0000001', 'Administrador'),
-('ROL-00-0000002', 'Farmacéutico');
+('ROL-00-0000002', 'Químico Farmacéutico'),
+('ROL-00-0000003', 'Técnico de Farmacia');
 
 -- =========================
 -- SEDES
@@ -261,6 +262,28 @@ VALUES
 '12345678',
 'Admin',
 'Sistema',
+'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=',
+1
+),
+(
+'USR-00-0000002',
+'SED-00-0000001',
+'ROL-00-0000002',
+'DNI',
+'22222222',
+'Jefe',
+'Farmacia',
+'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=',
+1
+),
+(
+'USR-00-0000003',
+'SED-00-0000001',
+'ROL-00-0000003',
+'DNI',
+'33333333',
+'Tecnico',
+'Operativo',
 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=',
 1
 );

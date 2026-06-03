@@ -181,11 +181,12 @@ public class UsuarioDao {
         }
     }
 
-    public boolean delete(String id) {
-        String sql = "UPDATE usuarios SET is_activo = 0 WHERE id = ?";
+    public boolean toggleEstado(String id, int nuevoEstado) {
+        String sql = "UPDATE usuarios SET is_activo = ? WHERE id = ?";
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, nuevoEstado);
+            ps.setString(2, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

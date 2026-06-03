@@ -33,14 +33,18 @@ public class SessionManager {
      }
 
      public boolean isTecnico() {
-         return isLoggedIn() && "Técnico de Farmacia".equalsIgnoreCase(currentUser.getRolNombre());
+         return isLoggedIn() && currentUser.getRolNombre() != null && 
+                currentUser.getRolNombre().toLowerCase().contains("tecnic");
      }
 
      public boolean isQuimico() {
-         return isLoggedIn() && "Químico Farmacéutico".equalsIgnoreCase(currentUser.getRolNombre());
+         return isLoggedIn() && currentUser.getRolNombre() != null && 
+                (currentUser.getRolNombre().toLowerCase().contains("farmac") || 
+                 currentUser.getRolNombre().toLowerCase().contains("quimic"));
      }
 
      public boolean isAdmin() {
-         return isLoggedIn() && "Administrador".equalsIgnoreCase(currentUser.getRolNombre());
+         return isLoggedIn() && currentUser.getRolNombre() != null && 
+                currentUser.getRolNombre().toLowerCase().contains("admin");
      }
 }

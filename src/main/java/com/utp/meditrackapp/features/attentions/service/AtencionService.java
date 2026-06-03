@@ -10,15 +10,18 @@ import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.features.attentions.dao.AtencionDAO;
+import com.utp.meditrackapp.features.sedes.dao.SedeDAO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class AtencionService {
     private final AtencionDAO atencionDAO;
     private final LoteDAO loteDAO;
     private final MovimientoDAO movimientoDAO;
+    private final SedeDAO sedeDAO;
     private final SessionManager sessionManager;
     private final DatabaseConfig dbConfig;
 
@@ -26,6 +29,7 @@ public class AtencionService {
         this.atencionDAO = new AtencionDAO();
         this.loteDAO = new LoteDAO();
         this.movimientoDAO = new MovimientoDAO();
+        this.sedeDAO = new SedeDAO();
         this.sessionManager = SessionManager.getInstance();
         this.dbConfig = DatabaseConfig.getInstance();
     }
@@ -38,6 +42,15 @@ public class AtencionService {
 
         atencion.setUsuarioId(user.getId());
         atencion.setSedeId(user.getSedeId());
+
+        try {
+            Optional<Sede> sedeOpt = sedeDAO.buscarPorId(atencion.getSedeId());
+            if (sedeOpt.isEmpty() || sedeOpt.get().getIsActiva() == 0) {
+                return "La sede seleccionada se encuentra inactiva. No se pueden registrar atenciones.";
+            }
+        } catch (SQLException e) {
+            return "Error al verificar el estado de la sede: " + e.getMessage();
+        }
 
         if (atencion.getPacienteId() == null || atencion.getPacienteId().isEmpty()) return "El paciente es obligatorio.";
         if (detalles == null || detalles.isEmpty()) return "Debe agregar medicamentos.";

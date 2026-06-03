@@ -96,9 +96,21 @@ public class UsuarioController {
 
     @FXML
     protected void onSearch() {
-        String query = searchField.getText().toLowerCase();
+        String query = searchField.getText().toLowerCase().trim();
+        if (query.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String[] terms = query.split("\\s+");
         List<Usuario> filtered = usuarioDao.listarTodos().stream()
-            .filter(u -> u.getNombreCompleto().toLowerCase().contains(query) || u.getNumeroDocumento().contains(query))
+            .filter(u -> {
+                String fullData = (u.getNombreCompleto() + " " + u.getNumeroDocumento()).toLowerCase();
+                for (String term : terms) {
+                    if (!fullData.contains(term)) return false;
+                }
+                return true;
+            })
             .collect(Collectors.toList());
         usersTable.setItems(FXCollections.observableArrayList(filtered));
     }
@@ -166,24 +178,40 @@ public class UsuarioController {
     private void setupActionsColumn() {
         colActions.setCellFactory(param -> new TableCell<>() {
             private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final HBox box = new HBox(btnEdit, btnDelete);
+            private final Button btnToggle = new Button();
+            private final HBox box = new HBox(btnEdit, btnToggle);
 
             {
                 box.setSpacing(10);
                 btnEdit.setGraphic(new FontIcon("fas-edit"));
                 btnEdit.getStyleClass().addAll("button", "flat");
+                btnEdit.setTooltip(new Tooltip("Editar usuario"));
                 btnEdit.setOnAction(e -> showEditForm(getTableView().getItems().get(getIndex())));
 
-                btnDelete.setGraphic(new FontIcon("fas-user-minus"));
-                btnDelete.getStyleClass().addAll("button", "flat", "danger");
-                btnDelete.setOnAction(e -> handleDelete(getTableView().getItems().get(getIndex())));
+                btnToggle.getStyleClass().addAll("button", "flat");
+                btnToggle.setOnAction(e -> handleToggleStatus(getTableView().getItems().get(getIndex())));
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty ? null : box);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    Usuario u = getTableView().getItems().get(getIndex());
+                    if (u.getIsActivo() == 1) {
+                        btnToggle.setGraphic(new FontIcon("fas-user-minus"));
+                        btnToggle.getStyleClass().removeAll("success");
+                        btnToggle.getStyleClass().add("danger");
+                        btnToggle.setTooltip(new Tooltip("Desactivar usuario"));
+                    } else {
+                        btnToggle.setGraphic(new FontIcon("fas-user-check"));
+                        btnToggle.getStyleClass().removeAll("danger");
+                        btnToggle.getStyleClass().add("success");
+                        btnToggle.setTooltip(new Tooltip("Activar usuario"));
+                    }
+                    setGraphic(box);
+                }
             }
         });
     }
@@ -204,11 +232,13 @@ public class UsuarioController {
         formOverlay.setVisible(true);
     }
 
-    private void handleDelete(Usuario u) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Desactivar usuario " + u.getNombreCompleto() + "?", ButtonType.YES, ButtonType.NO);
+    private void handleToggleStatus(Usuario u) {
+        boolean deactivating = u.getIsActivo() == 1;
+        String action = deactivating ? "Desactivar" : "Activar";
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿" + action + " usuario " + u.getNombreCompleto() + "?", ButtonType.YES, ButtonType.NO);
         alert.showAndWait().ifPresent(type -> {
             if (type == ButtonType.YES) {
-                if (usuarioDao.delete(u.getId())) {
+                if (usuarioDao.toggleEstado(u.getId(), deactivating ? 0 : 1)) {
                     loadData();
                 }
             }
