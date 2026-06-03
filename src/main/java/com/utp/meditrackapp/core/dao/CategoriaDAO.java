@@ -100,6 +100,18 @@ public class CategoriaDAO extends JdbcDaoSupport {
     }
 
     public void eliminar(String id) throws SQLException {
+        // Verificar si hay productos con esta categoria
+        String checkSql = "SELECT COUNT(*) FROM productos WHERE categoria_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(checkSql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    throw new SQLException("No se puede eliminar la categoría porque tiene productos asignados.");
+                }
+            }
+        }
+
         String sql = "DELETE FROM categorias WHERE id = ?";
         try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, id);

@@ -1,9 +1,14 @@
 package com.utp.meditrackapp.features.products.ui;
 
+import com.utp.meditrackapp.core.config.NavigationService;
+import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.dao.CategoriaDAO;
+import com.utp.meditrackapp.core.dao.LoteDAO;
 import com.utp.meditrackapp.core.dao.ProductoDAO;
 import com.utp.meditrackapp.core.models.entity.Categoria;
 import com.utp.meditrackapp.core.models.entity.Producto;
+import com.utp.meditrackapp.core.models.entity.Usuario;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -16,7 +21,9 @@ import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,7 +31,8 @@ public class ProductoController {
 
     @FXML private TableView<Producto> tableProductos;
     @FXML private TableColumn<Producto, String> colId, colDigemid, colNombre, colCategoria, colUnidad;
-    @FXML private TableColumn<Producto, Integer> colEstado;
+    @FXML private TableColumn<Producto, Double> colPrecio;
+    @FXML private TableColumn<Producto, Integer> colStock, colEstado;
     @FXML private TableColumn<Producto, Void> colAcciones;
 
     @FXML private TextField txtSearch;
@@ -33,7 +41,7 @@ public class ProductoController {
     // Modal fields
     @FXML private StackPane modalProducto;
     @FXML private Label modalTitle;
-    @FXML private TextField txtNombre, txtDigemid;
+    @FXML private TextField txtNombre, txtDigemid, txtPrecio;
     @FXML private ComboBox<Categoria> cmbCategoria;
     @FXML private ComboBox<String> cmbUnidad;
     @FXML private TextArea txtDetalle;
@@ -42,7 +50,11 @@ public class ProductoController {
 
     private final ProductoDAO productoDAO = new ProductoDAO();
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private final LoteDAO loteDAO = new LoteDAO();
+    private final SessionManager sessionManager = SessionManager.getInstance();
+    
     private final ObservableList<Producto> masterData = FXCollections.observableArrayList();
+    private final Map<String, Integer> stockMap = new HashMap<>();
     private Producto selectedProducto;
 
     @FXML
@@ -50,6 +62,15 @@ public class ProductoController {
         setupTable();
         setupForm();
         loadData();
+        handleInitialSearch();
+    }
+
+    private void handleInitialSearch() {
+        String initialSearch = NavigationService.getProductInitialSearch();
+        if (initialSearch != null && !initialSearch.isEmpty()) {
+            txtSearch.setText(initialSearch);
+            onSearch();
+        }
     }
 
     private void setupTable() {
@@ -58,6 +79,33 @@ public class ProductoController {
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoriaNombre"));
         colUnidad.setCellValueFactory(new PropertyValueFactory<>("unidadMedida"));
+        colPrecio.setCellValueFactory(new PropertyValueFactory<>("precioUnitario"));
+        
+        colStock.setCellValueFactory(cellData -> {
+            Producto p = cellData.getValue();
+            int stock = stockMap.getOrDefault(p.getId(), 0);
+            return new ReadOnlyObjectWrapper<>(stock);
+        });
+
+        colStock.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(item.toString());
+                    Producto p = getTableRow().getItem();
+                    if (p != null && p.getStockMinimo() != null && item < p.getStockMinimo()) {
+                        getStyleClass().add("text-danger");
+                        setStyle("-fx-font-weight: bold;");
+                    } else {
+                        getStyleClass().remove("text-danger");
+                        setStyle("");
+                    }
+                }
+            }
+        });
 
         colEstado.setCellFactory(column -> new TableCell<>() {
             @Override protected void updateItem(Integer item, boolean empty) {
@@ -111,6 +159,12 @@ public class ProductoController {
     @FXML
     public void loadData() {
         try {
+            Usuario user = sessionManager.getCurrentUser();
+            if (user != null) {
+                stockMap.clear();
+                stockMap.putAll(loteDAO.obtenerStockTotalPorSede(user.getSedeId()));
+            }
+
             List<Producto> list = productoDAO.listarTodos();
             masterData.setAll(list);
             tableProductos.setItems(masterData);
@@ -119,15 +173,27 @@ public class ProductoController {
             // Reload categories for the modal
             cmbCategoria.setItems(FXCollections.observableArrayList(categoriaDAO.listarTodas()));
         } catch (SQLException e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Error al cargar productos: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", "Error al cargar datos: " + e.getMessage());
         }
     }
 
     @FXML
     protected void onSearch() {
-        String query = txtSearch.getText().toLowerCase();
+        String query = txtSearch.getText().toLowerCase().trim();
+        if (query.isEmpty()) {
+            tableProductos.setItems(masterData);
+            return;
+        }
+
+        String[] terms = query.split("\\s+");
         List<Producto> filtered = masterData.stream()
-            .filter(p -> p.getNombre().toLowerCase().contains(query) || p.getCodigoDigemid().toLowerCase().contains(query))
+            .filter(p -> {
+                String fullData = (p.getNombre() + " " + p.getCodigoDigemid()).toLowerCase();
+                for (String term : terms) {
+                    if (!fullData.contains(term)) return false;
+                }
+                return true;
+            })
             .collect(Collectors.toList());
         tableProductos.setItems(FXCollections.observableArrayList(filtered));
     }
@@ -147,6 +213,7 @@ public class ProductoController {
         txtNombre.setText(p.getNombre());
         txtDigemid.setText(p.getCodigoDigemid());
         txtDetalle.setText(p.getDetalle());
+        txtPrecio.setText(p.getPrecioUnitario() != null ? String.valueOf(p.getPrecioUnitario()) : "0.00");
         cmbUnidad.setValue(p.getUnidadMedida());
         chkActivo.setSelected(p.getIsActivo() == 1);
         spnStockMinimo.getValueFactory().setValue(p.getStockMinimo() != null ? p.getStockMinimo() : 10);
@@ -189,6 +256,12 @@ public class ProductoController {
         p.setDetalle(txtDetalle.getText());
         p.setIsActivo(chkActivo.isSelected() ? 1 : 0);
         p.setStockMinimo(spnStockMinimo.getValue());
+        
+        try {
+            p.setPrecioUnitario(Double.parseDouble(txtPrecio.getText()));
+        } catch (NumberFormatException e) {
+            p.setPrecioUnitario(0.0);
+        }
     }
 
     private boolean validateForm() {
@@ -197,6 +270,14 @@ public class ProductoController {
             showAlert(Alert.AlertType.WARNING, "Validación", "Por favor complete todos los campos obligatorios.");
             return false;
         }
+        
+        try {
+            Double.parseDouble(txtPrecio.getText());
+        } catch (NumberFormatException e) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "El precio unitario debe ser un número válido.");
+            return false;
+        }
+        
         return true;
     }
 

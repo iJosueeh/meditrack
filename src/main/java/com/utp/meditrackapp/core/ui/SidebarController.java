@@ -16,7 +16,6 @@ public class SidebarController {
     @FXML private Button btnDashboard;
     @FXML private Button btnPatients;
     @FXML private Button btnAttentions;
-    @FXML private Button btnMovements;
     @FXML private Button btnInventory;
     @FXML private Button btnCatalog;
     @FXML private Button btnUsers;
@@ -43,8 +42,6 @@ public class SidebarController {
         
         // 1. Técnico de Farmacia (Operativo)
         if (session.isTecnico()) {
-            btnMovements.setVisible(false);
-            btnMovements.setManaged(false);
             btnCatalog.setVisible(false);
             btnCatalog.setManaged(false);
             btnUsers.setVisible(false);
@@ -63,10 +60,7 @@ public class SidebarController {
         
         // 3. Administrador (Estratégico)
         if (session.isAdmin()) {
-            btnAttentions.setVisible(false);
-            btnAttentions.setManaged(false);
-            btnMovements.setVisible(false);
-            btnMovements.setManaged(false);
+            // Admins have access to everything, no restrictions needed
         }
     }
 
@@ -95,12 +89,6 @@ public class SidebarController {
     protected void onGoToAttentions() throws IOException {
         NavigationService.toAttention();
         System.out.println("[NAV] Navegando a Atenciones...");
-    }
-
-    @FXML
-    protected void onGoToMovements() throws IOException {
-        // NavigationService.toMovements();
-        System.out.println("[NAV] Navegando a Movimientos...");
     }
 
     @FXML

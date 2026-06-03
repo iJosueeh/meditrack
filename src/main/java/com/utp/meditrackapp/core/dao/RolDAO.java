@@ -66,6 +66,18 @@ public class RolDAO extends JdbcDaoSupport {
     }
 
     public void eliminar(String id) throws SQLException {
+        // Verificar si hay usuarios con este rol
+        String checkSql = "SELECT COUNT(*) FROM usuarios WHERE rol_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(checkSql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    throw new SQLException("No se puede eliminar el rol porque tiene usuarios asignados.");
+                }
+            }
+        }
+
         String sql = "DELETE FROM roles WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

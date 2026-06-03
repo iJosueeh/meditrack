@@ -58,11 +58,13 @@
                         
                         <TableView fx:id="tableProductos" VBox.vgrow="ALWAYS" fixedCellSize="55">
                             <columns>
-                                <TableColumn fx:id="colId" text="ID" prefWidth="100" />
+                                <TableColumn fx:id="colId" text="ID" prefWidth="100" visible="false" />
                                 <TableColumn fx:id="colDigemid" text="CÓD. DIGEMID" prefWidth="120" />
                                 <TableColumn fx:id="colNombre" text="NOMBRE DEL PRODUCTO" prefWidth="300" />
                                 <TableColumn fx:id="colCategoria" text="CATEGORÍA" prefWidth="150" />
                                 <TableColumn fx:id="colUnidad" text="U. MEDIDA" prefWidth="120" />
+                                <TableColumn fx:id="colPrecio" text="PRECIO UNIT." prefWidth="100" />
+                                <TableColumn fx:id="colStock" text="STOCK ACTUAL" prefWidth="100" />
                                 <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="100" />
                                 <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="150" sortable="false" />
                             </columns>
@@ -116,9 +118,16 @@
 
                     <HBox spacing="20">
                         <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="PRECIO UNITARIO" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtPrecio" promptText="0.00" styleClass="large" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
                             <Label text="STOCK MÍNIMO DE ALERTA" styleClass="text-caption, text-bold, text-muted" />
                             <Spinner fx:id="spnStockMinimo" maxWidth="Infinity" editable="true" />
                         </VBox>
+                    </HBox>
+
+                    <HBox spacing="20">
                         <VBox HBox.hgrow="ALWAYS" alignment="BOTTOM_LEFT">
                             <CheckBox fx:id="chkActivo" text="Producto habilitado" selected="true" styleClass="text-bold" />
                         </VBox>

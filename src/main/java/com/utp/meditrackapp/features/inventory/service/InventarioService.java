@@ -7,14 +7,11 @@ import com.utp.meditrackapp.core.dao.MovimientoDAO;
 import com.utp.meditrackapp.core.dao.ProductoDAO;
 import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
 import com.utp.meditrackapp.core.dao.TipoMovimientoDAO;
-import com.utp.meditrackapp.core.models.entity.Categoria;
-import com.utp.meditrackapp.core.models.entity.Lote;
-import com.utp.meditrackapp.core.models.entity.Movimiento;
-import com.utp.meditrackapp.core.models.entity.Producto;
-import com.utp.meditrackapp.core.models.entity.TipoMovimiento;
+import com.utp.meditrackapp.core.models.entity.*;
 import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.core.service.InventoryHealthCalculator;
+import com.utp.meditrackapp.features.sedes.dao.SedeDAO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,6 +25,7 @@ public class InventarioService {
     private final LoteDAO loteDAO;
     private final MovimientoDAO movimientoDAO;
     private final TipoMovimientoDAO tipoMovimientoDAO;
+    private final SedeDAO sedeDAO;
     private final DatabaseConfig dbConfig;
 
     public InventarioService() {
@@ -36,6 +34,7 @@ public class InventarioService {
         this.loteDAO = new LoteDAO();
         this.movimientoDAO = new MovimientoDAO();
         this.tipoMovimientoDAO = new TipoMovimientoDAO();
+        this.sedeDAO = new SedeDAO();
         this.dbConfig = DatabaseConfig.getInstance();
     }
 
@@ -96,6 +95,11 @@ public class InventarioService {
     // --- Métodos Operacionales (Transaccionales) ---
 
     public void registrarMovimiento(Lote lote, String usuarioId, TipoMovimientoEnum tipo, MotivoMovimientoEnum motivo, int cantidad, String observacion) throws SQLException {
+        Optional<Sede> sedeOpt = sedeDAO.buscarPorId(lote.getSedeId());
+        if (sedeOpt.isEmpty() || sedeOpt.get().getIsActiva() == 0) {
+            throw new SQLException("La sede se encuentra inactiva. No se pueden registrar movimientos.");
+        }
+
         Connection conn = null;
         try {
             conn = dbConfig.getConnection();

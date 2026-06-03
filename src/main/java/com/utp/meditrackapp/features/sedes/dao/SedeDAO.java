@@ -6,8 +6,30 @@ import com.utp.meditrackapp.features.sedes.models.SedeDetalleDTO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SedeDAO {
+
+    public Optional<Sede> buscarPorId(String id) throws SQLException {
+        String sql = "SELECT * FROM sedes WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Sede s = new Sede(
+                        rs.getString("id"),
+                        rs.getString("nombre"),
+                        rs.getString("direccion"),
+                        rs.getInt("is_activa")
+                    );
+                    s.setTelefono(rs.getString("telefono"));
+                    return Optional.of(s);
+                }
+            }
+        }
+        return Optional.empty();
+    }
 
     public List<SedeDetalleDTO> getAllWithDetails() throws SQLException {
         List<SedeDetalleDTO> list = new ArrayList<>();

@@ -99,8 +99,21 @@ public class NavigationService {
         switchRoot("/com/utp/meditrackapp/reports-view.fxml", "MediTrack — Centro de Reportes", true);
     }
 
+    private static String inventoryInitialSearch;
+
     public static void toInventory() throws IOException {
+        toInventory(null);
+    }
+
+    public static void toInventory(String initialSearch) throws IOException {
+        inventoryInitialSearch = initialSearch;
         switchRoot("/com/utp/meditrackapp/inventory-view.fxml", "MediTrack — Inventario", true);
+    }
+
+    public static String getInventoryInitialSearch() {
+        String search = inventoryInitialSearch;
+        inventoryInitialSearch = null; // Clear after read
+        return search;
     }
 
     private static boolean isDarkThemeConfigured() {
@@ -149,7 +162,20 @@ public class NavigationService {
         switchRoot("/com/utp/meditrackapp/catalogos-mov-view.fxml", "MediTrack — Catálogos de Movimiento", true);
     }
 
+    private static String productInitialSearch;
+
     public static void toProductos() throws IOException {
+        toProductos(null);
+    }
+
+    public static void toProductos(String initialSearch) throws IOException {
+        productInitialSearch = initialSearch;
         switchRoot("/com/utp/meditrackapp/productos-view.fxml", "MediTrack — Catálogo de Productos", true);
+    }
+
+    public static String getProductInitialSearch() {
+        String search = productInitialSearch;
+        productInitialSearch = null; // Clear after read
+        return search;
     }
 }

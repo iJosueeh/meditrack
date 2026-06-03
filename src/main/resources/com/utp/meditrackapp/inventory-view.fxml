@@ -86,6 +86,11 @@
                             
                             <Tab text="Monitor de Lotes">
                                 <VBox spacing="25" style="-fx-padding: 25 0 0 0;">
+                                    <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
+                                        <TextField fx:id="txtSearchBatch" promptText="Buscar producto, lote o DIGEMID..." prefWidth="350" onAction="#onFilterBatches" />
+                                        <Button text="Buscar" onAction="#onFilterBatches" styleClass="button, sm" />
+                                    </HBox>
+
                                     <HBox spacing="25" VBox.vgrow="ALWAYS">
                                         <TableView fx:id="tableBatches" HBox.hgrow="ALWAYS">
                                             <columns>

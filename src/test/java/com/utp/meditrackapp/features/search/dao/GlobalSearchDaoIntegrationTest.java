@@ -33,9 +33,16 @@ public class GlobalSearchDaoIntegrationTest {
     public void testSearchPatient() throws SQLException {
         // En la base seed hay datos de prueba, busquemos algo común
         List<SearchResult> results = searchDAO.searchGlobal("Admin");
-        // Nota: El DAO busca por nombres/apellidos de pacientes, no usuarios.
-        // Pero podemos probar con un patrón que sabemos que no romperá el SQL.
         assertNotNull(results);
+    }
+
+    @Test
+    public void testMultiWordSearch() throws SQLException {
+        // 'Paracetamol 500mg' exist in seeds. 
+        // Test out of order multi-word search.
+        List<SearchResult> results = searchDAO.searchGlobal("500mg Paracetamol");
+        assertFalse(results.isEmpty(), "Debería encontrar Paracetamol 500mg incluso con términos invertidos");
+        assertTrue(results.stream().anyMatch(r -> r.getTitle().contains("Paracetamol") && r.getTitle().contains("500mg")));
     }
 
     @Test

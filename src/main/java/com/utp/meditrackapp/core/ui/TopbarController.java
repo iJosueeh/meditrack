@@ -118,8 +118,11 @@ public class TopbarController {
                 case PATIENT -> {
                     NavigationService.toPatients(res.getTitle());
                 }
-                case PRODUCT, BATCH -> {
-                    NavigationService.toInventory();
+                case PRODUCT -> {
+                    NavigationService.toProductos(res.getTitle());
+                }
+                case BATCH -> {
+                    NavigationService.toInventory(res.getTitle());
                 }
             }
             txtGlobalSearch.clear();

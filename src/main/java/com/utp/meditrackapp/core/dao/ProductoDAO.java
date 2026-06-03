@@ -15,6 +15,7 @@ import java.util.Optional;
 public class ProductoDAO extends JdbcDaoSupport {
     private static final int STOCK_MINIMO_DEFAULT = Integer.getInteger("inventory.defaultStockMinimo", 10);
     private volatile Boolean hasStockMinimoColumn;
+    private volatile Boolean hasPrecioUnitarioColumn;
 
     public List<Producto> listarTodos() throws SQLException {
         List<Producto> productos = new ArrayList<>();
@@ -84,12 +85,21 @@ public class ProductoDAO extends JdbcDaoSupport {
                 producto.setId(IdGenerator.generateId(connection, "productos", EntidadPrefix.PRODUCTO, 5));
             }
 
-            String sql = hasStockMinimoColumn(connection)
-                    ? "INSERT INTO productos (id, categoria_id, codigo_digemid, nombre, detalle, unidad_medida, is_activo, stock_minimo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                    : "INSERT INTO productos (id, categoria_id, codigo_digemid, nombre, detalle, unidad_medida, is_activo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            StringBuilder sql = new StringBuilder("INSERT INTO productos (id, categoria_id, codigo_digemid, nombre, detalle, unidad_medida, is_activo");
+            StringBuilder values = new StringBuilder("VALUES (?, ?, ?, ?, ?, ?, ?");
+            
+            if (hasStockMinimoColumn(connection)) {
+                sql.append(", stock_minimo");
+                values.append(", ?");
+            }
+            if (hasPrecioUnitarioColumn(connection)) {
+                sql.append(", precio_unitario");
+                values.append(", ?");
+            }
+            sql.append(") ").append(values).append(")");
 
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                bindProducto(statement, producto, hasStockMinimoColumn(connection), true);
+            try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+                bindProducto(statement, producto, hasStockMinimoColumn(connection), hasPrecioUnitarioColumn(connection), true);
                 statement.executeUpdate();
             }
         }
@@ -105,12 +115,18 @@ public class ProductoDAO extends JdbcDaoSupport {
                 throw new IllegalArgumentException("El codigo DIGEMID ya existe.");
             }
 
-            String sql = hasStockMinimoColumn(connection)
-                    ? "UPDATE productos SET categoria_id = ?, codigo_digemid = ?, nombre = ?, detalle = ?, unidad_medida = ?, is_activo = ?, stock_minimo = ? WHERE id = ?"
-                    : "UPDATE productos SET categoria_id = ?, codigo_digemid = ?, nombre = ?, detalle = ?, unidad_medida = ?, is_activo = ? WHERE id = ?";
+            StringBuilder sql = new StringBuilder("UPDATE productos SET categoria_id = ?, codigo_digemid = ?, nombre = ?, detalle = ?, unidad_medida = ?, is_activo = ?");
+            
+            if (hasStockMinimoColumn(connection)) {
+                sql.append(", stock_minimo = ?");
+            }
+            if (hasPrecioUnitarioColumn(connection)) {
+                sql.append(", precio_unitario = ?");
+            }
+            sql.append(" WHERE id = ?");
 
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                bindProducto(statement, producto, hasStockMinimoColumn(connection), false);
+            try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+                bindProducto(statement, producto, hasStockMinimoColumn(connection), hasPrecioUnitarioColumn(connection), false);
                 statement.executeUpdate();
             }
         }
@@ -150,11 +166,16 @@ public class ProductoDAO extends JdbcDaoSupport {
     }
 
     private String selectProductoSql(Connection connection) throws SQLException {
-        if (hasStockMinimoColumn(connection)) {
-            return "SELECT p.id, p.categoria_id, p.codigo_digemid, p.nombre, p.detalle, p.unidad_medida, p.is_activo, p.stock_minimo, c.nombre AS categoria_nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id";
-        }
+        StringBuilder sql = new StringBuilder("SELECT p.id, p.categoria_id, p.codigo_digemid, p.nombre, p.detalle, p.unidad_medida, p.is_activo, ");
+        
+        if (hasStockMinimoColumn(connection)) sql.append("p.stock_minimo, ");
+        else sql.append("CAST(NULL AS INT) AS stock_minimo, ");
 
-        return "SELECT p.id, p.categoria_id, p.codigo_digemid, p.nombre, p.detalle, p.unidad_medida, p.is_activo, CAST(NULL AS INT) AS stock_minimo, c.nombre AS categoria_nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id";
+        if (hasPrecioUnitarioColumn(connection)) sql.append("p.precio_unitario, ");
+        else sql.append("CAST(0 AS DECIMAL(18,2)) AS precio_unitario, ");
+
+        sql.append("c.nombre AS categoria_nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id");
+        return sql.toString();
     }
 
     private boolean hasStockMinimoColumn(Connection connection) throws SQLException {
@@ -171,10 +192,23 @@ public class ProductoDAO extends JdbcDaoSupport {
         }
     }
 
-    private void bindProducto(PreparedStatement statement, Producto producto, boolean includeStockMinimo, boolean isInsert) throws SQLException {
+    private boolean hasPrecioUnitarioColumn(Connection connection) throws SQLException {
+        Boolean cached = hasPrecioUnitarioColumn;
+        if (cached != null) {
+            return cached;
+        }
+
+        synchronized (this) {
+            if (hasPrecioUnitarioColumn == null) {
+                hasPrecioUnitarioColumn = SchemaInspector.hasColumn(connection, "productos", "precio_unitario");
+            }
+            return hasPrecioUnitarioColumn;
+        }
+    }
+
+    private void bindProducto(PreparedStatement statement, Producto producto, boolean includeStockMinimo, boolean includePrecioUnitario, boolean isInsert) throws SQLException {
         int index = 1;
         if (isInsert) {
-            // INSERT expects id as first parameter
             statement.setString(index++, producto.getId());
         }
 
@@ -188,9 +222,12 @@ public class ProductoDAO extends JdbcDaoSupport {
         if (includeStockMinimo) {
             statement.setObject(index++, producto.getStockMinimo() == null ? STOCK_MINIMO_DEFAULT : producto.getStockMinimo());
         }
+        
+        if (includePrecioUnitario) {
+            statement.setObject(index++, producto.getPrecioUnitario() == null ? 0.0 : producto.getPrecioUnitario());
+        }
 
         if (!isInsert) {
-            // UPDATE has id as the last parameter (WHERE id = ?)
             statement.setString(index, producto.getId());
         }
     }
@@ -219,6 +256,7 @@ public class ProductoDAO extends JdbcDaoSupport {
         producto.setUnidadMedida(resultSet.getString("unidad_medida"));
         producto.setIsActivo(resultSet.getInt("is_activo"));
         producto.setStockMinimo(hasStockMinimoColumn(connection) ? resultSet.getObject("stock_minimo", Integer.class) : STOCK_MINIMO_DEFAULT);
+        producto.setPrecioUnitario(hasPrecioUnitarioColumn(connection) ? resultSet.getDouble("precio_unitario") : 0.0);
         try {
             producto.setCategoriaNombre(resultSet.getString("categoria_nombre"));
         } catch (SQLException e) {
