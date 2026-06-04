@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.catalogs.ui.RolController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css,@styles/inventory.css">
+    
+    <BorderPane>
+        <top>
+            <fx:include source="navbar.fxml" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
+                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Gestión de Roles" styleClass="title-2" />
+                            <Label text="Administre los roles de usuario para controlar el acceso al sistema." styleClass="text-muted" />
+                        </VBox>
+                        <Button text="Nuevo Rol" onAction="#onOpenRegisterModal" styleClass="button, accent">
+                            <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Summary Card -->
+                    <FlowPane hgap="25" vgap="25">
+                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-user-shield" iconSize="18" styleClass="icon-accent" />
+                                <Label text="TOTAL DE ROLES" styleClass="text-caption, text-bold, text-muted" />
+                            </HBox>
+                            <Label fx:id="lblTotalRoles" text="0" styleClass="title-2" />
+                            <Label text="Perfiles de acceso definidos" styleClass="text-caption, text-muted" />
+                        </VBox>
+                    </FlowPane>
+
+                    <!-- Main Table -->
+                    <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
+                            <HBox styleClass="icon-box-subtle" alignment="CENTER">
+                                <FontIcon iconLiteral="fas-search" />
+                            </HBox>
+                            <TextField fx:id="txtSearch" promptText="Buscar rol..." prefWidth="450" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button text="Actualizar" onAction="#loadData" styleClass="button, flat, sm">
+                                <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
+                            </Button>
+                        </HBox>
+                        
+                        <TableView fx:id="tableRoles" VBox.vgrow="ALWAYS" fixedCellSize="55">
+                            <columns>
+                                <TableColumn fx:id="colId" text="CÓDIGO" prefWidth="150" />
+                                <TableColumn fx:id="colNombre" text="NOMBRE DEL ROL" prefWidth="400" />
+                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="150" sortable="false" />
+                            </columns>
+                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                            <placeholder>
+                                <Label text="No se encontraron roles." styleClass="text-muted" />
+                            </placeholder>
+                        </TableView>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Modal Form -->
+    <StackPane fx:id="modalRol" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="500" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+            <VBox styleClass="modal-header">
+                <Label fx:id="modalTitle" text="Registrar Rol" styleClass="title-4" />
+                <Label text="Ingrese el nombre del rol para definir permisos." styleClass="text-muted" />
+            </VBox>
+            
+            <VBox spacing="20" style="-fx-padding: 5;">
+                <VBox spacing="8">
+                    <Label text="NOMBRE DEL ROL" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="txtNombre" styleClass="large" promptText="Ej: Administrador, Farmacéutico..." />
+                </VBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button text="Guardar Rol" onAction="#onSave" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

@@ -12,7 +12,7 @@ public class MovimientoDAO extends JdbcDaoSupport {
 
     public void registrarMovimiento(Connection connection, Movimiento movimiento) throws SQLException {
         if (movimiento.getId() == null || movimiento.getId().isBlank()) {
-            movimiento.setId(IdGenerator.generateId(EntidadPrefix.MOVIMIENTO));
+            movimiento.setId(IdGenerator.generateSedeDependentId(connection, "movimientos", EntidadPrefix.MOVIMIENTO, movimiento.getSedeId(), 6));
         }
 
         String sql = "INSERT INTO movimientos (id, tipo_id, motivo_id, sede_id, usuario_id, lote_id, cantidad, observacion, fecha_registro) " +
@@ -68,6 +68,53 @@ public class MovimientoDAO extends JdbcDaoSupport {
                     // y podríamos setear nombres en el objeto si tuviera esos campos.
                     // Asumiremos que el modelo Movimiento tiene campos para nombres o usaremos un Wrapper.
                     lista.add(m);
+                }
+            }
+        }
+        return lista;
+    }
+
+    public List<Movimiento> listarConFiltros(String sedeId, String tipoId, String buscar, java.time.LocalDate desde, java.time.LocalDate hasta) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+            "SELECT m.*, tm.nombre as tipo_nombre, mm.nombre as motivo_nombre, p.nombre as producto_nombre, l.numero_lote " +
+            "FROM movimientos m " +
+            "JOIN tipos_movimiento tm ON m.tipo_id = tm.id " +
+            "JOIN motivos_movimiento mm ON m.motivo_id = mm.id " +
+            "JOIN lotes l ON m.lote_id = l.id " +
+            "JOIN productos p ON l.producto_id = p.id " +
+            "WHERE m.sede_id = ?"
+        );
+
+        if (tipoId != null && !tipoId.isEmpty()) {
+            sql.append(" AND m.tipo_id = ?");
+        }
+        if (buscar != null && !buscar.isEmpty()) {
+            sql.append(" AND (p.nombre LIKE ? OR l.numero_lote LIKE ?)");
+        }
+        if (desde != null) {
+            sql.append(" AND CAST(m.fecha_registro AS DATE) >= ?");
+        }
+        if (hasta != null) {
+            sql.append(" AND CAST(m.fecha_registro AS DATE) <= ?");
+        }
+        sql.append(" ORDER BY m.fecha_registro DESC");
+
+        List<Movimiento> lista = new ArrayList<>();
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setString(i++, sedeId);
+            if (tipoId != null && !tipoId.isEmpty()) ps.setString(i++, tipoId);
+            if (buscar != null && !buscar.isEmpty()) {
+                String pattern = "%" + buscar + "%";
+                ps.setString(i++, pattern);
+                ps.setString(i++, pattern);
+            }
+            if (desde != null) ps.setDate(i++, java.sql.Date.valueOf(desde));
+            if (hasta != null) ps.setDate(i++, java.sql.Date.valueOf(hasta));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapMovimiento(rs));
                 }
             }
         }

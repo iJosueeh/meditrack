@@ -40,16 +40,36 @@
             <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
         
-        <Button fx:id="btnMovements" text="Movimientos / Mermas" onAction="#onGoToMovements" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-exchange-alt" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-
         <Button fx:id="btnCatalog" text="Gestión de Sedes" onAction="#onGoToCatalog" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-hotel" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
         
         <Button fx:id="btnUsers" text="Configuración de Usuarios" onAction="#onGoToUsers" styleClass="nav-button" maxWidth="Infinity">
             <graphic><FontIcon iconLiteral="fas-users-cog" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+
+        <Separator orientation="HORIZONTAL" styleClass="small">
+            <padding><Insets top="5" bottom="5" /></padding>
+        </Separator>
+
+        <Button fx:id="btnCategorias" text="Catálogo de Categorías" onAction="#onGoToCategorias" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-tags" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+
+        <Button fx:id="btnProductos" text="Catálogo de Productos" onAction="#onGoToProductos" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-pills" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+
+        <Button fx:id="btnRoles" text="Gestión de Roles" onAction="#onGoToRoles" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-user-shield" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+
+        <Button fx:id="btnMovCatalog" text="Catálogos de Movimiento" onAction="#onGoToMovCatalog" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-list-alt" iconSize="16" styleClass="nav-icon" /></graphic>
+        </Button>
+
+        <Button fx:id="btnReports" text="Reportes y Auditoría" onAction="#onGoToReports" styleClass="nav-button" maxWidth="Infinity">
+            <graphic><FontIcon iconLiteral="fas-file-pdf" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
         
         <Button text="Mi Perfil" onAction="#onGoToProfile" styleClass="nav-button" maxWidth="Infinity">

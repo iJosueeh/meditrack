@@ -58,6 +58,26 @@ public class PacienteService {
         return pacienteRepository.delete(id);
     }
 
+    public int getContadorTotal() {
+        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+        // Assuming PacienteRepository doesn't have this, I might need to cast or add to interface.
+        // For now, I'll use the impl directly if it's safe or just add to interface.
+        if (pacienteRepository instanceof PacienteRepositoryImpl) {
+            return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTotal(sedeId);
+        }
+        return 0;
+    }
+
+    public int getAtendidosHoy() {
+        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTodayAttentions(sedeId);
+    }
+
+    public int getNuevosDelMes() {
+        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countNewPatientsMonth(sedeId);
+    }
+
     private String validarDocumento(String tipo, String numero) {
         if (numero == null || numero.trim().isEmpty()) {
             return "El número de documento es obligatorio.";

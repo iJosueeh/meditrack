@@ -11,6 +11,7 @@ public class MedicamentoResumen {
     private int currentStock;
     private int minStock;
     private String status;
+    private String formattedTotalValue;
 
     public MedicamentoResumen() {}
 
@@ -21,6 +22,17 @@ public class MedicamentoResumen {
         this.currentStock = currentStock;
         this.minStock = minStock;
         this.status = status;
+        this.formattedTotalValue = "S/ 0.00";
+    }
+    
+    public MedicamentoResumen(String code, String name, String category, int currentStock, int minStock, String status, String formattedTotalValue) {
+        this.code = code;
+        this.name = name;
+        this.category = category;
+        this.currentStock = currentStock;
+        this.minStock = minStock;
+        this.status = status;
+        this.formattedTotalValue = formattedTotalValue;
     }
 
     public String getCode() { return code; }
@@ -40,4 +52,7 @@ public class MedicamentoResumen {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getFormattedTotalValue() { return formattedTotalValue; }
+    public void setFormattedTotalValue(String formattedTotalValue) { this.formattedTotalValue = formattedTotalValue; }
 }

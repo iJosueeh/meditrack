@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Reporte de Dispensaciones</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 1.2cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: 'Helvetica', sans-serif;
+                font-size: 8pt;
+                color: #64748b;
+            }
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+        }
+
+        /* Branding Colors */
+        .text-primary { color: #0284c7; }
+        .text-success { color: #10b981; }
+        .text-danger { color: #ef4444; }
+        .text-muted { color: #64748b; }
+        .bg-slate-800 { background-color: #1e293b; }
+        .bg-slate-50 { background-color: #f8fafc; }
+
+        /* Step 1: Main Header */
+        .main-header {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .header-line {
+            border-top: 2px solid #0284c7;
+            margin: 10px 0 20px 0;
+        }
+        .logo-box {
+            background-color: #0284c7;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 18pt;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        /* Step 2: Executive Summary (KPIs) */
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        .kpi-table {
+            width: 100%;
+            border-spacing: 10px 0;
+            margin-bottom: 30px;
+        }
+        /* KPI Card Variations */
+        .kpi-card {
+            border-radius: 10px;
+            padding: 15px;
+            width: 50%;
+            vertical-align: top;
+        }
+        .bg-blue-subtle { background-color: #f0f9ff; border: 1px solid #bae6fd; }
+        .bg-teal-subtle { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
+
+        .kpi-label {
+            font-size: 7pt;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 15pt;
+            font-weight: bold;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+        .kpi-sub {
+            font-size: 7.5pt;
+            font-weight: bold;
+        }
+        .val-blue { color: #0369a1; }
+        .val-teal { color: #059669; }
+
+        /* Step 4: Top Products Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+        }
+        .data-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .patient-group {
+            background-color: #f8fafc;
+            font-weight: bold;
+        }
+
+        .footer-signatures {
+            margin-top: 50px;
+            width: 100%;
+        }
+        .sig-table {
+            width: 100%;
+            border-spacing: 50px 0;
+        }
+        .signature-box {
+            text-align: center;
+            width: 50%;
+        }
+        .signature-line {
+            border-top: 1px solid #334155;
+            margin-bottom: 5px;
+        }
+        .signature-label {
+            font-size: 8pt;
+            font-weight: bold;
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 400px;
+            left: 100px;
+            transform: rotate(-45deg);
+            font-size: 90pt;
+            color: #f8fafc;
+            z-index: -100;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">MEDITRACK</div>
+
+    <!-- Step 1: Main Header -->
+    <table class="main-header">
+        <tr>
+            <td style="width: 60%;">
+                <table>
+                    <tr>
+                        <td style="vertical-align: middle;">
+                            <div class="logo-box">M</div>
+                        </td>
+                        <td style="vertical-align: middle;">
+                            <div style="font-size: 20pt; font-weight: bold; color: #1e293b;">MediTrack</div>
+                        </td>
+                    </tr>
+                </table>
+                <div style="font-size: 16pt; font-weight: bold; margin-top: 10px;">Reporte de Dispensaciones</div>
+            </td>
+            <td style="width: 40%; text-align: right; vertical-align: bottom;">
+                <div style="font-size: 9pt; font-weight: bold;">EMISIÓN: <span th:text="${REPORT_DATE}">24/05/2024</span></div>
+                <div class="text-muted" style="font-size: 8.5pt;">Generado por: <span th:text="${GENERATED_BY}">Admin</span></div>
+                <div class="text-muted" style="font-size: 8.5pt;">Sede: <span th:text="${SEDE}">Hospital Central</span></div>
+            </td>
+        </tr>
+    </table>
+    <div class="header-line"></div>
+
+    <div style="margin-bottom: 20px; font-style: italic; color: #64748b; font-size: 10pt;">
+        Periodo del reporte: <span th:text="${DATE_RANGE}">01/05/2026 al 30/05/2026</span>
+    </div>
+
+    <!-- Step 2: Executive Summary -->
+    <div class="section-title">Resumen de Entregas</div>
+    <table class="kpi-table">
+        <tr>
+            <td class="kpi-card bg-blue-subtle">
+                <div class="kpi-label">Total Atenciones</div>
+                <div class="kpi-value val-blue" th:text="${TOTAL_ATTENTIONS}">0</div>
+                <div class="kpi-sub val-blue">Pacientes atendidos</div>
+            </td>
+            <td class="kpi-card bg-teal-subtle">
+                <div class="kpi-label">Medicamentos Entregados</div>
+                <div class="kpi-value val-teal" th:text="${TOTAL_MEDICINES}">0</div>
+                <div class="kpi-sub val-teal">Unidades dispensadas</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">FECHA</th>
+                    <th style="width: 15%;">N° RECETA</th>
+                    <th style="width: 40%;">PRODUCTO</th>
+                    <th style="width: 20%;">LOTE</th>
+                    <th style="width: 10%; text-align: center;">CANT.</th>
+                </tr>
+            </thead>
+            <tbody>
+                <th:block th:each="item, iterStat : ${items}">
+                    <tr class="patient-group" th:if="${iterStat.first || item.paciente != items[iterStat.index - 1].paciente}">
+                        <td colspan="5" style="padding: 12px 10px;">
+                            PACIENTE: <span th:text="${item.paciente}" style="color: #0284c7;">JUAN PEREZ</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td th:text="${#temporals.format(item.fecha, 'dd/MM/yyyy')}">30/05/2026</td>
+                        <td th:text="${item.numeroReceta}">REC-001</td>
+                        <td>
+                            <div style="font-weight: bold;" th:text="${item.producto}">Amoxicilina 500mg</div>
+                        </td>
+                        <td th:text="${item.lote}">LOT-2026-A</td>
+                        <td style="text-align: center; font-weight: bold;" th:text="${item.cantidad}">10</td>
+                    </tr>
+                </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-signatures">
+        <table class="sig-table">
+            <tr>
+                <td class="signature-box" style="border: none;">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">QUÍMICO FARMACÉUTICO</div>
+                </td>
+                <td class="signature-box" style="border: none;">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">RECEPTOR / PACIENTE</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; color: #94a3b8; font-size: 7.5pt;">
+        Este documento es para uso exclusivo de control interno. MediTrack Intelligence System © 2026.
+    </div>
+</body>
+</html>

@@ -51,7 +51,8 @@ public class DashboardDao {
      */
     public List<MedicamentoResumen> getTopBajoStock() {
         List<MedicamentoResumen> lista = new ArrayList<>();
-        String sql = "SELECT TOP 5 p.codigo_digemid, p.nombre, c.nombre as categoria, SUM(l.cantidad) as stock_total " +
+        String sql = "SELECT TOP 5 p.codigo_digemid, p.nombre, c.nombre as categoria, SUM(l.cantidad) as stock_total, " +
+                     "MAX(ISNULL(p.precio_unitario, 0)) as precio " +
                      "FROM productos p " +
                      "JOIN categorias c ON p.categoria_id = c.id " +
                      "JOIN lotes l ON p.id = l.producto_id " +
@@ -64,14 +65,20 @@ public class DashboardDao {
             
             while (rs.next()) {
                 int stock = rs.getInt("stock_total");
+                double precio = rs.getDouble("precio");
+                double valorTotal = stock * precio;
                 String estado = stock < 10 ? "CRÍTICO" : "BAJO";
+                
+                String formattedValue = String.format("S/ %,.2f", valorTotal);
+                
                 lista.add(new MedicamentoResumen(
                     rs.getString("codigo_digemid"),
                     rs.getString("nombre"),
                     rs.getString("categoria"),
                     stock,
                     10,
-                    estado
+                    estado,
+                    formattedValue
                 ));
             }
         } catch (SQLException e) {

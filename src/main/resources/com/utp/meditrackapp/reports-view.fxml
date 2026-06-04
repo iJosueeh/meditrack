@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.utp.meditrackapp.features.dashboard.ui.ReportsController" 
+           styleClass="dashboard-root" stylesheets="@styles/global.css,@styles/dashboard.css">
+    
+    <BorderPane fx:id="rootPane">
+        <top>
+            <fx:include source="navbar.fxml" fx:id="navbar" />
+        </top>
+        <left>
+            <fx:include source="sidebar.fxml" fx:id="sidebar" />
+        </left>
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
+                <VBox styleClass="content-area" spacing="40" maxWidth="1200">
+                    <padding><Insets top="40" right="50" bottom="40" left="50" /></padding>
+                    
+                    <!-- Header -->
+                    <VBox spacing="8">
+                        <Label text="Centro de Reportes y Auditoría" styleClass="title-2" />
+                        <Label text="Genere documentos oficiales, análisis de gestión y trazabilidad operativa." styleClass="text-muted" />
+                        <Separator style="-fx-padding: 10 0 0 0;" />
+                    </VBox>
+
+                    <FlowPane hgap="30" vgap="30" prefWrapLength="1100">
+                        
+                        <!-- Card 1: Consolidated Management -->
+                        <VBox styleClass="card, elevated" prefWidth="340" spacing="20" style="-fx-padding: 25; -fx-background-color: white;">
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <VBox styleClass="icon-box-subtle" style="-fx-background-color: #e0f2fe; -fx-padding: 10; -fx-background-radius: 5;">
+                                    <FontIcon iconLiteral="fas-chart-line" iconSize="24" iconColor="#0284c7" />
+                                </VBox>
+                                <VBox>
+                                    <Label text="Resumen Ejecutivo" styleClass="text-bold" style="-fx-font-size: 16px;" />
+                                    <Label text="Consolidado de Gestión" styleClass="text-caption, text-muted" />
+                                </VBox>
+                            </HBox>
+                            <Label text="Visión integral de la sede: valor del inventario, KPIs de eficiencia, tendencias de stock y alertas críticas." 
+                                   wrapText="true" styleClass="text-muted" style="-fx-font-size: 13px; -fx-min-height: 60;" />
+                            <Button text="Generar Reporte Maestro" onAction="#onGenerateConsolidated" maxWidth="Infinity" styleClass="button, accent">
+                                <graphic><FontIcon iconLiteral="fas-file-pdf" iconColor="white" /></graphic>
+                            </Button>
+                        </VBox>
+
+                        <!-- Card 2: Inventory Movements -->
+                        <VBox styleClass="card, elevated" prefWidth="340" spacing="20" style="-fx-padding: 25; -fx-background-color: white;">
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <VBox styleClass="icon-box-subtle" style="-fx-background-color: #f0fdf4; -fx-padding: 10; -fx-background-radius: 5;">
+                                    <FontIcon iconLiteral="fas-exchange-alt" iconSize="24" iconColor="#10b981" />
+                                </VBox>
+                                <VBox>
+                                    <Label text="Movimientos de Stock" styleClass="text-bold" style="-fx-font-size: 16px;" />
+                                    <Label text="Trazabilidad y Auditoría" styleClass="text-caption, text-muted" />
+                                </VBox>
+                            </HBox>
+                            <Label text="Listado detallado de entradas, salidas y mermas. Agrupado por tipo de operación para facilitar auditorías." 
+                                   wrapText="true" styleClass="text-muted" style="-fx-font-size: 13px; -fx-min-height: 60;" />
+                            <VBox spacing="10">
+                                <HBox spacing="10">
+                                    <DatePicker fx:id="dpMovFrom" promptText="Desde" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                                    <DatePicker fx:id="dpMovTo" promptText="Hasta" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                                </HBox>
+                                <Button text="Exportar Movimientos" onAction="#onGenerateMovements" maxWidth="Infinity" styleClass="button, flat">
+                                    <graphic><FontIcon iconLiteral="fas-download" /></graphic>
+                                </Button>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Card 3: Dispensations -->
+                        <VBox styleClass="card, elevated" prefWidth="340" spacing="20" style="-fx-padding: 25; -fx-background-color: white;">
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <VBox styleClass="icon-box-subtle" style="-fx-background-color: #fffbeb; -fx-padding: 10; -fx-background-radius: 5;">
+                                    <FontIcon iconLiteral="fas-hand-holding-medical" iconSize="24" iconColor="#f59e0b" />
+                                </VBox>
+                                <VBox>
+                                    <Label text="Entrega de Medicamentos" styleClass="text-bold" style="-fx-font-size: 16px;" />
+                                    <Label text="Control de Dispensación" styleClass="text-caption, text-muted" />
+                                </VBox>
+                            </HBox>
+                            <Label text="Registro de medicamentos entregados a pacientes por receta. Organizado cronológicamente por paciente." 
+                                   wrapText="true" styleClass="text-muted" style="-fx-font-size: 13px; -fx-min-height: 60;" />
+                            <VBox spacing="10">
+                                <HBox spacing="10">
+                                    <DatePicker fx:id="dpDispFrom" promptText="Desde" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                                    <DatePicker fx:id="dpDispTo" promptText="Hasta" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                                </HBox>
+                                <Button text="Exportar Dispensaciones" onAction="#onGenerateDispensations" maxWidth="Infinity" styleClass="button, flat">
+                                    <graphic><FontIcon iconLiteral="fas-download" /></graphic>
+                                </Button>
+                            </VBox>
+                        </VBox>
+
+                    </FlowPane>
+
+                    <!-- Footer Note -->
+                    <HBox alignment="CENTER" style="-fx-padding: 20 0 0 0;">
+                        <Label text="Nota: Todos los reportes se generan en formato PDF compatible con estándares de impresión A4." styleClass="text-caption, text-muted" />
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+</StackPane>

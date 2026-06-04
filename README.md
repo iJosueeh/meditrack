@@ -21,14 +21,15 @@
 
 | Característica | Detalle |
 | :--- | :--- |
-| **📦 Control de Stock** | Monitoreo en tiempo real de niveles críticos y alertas de reabastecimiento. |
-| **⏳ Gestión de Lotes** | Seguimiento exhaustivo de fechas de vencimiento y rotación de insumos. |
-| **📊 Dashboard Dinámico** | Métricas visuales de salud de inventario y actividad general por sede. |
-| **🛡️ Seguridad & Usuarios** | Gestión completa de cuentas (CRUD) y control de acceso (RBAC) para Admin. |
-| **📦 Monitor de Inventario** | Registro rápido, transacciones ACID (Entradas/Salidas) y alertas visuales FEFO. |
-| **🏢 Gestión de Sedes** | Administración de locales con asignación de responsables y visualización de staff. |
-| **🔍 Búsqueda Inteligente** | Buscador global con navegación directa y auto-resaltado de registros. |
-| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *AtlantaFX* (Primer Theme) e Ikonli. |
+| **📦 Catálogo de Productos** | Registro completo de medicamentos con códigos DIGEMID, categorías y unidades de medida. |
+| **🧪 Dispensación Inteligente** | Algoritmo **FEFO** (First Expire, First Out) automático para asegurar el uso eficiente de lotes. |
+| **💊 Transacciones ACID** | Motor de movimientos de inventario (Entradas/Salidas/Atenciones) con integridad total de datos. |
+| **👥 Gestión de Pacientes** | Registro clínico y consulta de historial de atenciones integrado en el flujo de dispensación. |
+| **🆔 IDs Secuenciales** | Sistema de identificadores legibles y descriptivos por sede (`CAT-001`, `PAC-001-000001`). |
+| **🛡️ Seguridad & Usuarios** | Control de acceso basado en roles (RBAC) con identificación dinámica de jefaturas. |
+| **📊 Dashboard Dinámico** | Métricas en tiempo real de salud de inventario, stock crítico y actividad diaria. |
+| **🏢 Gestión de Sedes** | Control centralizado de múltiples postas médicas y sus responsables. |
+| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *AtlantaFX* (Primer Theme) y soporte completo para **UTF-8**. |
 
 ---
 
@@ -81,7 +82,8 @@ docker-compose up -d
 ### 📂 Documentación Técnica
 Para una inmersión profunda en el desarrollo, consulta nuestras guías:
 
-*   📘 [**Arquitectura**](./docs/ARCHITECTURE.md): Estructura de paquetes y flujo de navegación.
+*   📘 [**Arquitectura**](./docs/ARCHITECTURE.md): Estructura de paquetes, estrategia de IDs y transaccionalidad.
+*   📋 [**Requerimientos Funcionales**](./docs/FUNCTIONAL_REQUIREMENTS.md): Estado actual de implementación de los módulos.
 *   🎨 [**Guía de Diseño**](./docs/UI_GUIDE.md): Paleta de colores y componentes UI.
 *   🧪 [**Testing y CI**](./docs/TESTING_CI.md): Estrategia de pruebas y automatización.
 

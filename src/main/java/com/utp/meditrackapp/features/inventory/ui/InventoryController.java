@@ -1,5 +1,6 @@
 package com.utp.meditrackapp.features.inventory.ui;
 
+import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
 import com.utp.meditrackapp.core.models.entity.*;
@@ -21,10 +22,19 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javafx.stage.FileChooser;
+import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
+
 public class InventoryController {
 
     private final InventarioService inventarioService = new InventarioService();
     private final SessionManager sessionManager = SessionManager.getInstance();
+    private final HtmlReportService reportService = new HtmlReportService();
 
     @FXML private TabPane inventoryTabPane;
     @FXML private TableView<Movimiento> tableMovements;
@@ -33,15 +43,17 @@ public class InventoryController {
     
     // Filters
     @FXML private TextField txtSearchMovement;
+    @FXML private TextField txtSearchBatch;
     @FXML private ComboBox<TipoMovimiento> cmbMovementType;
     @FXML private DatePicker dpFromDate, dpToDate;
-    
+
     // Columns
     @FXML private TableColumn<Movimiento, String> colMovDate, colMovType, colMovProduct, colMovBatch, colMovReason;
     @FXML private TableColumn<Movimiento, Integer> colMovQty;
     @FXML private TableColumn<Lote, String> colBatchDigemid, colBatchProduct, colBatchNum;
     @FXML private TableColumn<Lote, LocalDate> colBatchExp, colBatchFab;
     @FXML private Label lblActiveBatches, lblCriticalBatches;
+    @FXML private Label lblTotalMovs, lblEntryQty, lblExitQty;
 
     // Quick Registration
     @FXML private ComboBox<TipoMovimiento> cmbQuickType;
@@ -64,6 +76,23 @@ public class InventoryController {
     public void initialize() {
         setupTables();
         loadInitialData();
+        handleInitialSearch();
+    }
+
+    private void handleInitialSearch() {
+        String initialSearch = NavigationService.getInventoryInitialSearch();
+        if (initialSearch != null && !initialSearch.isEmpty()) {
+            if (txtSearchMovement != null) txtSearchMovement.setText(initialSearch);
+            if (txtSearchBatch != null) txtSearchBatch.setText(initialSearch);
+
+            // Switch to Batch Monitor tab if searching for a specific product/batch
+            if (inventoryTabPane != null && inventoryTabPane.getTabs().size() > 1) {
+                inventoryTabPane.getSelectionModel().select(1);
+            }
+
+            refreshMovements();
+            refreshBatches();
+        }
     }
 
     private void setupTables() {
@@ -300,14 +329,21 @@ public class InventoryController {
                 return;
             }
 
-            int cantidad = Integer.parseInt(qtyStr);
-            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId()) ? 
-                TipoMovimientoEnum.ENTRADA : TipoMovimientoEnum.SALIDA;
+            int cantidad;
+            try {
+                cantidad = Integer.parseInt(qtyStr);
+                if (cantidad <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "La cantidad debe ser un número entero mayor a cero.");
+                return;
+            }
+
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
+            MotivoMovimientoEnum motivoEnum = MotivoMovimientoEnum.fromId(motivo.getId());
                 
             Usuario user = sessionManager.getCurrentUser();
             String obs = txtModalObs.getText();
 
-            boolean success;
             if (tipoEnum == TipoMovimientoEnum.ENTRADA) {
                 Lote nuevoLote = new Lote();
                 nuevoLote.setProductoId(producto.getId());
@@ -317,33 +353,46 @@ public class InventoryController {
                 nuevoLote.setFechaVencimiento(dpNewVenc.getValue());
                 nuevoLote.setCantidad(cantidad);
                 
-                success = inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipoEnum, 
-                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION").replace(" ", "_")), cantidad, obs);
+                if (nuevoLote.getNumeroLote() == null || nuevoLote.getNumeroLote().isBlank() || nuevoLote.getFechaVencimiento() == null) {
+                    showAlert(Alert.AlertType.WARNING, "Datos de Lote", "Debe ingresar el N° de Lote y la Fecha de Vencimiento.");
+                    return;
+                }
+
+                inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipoEnum, motivoEnum, cantidad, obs);
             } else {
                 Lote loteExistente = cmbModalBatch.getValue();
                 if (loteExistente == null) {
                     showAlert(Alert.AlertType.WARNING, "Lote no seleccionado", "Debe seleccionar un lote para realizar una salida.");
                     return;
                 }
-                success = inventarioService.registrarMovimiento(loteExistente, user.getId(), tipoEnum, 
-                        MotivoMovimientoEnum.valueOf(motivo.getNombre().toUpperCase().replace("ATENCIÓN", "ATENCION").replace(" ", "_")), cantidad, obs);
+                inventarioService.registrarMovimiento(loteExistente, user.getId(), tipoEnum, motivoEnum, cantidad, obs);
             }
 
-            if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Operación Exitosa", "El movimiento se ha registrado correctamente.");
-                onCloseModal();
-                refreshMovements();
-                refreshBatches();
-                refreshQuickBatchCombo();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo registrar el movimiento. Verifique el stock disponible.");
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Error de Formato", "La cantidad debe ser un número entero válido.");
+            showAlert(Alert.AlertType.INFORMATION, "Operación Exitosa", "El movimiento se ha registrado correctamente.");
+            onCloseModal();
+            refreshMovements();
+            refreshBatches();
+            refreshQuickBatchCombo();
+            clearModalFields();
+
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error de Inventario", e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error Inesperado", e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error al procesar el movimiento.");
         }
+    }
+
+    private void clearModalFields() {
+        txtModalQty.clear();
+        txtModalObs.clear();
+        txtNewLote.clear();
+        dpNewFab.setValue(null);
+        dpNewVenc.setValue(null);
+        cmbModalProduct.getSelectionModel().clearSelection();
+        cmbModalType.getSelectionModel().clearSelection();
+        cmbModalMotivo.getSelectionModel().clearSelection();
+        cmbModalBatch.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -358,26 +407,31 @@ public class InventoryController {
                 return;
             }
 
-            int cantidad = Integer.parseInt(qtyStr);
-            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId()) ? 
-                TipoMovimientoEnum.ENTRADA : TipoMovimientoEnum.SALIDA;
-            
+            int cantidad;
+            try {
+                cantidad = Integer.parseInt(qtyStr);
+                if (cantidad <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "La cantidad debe ser un número entero mayor a cero.");
+                return;
+            }
+
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
             MotivoMovimientoEnum motivo = (tipoEnum == TipoMovimientoEnum.ENTRADA) ? MotivoMovimientoEnum.COMPRA : MotivoMovimientoEnum.MERMA;
             Usuario user = sessionManager.getCurrentUser();
 
-            boolean success = inventarioService.registrarMovimiento(lote, user.getId(), tipoEnum, motivo, cantidad, txtQuickObs.getText());
+            inventarioService.registrarMovimiento(lote, user.getId(), tipoEnum, motivo, cantidad, txtQuickObs.getText());
 
-            if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
-                txtQuickQty.clear();
-                txtQuickObs.clear();
-                refreshMovements();
-                refreshBatches();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo actualizar el stock.");
-            }
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Error de Formato", "La cantidad debe ser un número entero válido.");
+            showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
+            txtQuickQty.clear();
+            txtQuickObs.clear();
+            refreshMovements();
+            refreshBatches();
+
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error de Inventario", e.getMessage());
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo realizar la actualización rápida.");
         }
     }
 
@@ -402,22 +456,105 @@ public class InventoryController {
             String searchText = txtSearchMovement != null ? txtSearchMovement.getText() : "";
             TipoMovimiento selectedType = cmbMovementType != null ? cmbMovementType.getValue() : null;
             String tipoId = (selectedType != null && !selectedType.getId().isEmpty()) ? selectedType.getId() : null;
+            LocalDate desde = dpFromDate != null ? dpFromDate.getValue() : null;
+            LocalDate hasta = dpToDate != null ? dpToDate.getValue() : null;
 
-            List<Movimiento> movements = inventarioService.listarMovimientos(user.getSedeId(), tipoId, searchText); 
+            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta); 
             tableMovements.setItems(FXCollections.observableArrayList(movements));
             tableMovements.refresh();
+
+            // Update KPIs
+            int total = movements.size();
+            int entry = movements.stream().filter(m -> "ENTRADA".equalsIgnoreCase(m.getTipoNombre())).mapToInt(Movimiento::getCantidad).sum();
+            int exit = movements.stream().filter(m -> "SALIDA".equalsIgnoreCase(m.getTipoNombre())).mapToInt(Movimiento::getCantidad).sum();
+
+            if (lblTotalMovs != null) lblTotalMovs.setText(String.valueOf(total));
+            if (lblEntryQty != null) lblEntryQty.setText(String.valueOf(entry));
+            if (lblExitQty != null) lblExitQty.setText(String.valueOf(exit));
+
         } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    protected void onFilterBatches() {
+        refreshBatches();
     }
 
     private void refreshBatches() {
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
+            
             List<Lote> batches = inventarioService.listarLotesConProducto(user.getSedeId());
+            
+            // Apply Filter
+            String query = (txtSearchBatch != null) ? txtSearchBatch.getText().toLowerCase().trim() : "";
+            if (!query.isEmpty()) {
+                String[] terms = query.split("\\s+");
+                batches = batches.stream().filter(l -> {
+                    String data = (l.getProductoNombre() + " " + l.getNumeroLote() + " " + (l.getCodigoDigemid() != null ? l.getCodigoDigemid() : "")).toLowerCase();
+                    for (String term : terms) {
+                        if (!data.contains(term)) return false;
+                    }
+                    return true;
+                }).collect(Collectors.toList());
+            }
+
             tableBatches.setItems(FXCollections.observableArrayList(batches));
             tableBatches.refresh();
             updateBatchSummary(user.getSedeId(), batches);
         } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    protected void onGenerateReport() {
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+
+            LocalDate desde = dpFromDate.getValue();
+            LocalDate hasta = dpToDate.getValue();
+            String searchText = txtSearchMovement.getText();
+            TipoMovimiento selectedType = cmbMovementType.getValue();
+            String tipoId = (selectedType != null && !selectedType.getId().isEmpty()) ? selectedType.getId() : null;
+
+            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta);
+
+            if (movements.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay movimientos que coincidan con los filtros seleccionados.");
+                return;
+            }
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Guardar Reporte de Movimientos");
+            fileChooser.setInitialFileName("reporte_movimientos_" + LocalDate.now() + ".pdf");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(tableMovements.getScene().getWindow());
+
+            if (file != null) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("REPORT_DATE", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                params.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
+                params.put("SEDE", com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user));
+                
+                String period = (desde != null ? desde.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Inicio") 
+                              + " al " + 
+                              (hasta != null ? hasta.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Hoy");
+                params.put("DATE_RANGE", period);
+                
+                params.put("TOTAL_MOVEMENTS", String.valueOf(movements.size()));
+                
+                int totalQty = movements.stream().mapToInt(Movimiento::getCantidad).sum();
+                params.put("TOTAL_QUANTITY", String.valueOf(totalQty));
+                params.put("items", movements);
+
+                reportService.generatePdf("movimientos", params, file);
+                showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente en:\n" + file.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error al Generar Reporte", "Ocurrió un error: " + e.getMessage());
+        }
     }
 
     private void updateBatchSummary(String sedeId, List<Lote> batches) {

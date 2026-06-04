@@ -15,4 +15,11 @@ public enum MotivoMovimientoEnum {
     public String getId() {
         return id;
     }
+
+    public static MotivoMovimientoEnum fromId(String id) {
+        for (MotivoMovimientoEnum e : values()) {
+            if (e.id.equals(id)) return e;
+        }
+        return null;
+    }
 }

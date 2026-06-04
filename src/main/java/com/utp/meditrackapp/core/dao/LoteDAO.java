@@ -33,7 +33,7 @@ public class LoteDAO extends JdbcDaoSupport {
         validarLote(lote);
 
         if (lote.getId() == null || lote.getId().isBlank()) {
-            lote.setId(IdGenerator.generateId(EntidadPrefix.LOTE));
+            lote.setId(IdGenerator.generateSedeDependentId(connection, "lotes", EntidadPrefix.LOTE, lote.getSedeId(), 5));
         }
 
         String sql = "INSERT INTO lotes (id, producto_id, sede_id, numero_lote, fecha_vencimiento, fecha_fabricacion, cantidad) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -99,6 +99,20 @@ public class LoteDAO extends JdbcDaoSupport {
         }
 
         return 0;
+    }
+
+    public java.util.Map<String, Integer> obtenerStockTotalPorSede(String sedeId) throws SQLException {
+        String sql = "SELECT producto_id, COALESCE(SUM(cantidad), 0) AS stock_total FROM lotes WHERE sede_id = ? GROUP BY producto_id";
+        java.util.Map<String, Integer> stockMap = new java.util.HashMap<>();
+        try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, sedeId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    stockMap.put(resultSet.getString("producto_id"), resultSet.getInt("stock_total"));
+                }
+            }
+        }
+        return stockMap;
     }
 
     public List<StockCriticoItem> obtenerStockCritico(String sedeId) throws SQLException {

@@ -26,3 +26,24 @@ El archivo `module-info.java` es crítico. Cada vez que se cree un nuevo paquete
 ```java
 opens com.utp.meditrackapp.features.nueva_feature.ui to javafx.fxml;
 ```
+
+## Estrategia de Identificadores (IDs)
+
+MediTrack utiliza un sistema de **IDs Secuenciales Descriptivos** para mejorar la legibilidad y trazabilidad:
+- **Catálogos Globales**: Formato `[PREFIJO]-[SECUENCIA]` (ej. `CAT-001`, `PRD-00001`).
+- **Entidades por Sede**: Formato `[PREFIJO]-[COD_SEDE]-[SECUENCIA]` (ej. `USR-001-0001`, `PAC-001-000001`).
+- **Lógica**: Se utiliza la estrategia `SELECT MAX(id)` sobre la conexión activa para garantizar el orden correlativo sin depender de campos Identity.
+
+## Identificación Dinámica de Roles (Semantic Matching)
+
+Para evitar dependencias rígidas de IDs que podrían ser eliminados por error, la identificación de cargos jerárquicos (como Jefes de Sede) se realiza mediante **mapeo semántico**:
+- El sistema busca roles cuyo nombre contenga patrones clave como **'ADMIN'** o **'JEFE'**.
+- Esto permite que el sistema sea resiliente a cambios en los IDs de la base de datos siempre que se mantenga la nomenclatura descriptiva en la tabla `roles`.
+
+## Transaccionalidad (ACID)
+
+Todas las operaciones que involucren cambios en el stock (entradas, salidas, dispensación) deben ejecutarse dentro de una transacción JDBC manual:
+1. `conn.setAutoCommit(false)`
+2. Ejecución de operaciones.
+3. `conn.commit()`
+4. `conn.rollback()` en caso de excepción.

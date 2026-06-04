@@ -10,15 +10,18 @@ import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.features.attentions.dao.AtencionDAO;
+import com.utp.meditrackapp.features.sedes.dao.SedeDAO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class AtencionService {
     private final AtencionDAO atencionDAO;
     private final LoteDAO loteDAO;
     private final MovimientoDAO movimientoDAO;
+    private final SedeDAO sedeDAO;
     private final SessionManager sessionManager;
     private final DatabaseConfig dbConfig;
 
@@ -26,6 +29,7 @@ public class AtencionService {
         this.atencionDAO = new AtencionDAO();
         this.loteDAO = new LoteDAO();
         this.movimientoDAO = new MovimientoDAO();
+        this.sedeDAO = new SedeDAO();
         this.sessionManager = SessionManager.getInstance();
         this.dbConfig = DatabaseConfig.getInstance();
     }
@@ -39,6 +43,15 @@ public class AtencionService {
         atencion.setUsuarioId(user.getId());
         atencion.setSedeId(user.getSedeId());
 
+        try {
+            Optional<Sede> sedeOpt = sedeDAO.buscarPorId(atencion.getSedeId());
+            if (sedeOpt.isEmpty() || sedeOpt.get().getIsActiva() == 0) {
+                return "La sede seleccionada se encuentra inactiva. No se pueden registrar atenciones.";
+            }
+        } catch (SQLException e) {
+            return "Error al verificar el estado de la sede: " + e.getMessage();
+        }
+
         if (atencion.getPacienteId() == null || atencion.getPacienteId().isEmpty()) return "El paciente es obligatorio.";
         if (detalles == null || detalles.isEmpty()) return "Debe agregar medicamentos.";
         if (atencion.getNumeroReceta() == null || atencion.getNumeroReceta().trim().isEmpty()) return "La receta es obligatoria.";
@@ -49,12 +62,12 @@ public class AtencionService {
             conn.setAutoCommit(false);
 
             // 1. Cabecera
-            atencion.setId(IdGenerator.generateId(EntidadPrefix.ATENCION));
+            atencion.setId(IdGenerator.generateSedeDependentId(conn, "atenciones", EntidadPrefix.ATENCION, atencion.getSedeId(), 6));
             atencionDAO.insertar(conn, atencion);
 
             // 2. Detalles y Stock
             for (AtencionDetalle det : detalles) {
-                det.setId(IdGenerator.generateId(EntidadPrefix.ATENCION_DETALLE));
+                det.setId(IdGenerator.generateId(conn, "atencion_detalles", EntidadPrefix.ATENCION_DETALLE, 8));
                 det.setAtencionId(atencion.getId());
                 atencionDAO.insertarDetalle(conn, det);
 
@@ -90,6 +103,48 @@ public class AtencionService {
             e.printStackTrace();
             return List.of();
         }
+    }
+
+    public List<Atencion> buscarHistorialPorPaciente(String pacienteId) {
+        try {
+            return atencionDAO.listarPorPaciente(pacienteId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    /**
+     * Sugiere qué lotes utilizar siguiendo la lógica FEFO (First Expire, First Out).
+     */
+    public java.util.List<AtencionDetalle> sugerirDispensacion(String sedeId, String productoId, int cantidadSolicitada) throws SQLException {
+        java.util.List<Lote> lotesFefo = loteDAO.listarLotesFefo(sedeId, productoId);
+        java.util.List<AtencionDetalle> sugerencia = new java.util.ArrayList<>();
+        int restante = cantidadSolicitada;
+
+        for (Lote lote : lotesFefo) {
+            if (restante <= 0) break;
+
+            int aTomar = Math.min(lote.getCantidad(), restante);
+            AtencionDetalle det = new AtencionDetalle();
+            det.setLoteId(lote.getId());
+            det.setCantidadEntregada(aTomar);
+            // Estos campos se pueden usar para mostrar en la UI
+            // det.setLoteNumero(lote.getNumeroLote()); 
+            
+            sugerencia.add(det);
+            restante -= aTomar;
+        }
+
+        if (restante > 0) {
+            throw new SQLException("Stock insuficiente para cubrir la cantidad solicitada (" + cantidadSolicitada + ").");
+        }
+
+        return sugerencia;
+    }
+
+    public List<com.utp.meditrackapp.core.models.dto.DispensacionReportItem> listarDispensacionesReporte(String sedeId, java.time.LocalDate desde, java.time.LocalDate hasta) throws SQLException {
+        return atencionDAO.listarDispensacionesReporte(sedeId, desde, hasta);
     }
 
     private boolean isAuthorized(Usuario user) {

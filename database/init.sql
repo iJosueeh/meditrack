@@ -141,13 +141,17 @@ ALTER TABLE [atencion_detalles] ADD CONSTRAINT [FK_atencion_detalles_lotes] FORE
 -- ========================
 
 INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-001', 'Administrador');
-INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-002', 'Farmacéutico');
+INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-002', 'Químico Farmacéutico');
+INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-003', 'Técnico de Farmacia');
 
 INSERT INTO [sedes] ([id], [nombre], [direccion]) VALUES ('SED-001', 'Sede Central Lima', 'Av. Principal 123');
 
--- El password es 'admin123' (hash BCrypt)
+-- El password es 'admin123' (hash BCrypt) para todos
 INSERT INTO [usuarios] ([id], [sede_id], [rol_id], [tipo_documento], [numero_documento], [nombres], [apellidos], [password], [is_activo])
-VALUES ('USR-001', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1);
+VALUES 
+('USR-001', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1),
+('USR-002', 'SED-001', 'ROL-002', 'DNI', '22222222', 'Jefe', 'Farmacia', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1),
+('USR-003', 'SED-001', 'ROL-003', 'DNI', '33333333', 'Tecnico', 'Operativo', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1);
 
 INSERT INTO [tipos_movimiento] ([id], [nombre]) VALUES ('MOV-T-01', 'entrada'), ('MOV-T-02', 'salida');
 INSERT INTO [motivos_movimiento] ([id], [nombre]) VALUES ('MOV-M-01', 'compra'), ('MOV-M-02', 'transferencia'), ('MOV-M-03', 'atencion'), ('MOV-M-04', 'merma');

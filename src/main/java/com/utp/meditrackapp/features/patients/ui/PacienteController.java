@@ -123,23 +123,24 @@ public class PacienteController {
     }
 
     private void loadPatients() {
-        List<Paciente> pacientes = pacienteService.listarPacientes();
-        patientsTable.setItems(FXCollections.observableArrayList(pacientes));
-        updateSummary();
+        try {
+            List<Paciente> pacientes = pacienteService.listarPacientes();
+            patientsTable.setItems(FXCollections.observableArrayList(pacientes));
+            updateSummary();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudieron cargar los pacientes: " + e.getMessage());
+        }
     }
 
     private void updateSummary() {
-        if (lblTotalPatients == null) return;
-        
         javafx.application.Platform.runLater(() -> {
-            ObservableList<Paciente> patients = patientsTable.getItems();
-            long total = patients.size();
-            long active = patients.stream().filter(p -> p.getIsActivo() == 1).count();
-            
-            lblTotalPatients.setText(String.valueOf(total));
-            // placeholders con lógica mínima para que no se vean vacíos
-            lblTodayAttentions.setText(String.valueOf(active)); 
-            lblNewPatientsMonth.setText(String.valueOf(total));
+            try {
+                lblTotalPatients.setText(String.valueOf(pacienteService.getContadorTotal()));
+                lblTodayAttentions.setText(String.valueOf(pacienteService.getAtendidosHoy()));
+                lblNewPatientsMonth.setText(String.valueOf(pacienteService.getNuevosDelMes()));
+            } catch (Exception e) {
+                System.err.println("[UI ERROR] Fallo al actualizar resumen: " + e.getMessage());
+            }
         });
     }
 
