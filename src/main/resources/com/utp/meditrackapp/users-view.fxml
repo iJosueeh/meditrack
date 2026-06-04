@@ -100,7 +100,17 @@
                     
                     <VBox fx:id="passwordContainer" spacing="8">
                         <Label text="CONTRASEÑA TEMPORAL" styleClass="text-caption, text-bold, text-muted" />
-                        <PasswordField fx:id="passwordField" promptText="Mínimo 6 caracteres" />
+                        <HBox spacing="0" alignment="CENTER_LEFT">
+                            <StackPane HBox.hgrow="ALWAYS">
+                                <PasswordField fx:id="passwordField" promptText="Mínimo 6 caracteres" styleClass="large, left-pill" />
+                                <TextField fx:id="passwordTextField" promptText="Mínimo 6 caracteres" visible="false" styleClass="large, left-pill" />
+                            </StackPane>
+                            <Button onAction="#onTogglePasswordVisibility" styleClass="large, right-pill">
+                                <graphic>
+                                    <FontIcon fx:id="toggleIcon" iconLiteral="fas-eye" iconSize="16" />
+                                </graphic>
+                            </Button>
+                        </HBox>
                     </VBox>
                 </VBox>
             </ScrollPane>
@@ -108,6 +118,36 @@
             <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
                 <Button text="Cancelar" onAction="#onCancelForm" styleClass="button, flat" />
                 <Button text="Guardar Usuario" onAction="#onSaveUser" styleClass="button, accent, large" />
+            </HBox>
+        </VBox>
+    </StackPane>
+
+    <!-- Reset Password Overlay -->
+    <StackPane fx:id="resetPasswordOverlay" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="450" maxHeight="-Infinity" styleClass="modal-content" spacing="25">
+            <VBox styleClass="modal-header">
+                <Label fx:id="resetPasswordTitle" text="Restablecer Contraseña" styleClass="title-4" />
+                <Label text="Ingrese la nueva contraseña para el usuario." styleClass="text-muted" />
+            </VBox>
+
+            <VBox spacing="8">
+                <Label text="NUEVA CONTRASEÑA" styleClass="text-caption, text-bold, text-muted" />
+                <HBox spacing="0" alignment="CENTER_LEFT">
+                    <StackPane HBox.hgrow="ALWAYS">
+                        <PasswordField fx:id="resetPasswordField" promptText="Mínimo 6 caracteres" styleClass="large, left-pill" />
+                        <TextField fx:id="resetPasswordTextField" promptText="Mínimo 6 caracteres" visible="false" styleClass="large, left-pill" />
+                    </StackPane>
+                    <Button onAction="#onToggleResetPasswordVisibility" styleClass="large, right-pill">
+                        <graphic>
+                            <FontIcon fx:id="resetToggleIcon" iconLiteral="fas-eye" iconSize="16" />
+                        </graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCancelResetPassword" styleClass="button, flat" />
+                <Button text="Actualizar Contraseña" onAction="#onSaveResetPassword" styleClass="button, accent, large" />
             </HBox>
         </VBox>
     </StackPane>
