@@ -13,15 +13,18 @@ public class IdGenerator {
      */
     public static String generateId(Connection conn, String tableName, EntidadPrefix prefix, int padding) throws SQLException {
         String basePrefix = prefix.getPrefix();
-        String sql = "SELECT MAX(id) FROM [" + tableName + "] WHERE id LIKE ?";
+        // Usar TOP 1 con ORDER BY es más fiable para encontrar el "último" ID alfanumérico en SQL Server
+        String sql = "SELECT TOP 1 id FROM " + tableName + " WHERE id LIKE ? ORDER BY id DESC";
         
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, basePrefix + "-%");
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && rs.getString(1) != null) {
+                if (rs.next()) {
                     String maxId = rs.getString(1);
-                    int nextVal = extractNextValue(maxId);
-                    return formatId(basePrefix, nextVal, padding);
+                    if (maxId != null && !maxId.isBlank()) {
+                        int nextVal = extractNextValue(maxId);
+                        return formatId(basePrefix, nextVal, padding);
+                    }
                 }
             }
         }
@@ -37,14 +40,16 @@ public class IdGenerator {
         String sedeNum = sedeId.contains("-") ? sedeId.split("-")[1] : sedeId;
         String basePrefix = prefix.getPrefix() + "-" + sedeNum;
         
-        String sql = "SELECT MAX(id) FROM [" + tableName + "] WHERE id LIKE ?";
+        String sql = "SELECT TOP 1 id FROM " + tableName + " WHERE id LIKE ? ORDER BY id DESC";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, basePrefix + "-%");
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && rs.getString(1) != null) {
+                if (rs.next()) {
                     String maxId = rs.getString(1);
-                    int nextVal = extractNextValue(maxId);
-                    return formatId(basePrefix, nextVal, padding);
+                    if (maxId != null && !maxId.isBlank()) {
+                        int nextVal = extractNextValue(maxId);
+                        return formatId(basePrefix, nextVal, padding);
+                    }
                 }
             }
         }
@@ -52,13 +57,34 @@ public class IdGenerator {
     }
 
     private static int extractNextValue(String maxId) {
+        if (maxId == null || maxId.isBlank()) return 1;
         try {
-            String[] parts = maxId.split("-");
-            String lastPart = parts[parts.length - 1];
-            return Integer.parseInt(lastPart) + 1;
+            String trimmed = maxId.trim();
+            // Extraer la última secuencia de dígitos al final del string
+            StringBuilder numPart = new StringBuilder();
+            for (int i = trimmed.length() - 1; i >= 0; i--) {
+                char c = trimmed.charAt(i);
+                if (Character.isDigit(c)) {
+                    numPart.insert(0, c);
+                } else if (numPart.length() > 0) {
+                    // Ya encontramos números y ahora llegamos a un separador
+                    break;
+                }
+            }
+            
+            if (numPart.length() > 0) {
+                return Integer.parseInt(numPart.toString()) + 1;
+            }
         } catch (Exception e) {
-            return 1;
+            // Si algo falla, intentamos el split clásico como fallback
+            try {
+                String[] parts = maxId.split("-");
+                return Integer.parseInt(parts[parts.length - 1]) + 1;
+            } catch (Exception ex) {
+                return 1;
+            }
         }
+        return 1;
     }
 
     private static String formatId(String prefix, int value, int padding) {
