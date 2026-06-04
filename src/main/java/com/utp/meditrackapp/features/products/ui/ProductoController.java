@@ -45,7 +45,6 @@ public class ProductoController {
     @FXML private ComboBox<Categoria> cmbCategoria;
     @FXML private ComboBox<String> cmbUnidad;
     @FXML private TextArea txtDetalle;
-    @FXML private Spinner<Integer> spnStockMinimo;
     @FXML private CheckBox chkActivo;
 
     private final ProductoDAO productoDAO = new ProductoDAO();
@@ -152,8 +151,6 @@ public class ProductoController {
             @Override public String toString(Categoria c) { return c != null ? c.getNombre() : ""; }
             @Override public Categoria fromString(String s) { return null; }
         });
-
-        spnStockMinimo.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 1000, 10));
     }
 
     @FXML
@@ -216,7 +213,6 @@ public class ProductoController {
         txtPrecio.setText(p.getPrecioUnitario() != null ? String.valueOf(p.getPrecioUnitario()) : "0.00");
         cmbUnidad.setValue(p.getUnidadMedida());
         chkActivo.setSelected(p.getIsActivo() == 1);
-        spnStockMinimo.getValueFactory().setValue(p.getStockMinimo() != null ? p.getStockMinimo() : 10);
         
         cmbCategoria.getItems().stream()
             .filter(c -> c.getId().equals(p.getCategoriaId()))
@@ -255,7 +251,6 @@ public class ProductoController {
         p.setUnidadMedida(cmbUnidad.getValue());
         p.setDetalle(txtDetalle.getText());
         p.setIsActivo(chkActivo.isSelected() ? 1 : 0);
-        p.setStockMinimo(spnStockMinimo.getValue());
         
         try {
             p.setPrecioUnitario(Double.parseDouble(txtPrecio.getText()));
@@ -301,11 +296,11 @@ public class ProductoController {
     private void clearForm() {
         txtNombre.clear();
         txtDigemid.clear();
+        txtPrecio.clear();
         txtDetalle.clear();
         cmbCategoria.getSelectionModel().clearSelection();
         cmbUnidad.getSelectionModel().selectFirst();
         chkActivo.setSelected(true);
-        spnStockMinimo.getValueFactory().setValue(10);
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

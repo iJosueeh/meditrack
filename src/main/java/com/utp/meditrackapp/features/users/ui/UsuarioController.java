@@ -37,7 +37,15 @@ public class UsuarioController {
     @FXML private ComboBox<Rol> rolCombo;
     @FXML private ComboBox<Sede> sedeCombo;
     @FXML private PasswordField passwordField;
+    @FXML private TextField passwordTextField;
+    @FXML private FontIcon toggleIcon;
     @FXML private VBox passwordContainer;
+
+    @FXML private StackPane resetPasswordOverlay;
+    @FXML private Label resetPasswordTitle;
+    @FXML private PasswordField resetPasswordField;
+    @FXML private TextField resetPasswordTextField;
+    @FXML private FontIcon resetToggleIcon;
 
     private final UsuarioDao usuarioDao = new UsuarioDao();
     private Usuario currentUsuario;
@@ -54,6 +62,7 @@ public class UsuarioController {
         colNombres.setCellValueFactory(new PropertyValueFactory<>("nombreCompleto"));
         colRol.setCellValueFactory(new PropertyValueFactory<>("rolNombre"));
         colSede.setCellValueFactory(new PropertyValueFactory<>("sedeNombre"));
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("isActivo"));
         
         colEstado.setCellFactory(column -> new TableCell<>() {
             @Override
@@ -162,6 +171,72 @@ public class UsuarioController {
         formOverlay.setVisible(false);
     }
 
+    @FXML
+    protected void onTogglePasswordVisibility() {
+        boolean isVisible = passwordTextField.isVisible();
+        if (isVisible) {
+            passwordField.setText(passwordTextField.getText());
+            passwordTextField.setVisible(false);
+            passwordField.setVisible(true);
+            toggleIcon.setIconLiteral("fas-eye");
+        } else {
+            passwordTextField.setText(passwordField.getText());
+            passwordField.setVisible(false);
+            passwordTextField.setVisible(true);
+            toggleIcon.setIconLiteral("fas-eye-slash");
+        }
+    }
+
+    private void showResetPasswordForm(Usuario u) {
+        currentUsuario = u;
+        resetPasswordTitle.setText("Restablecer Contraseña: " + u.getNombreCompleto());
+        resetPasswordField.clear();
+        resetPasswordTextField.clear();
+        resetPasswordField.setVisible(true);
+        resetPasswordTextField.setVisible(false);
+        resetToggleIcon.setIconLiteral("fas-eye");
+        resetPasswordOverlay.setVisible(true);
+    }
+
+    @FXML
+    protected void onSaveResetPassword() {
+        String newPassword = resetPasswordField.isVisible() ? resetPasswordField.getText() : resetPasswordTextField.getText();
+        
+        if (newPassword.length() < 6) {
+            showAlert(Alert.AlertType.WARNING, "Seguridad", "La contraseña debe tener al menos 6 caracteres.");
+            return;
+        }
+
+        String hashedPassword = com.utp.meditrackapp.core.util.PasswordHasher.hashPassword(newPassword);
+        if (usuarioDao.updatePassword(currentUsuario.getId(), hashedPassword)) {
+            showAlert(Alert.AlertType.INFORMATION, "Éxito", "Contraseña restablecida correctamente.");
+            resetPasswordOverlay.setVisible(false);
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo actualizar la contraseña.");
+        }
+    }
+
+    @FXML
+    protected void onCancelResetPassword() {
+        resetPasswordOverlay.setVisible(false);
+    }
+
+    @FXML
+    protected void onToggleResetPasswordVisibility() {
+        boolean isVisible = resetPasswordTextField.isVisible();
+        if (isVisible) {
+            resetPasswordField.setText(resetPasswordTextField.getText());
+            resetPasswordTextField.setVisible(false);
+            resetPasswordField.setVisible(true);
+            resetToggleIcon.setIconLiteral("fas-eye");
+        } else {
+            resetPasswordTextField.setText(resetPasswordField.getText());
+            resetPasswordField.setVisible(false);
+            resetPasswordTextField.setVisible(true);
+            resetToggleIcon.setIconLiteral("fas-eye-slash");
+        }
+    }
+
     private boolean validateForm() {
         if (numDocField.getText().isEmpty() || firstNameField.getText().isEmpty() || 
             rolCombo.getValue() == null || sedeCombo.getValue() == null) {
@@ -178,8 +253,9 @@ public class UsuarioController {
     private void setupActionsColumn() {
         colActions.setCellFactory(param -> new TableCell<>() {
             private final Button btnEdit = new Button();
+            private final Button btnResetPwd = new Button();
             private final Button btnToggle = new Button();
-            private final HBox box = new HBox(btnEdit, btnToggle);
+            private final HBox box = new HBox(btnEdit, btnResetPwd, btnToggle);
 
             {
                 box.setSpacing(10);
@@ -187,6 +263,11 @@ public class UsuarioController {
                 btnEdit.getStyleClass().addAll("button", "flat");
                 btnEdit.setTooltip(new Tooltip("Editar usuario"));
                 btnEdit.setOnAction(e -> showEditForm(getTableView().getItems().get(getIndex())));
+
+                btnResetPwd.setGraphic(new FontIcon("fas-key"));
+                btnResetPwd.getStyleClass().addAll("button", "flat");
+                btnResetPwd.setTooltip(new Tooltip("Restablecer contraseña"));
+                btnResetPwd.setOnAction(e -> showResetPasswordForm(getTableView().getItems().get(getIndex())));
 
                 btnToggle.getStyleClass().addAll("button", "flat");
                 btnToggle.setOnAction(e -> handleToggleStatus(getTableView().getItems().get(getIndex())));

@@ -273,7 +273,7 @@ public class InventoryController {
     @FXML
     protected void onModalProductChanged() {
         TipoMovimiento selectedType = cmbModalType.getValue();
-        if (selectedType != null && TipoMovimientoEnum.SALIDA.getId().equals(selectedType.getId())) {
+        if (selectedType != null && selectedType.getNombre().toLowerCase().contains("salida")) {
             loadBatchesForProduct(cmbModalProduct.getValue());
         }
     }
@@ -283,22 +283,16 @@ public class InventoryController {
         TipoMovimiento selectedType = cmbModalType.getValue();
         if (selectedType == null) return;
 
-        boolean isEntrada = TipoMovimientoEnum.ENTRADA.getId().equals(selectedType.getId());
+        boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
         vboxEntradaDetails.setVisible(isEntrada);
         vboxEntradaDetails.setManaged(isEntrada);
         cmbModalBatchContainer.setVisible(!isEntrada);
         cmbModalBatchContainer.setManaged(!isEntrada);
         
-        List<MotivoMovimiento> motivos = isEntrada ? 
-            List.of(
-                new MotivoMovimiento(MotivoMovimientoEnum.COMPRA.getId(), "Compra"), 
-                new MotivoMovimiento(MotivoMovimientoEnum.TRANSFERENCIA.getId(), "Transferencia")
-            ) :
-            List.of(
-                new MotivoMovimiento(MotivoMovimientoEnum.ATENCION.getId(), "Atención"), 
-                new MotivoMovimiento(MotivoMovimientoEnum.MERMA.getId(), "Merma")
-            );
-        cmbModalMotivo.setItems(FXCollections.observableArrayList(motivos));
+        try {
+            List<MotivoMovimiento> motivos = inventarioService.listarMotivosMovimiento();
+            cmbModalMotivo.setItems(FXCollections.observableArrayList(motivos));
+        } catch (SQLException e) { e.printStackTrace(); }
         
         if (!isEntrada) loadBatchesForProduct(cmbModalProduct.getValue());
     }
@@ -338,13 +332,11 @@ public class InventoryController {
                 return;
             }
 
-            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
-            MotivoMovimientoEnum motivoEnum = MotivoMovimientoEnum.fromId(motivo.getId());
-                
             Usuario user = sessionManager.getCurrentUser();
             String obs = txtModalObs.getText();
+            boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
 
-            if (tipoEnum == TipoMovimientoEnum.ENTRADA) {
+            if (isEntrada) {
                 Lote nuevoLote = new Lote();
                 nuevoLote.setProductoId(producto.getId());
                 nuevoLote.setSedeId(user.getSedeId());
@@ -358,14 +350,14 @@ public class InventoryController {
                     return;
                 }
 
-                inventarioService.registrarMovimiento(nuevoLote, user.getId(), tipoEnum, motivoEnum, cantidad, obs);
+                inventarioService.registrarMovimiento(nuevoLote, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
             } else {
                 Lote loteExistente = cmbModalBatch.getValue();
                 if (loteExistente == null) {
                     showAlert(Alert.AlertType.WARNING, "Lote no seleccionado", "Debe seleccionar un lote para realizar una salida.");
                     return;
                 }
-                inventarioService.registrarMovimiento(loteExistente, user.getId(), tipoEnum, motivoEnum, cantidad, obs);
+                inventarioService.registrarMovimiento(loteExistente, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
             }
 
             showAlert(Alert.AlertType.INFORMATION, "Operación Exitosa", "El movimiento se ha registrado correctamente.");
@@ -416,11 +408,11 @@ public class InventoryController {
                 return;
             }
 
-            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
-            MotivoMovimientoEnum motivo = (tipoEnum == TipoMovimientoEnum.ENTRADA) ? MotivoMovimientoEnum.COMPRA : MotivoMovimientoEnum.MERMA;
+            boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
+            String motivoId = isEntrada ? MotivoMovimientoEnum.COMPRA.getId() : MotivoMovimientoEnum.MERMA.getId();
             Usuario user = sessionManager.getCurrentUser();
 
-            inventarioService.registrarMovimiento(lote, user.getId(), tipoEnum, motivo, cantidad, txtQuickObs.getText());
+            inventarioService.registrarMovimiento(lote, user.getId(), selectedType.getId(), motivoId, cantidad, txtQuickObs.getText());
 
             showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
             txtQuickQty.clear();
