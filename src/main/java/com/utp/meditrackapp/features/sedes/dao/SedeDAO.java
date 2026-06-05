@@ -123,6 +123,7 @@ public class SedeDAO extends JdbcDaoSupport {
     }
 
     public boolean save(Sede sede) throws SQLException {
+        validarSede(sede);
         try (Connection conn = getConnection()) {
             if (sede.getId() == null || sede.getId().isBlank()) {
                 sede.setId(IdGenerator.generateId(conn, "sedes", EntidadPrefix.SEDE, 3));
@@ -140,6 +141,7 @@ public class SedeDAO extends JdbcDaoSupport {
     }
 
     public boolean update(Sede sede) throws SQLException {
+        validarSede(sede);
         String sql = "UPDATE sedes SET nombre = ?, direccion = ?, is_activa = ?, telefono = ? WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -149,6 +151,22 @@ public class SedeDAO extends JdbcDaoSupport {
             ps.setString(4, sede.getTelefono());
             ps.setString(5, sede.getId());
             return ps.executeUpdate() > 0;
+        }
+    }
+
+    private void validarSede(Sede sede) {
+        if (sede == null) {
+            throw new IllegalArgumentException("Los datos de la sede son obligatorios.");
+        }
+        if (sede.getNombre() == null || sede.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de la sede es obligatorio.");
+        }
+        if (sede.getDireccion() == null || sede.getDireccion().trim().isEmpty()) {
+            throw new IllegalArgumentException("La dirección de la sede es obligatoria.");
+        }
+        String tel = sede.getTelefono();
+        if (tel == null || tel.trim().length() != 9 || !tel.trim().matches("\\d+")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 9 dígitos numéricos.");
         }
     }
 }

@@ -235,17 +235,30 @@ public class SedeController {
     protected void onSaveSede() {
         String nombre = txtNombre.getText();
         String dir = txtDireccion.getText();
-        String tel = txtTelefono.getText(); // Capturar teléfono
+        String tel = txtTelefono.getText();
         int activa = chkActiva.isSelected() ? 1 : 0;
+        com.utp.meditrackapp.core.models.entity.Usuario selectedManager = cmbManager.getValue();
 
+        // Validaciones de Interfaz
         if (nombre == null || nombre.trim().isEmpty()) {
             showAlert("Validación", "El nombre de la sede es obligatorio.");
+            return;
+        }
+        if (dir == null || dir.trim().isEmpty()) {
+            showAlert("Validación", "La dirección de la sede es obligatoria.");
+            return;
+        }
+        if (tel == null || tel.trim().length() != 9) {
+            showAlert("Validación", "El teléfono debe tener exactamente 9 dígitos.");
+            return;
+        }
+        if (selectedManager == null) {
+            showAlert("Validación", "Es obligatorio asignar un Jefe de Sede responsable.");
             return;
         }
 
         try {
             String sedeId;
-
             if (selectedSede == null) {
                 SedeDetalleDTO dtoToSave = new SedeDetalleDTO(null, nombre, dir, activa);
                 dtoToSave.setTelefono(tel);
@@ -255,21 +268,18 @@ public class SedeController {
                 sedeId = selectedSede.getId();
                 selectedSede.setNombre(nombre);
                 selectedSede.setDireccion(dir);
-                selectedSede.setTelefono(tel); // Actualizar en el DTO
+                selectedSede.setTelefono(tel);
                 selectedSede.setIsActiva(activa);
                 sedeDAO.update(selectedSede);
             }
 
-            // Lógica de Asignación de Jefe (via Usuarios table)
-            com.utp.meditrackapp.core.models.entity.Usuario selectedManager = cmbManager.getValue();
-            if (selectedManager != null) {
-                sedeDAO.assignUserToSede(selectedManager.getId(), sedeId, selectedManager.getRolId());
-            }
+            // Asignación de Jefe (Mandatorio)
+            sedeDAO.assignUserToSede(selectedManager.getId(), sedeId, selectedManager.getRolId());
 
             loadData();
             onCloseModal();
-            showAlert("Éxito", "Sede y responsable actualizados correctamente.");
-        } catch (SQLException e) {
+            showAlert("Éxito", "Sede y jefe asignado guardados correctamente.");
+        } catch (SQLException | IllegalArgumentException e) {
             showAlert("Error", e.getMessage());
         }
     }
