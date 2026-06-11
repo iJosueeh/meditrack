@@ -244,6 +244,10 @@ public class ProductoDAO extends JdbcDaoSupport {
         if (producto.getNombre() == null || producto.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre del producto es obligatorio.");
         }
+
+        if (producto.getCategoriaId() == null || producto.getCategoriaId().isBlank()) {
+            throw new IllegalArgumentException("La categoría es obligatoria.");
+        }
     }
 
     private Producto mapProducto(ResultSet resultSet, Connection connection) throws SQLException {

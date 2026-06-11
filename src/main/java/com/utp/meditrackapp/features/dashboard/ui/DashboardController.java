@@ -10,25 +10,10 @@ import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
 
-import com.utp.meditrackapp.features.dashboard.Dao.DashboardDao;
-import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
-import com.utp.meditrackapp.features.dashboard.models.MedicamentoResumen;
-import javafx.stage.FileChooser;
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class DashboardController {
-
-    private final DashboardDao dashboardDao = new DashboardDao();
-    private final HtmlReportService reportService = new HtmlReportService();
 
     @FXML private BorderPane rootPane;
     @FXML private Label welcomeLabel;
-    
-    // ... rest of @FXML fields
 
     @FXML
     protected void onGoToReports() {

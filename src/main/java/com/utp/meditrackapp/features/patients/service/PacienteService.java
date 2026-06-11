@@ -53,15 +53,26 @@ public class PacienteService {
         return success ? "OK" : "Error técnico al guardar en la base de datos.";
     }
 
-    public boolean eliminarPaciente(String id) {
-        if (id == null || id.trim().isEmpty()) return false;
-        return pacienteRepository.delete(id);
+    public String eliminarPaciente(String id) {
+        if (id == null || id.trim().isEmpty()) return "ID de paciente no válido.";
+
+        // Verificar si tiene atenciones registradas
+        try {
+            var historial = new com.utp.meditrackapp.features.attentions.dao.AtencionDAO().listarPorPaciente(id);
+            if (historial != null && !historial.isEmpty()) {
+                return "El paciente tiene " + historial.size() + " atención(es) registrada(s). No se puede desactivar.";
+            }
+        } catch (Exception e) {
+            return "Error al verificar historial del paciente: " + e.getMessage();
+        }
+
+        return pacienteRepository.delete(id) ? "OK" : "Error técnico al desactivar el paciente.";
     }
 
     public int getContadorTotal() {
-        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
-        // Assuming PacienteRepository doesn't have this, I might need to cast or add to interface.
-        // For now, I'll use the impl directly if it's safe or just add to interface.
+        var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        if (user == null) return 0;
+        String sedeId = user.getSedeId();
         if (pacienteRepository instanceof PacienteRepositoryImpl) {
             return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTotal(sedeId);
         }
@@ -69,13 +80,15 @@ public class PacienteService {
     }
 
     public int getAtendidosHoy() {
-        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
-        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTodayAttentions(sedeId);
+        var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        if (user == null) return 0;
+        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTodayAttentions(user.getSedeId());
     }
 
     public int getNuevosDelMes() {
-        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
-        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countNewPatientsMonth(sedeId);
+        var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        if (user == null) return 0;
+        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countNewPatientsMonth(user.getSedeId());
     }
 
     private String validarDocumento(String tipo, String numero) {

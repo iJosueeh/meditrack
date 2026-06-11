@@ -35,19 +35,18 @@ INSERT INTO [productos] ([id], [categoria_id], [codigo_digemid], [nombre], [deta
 
 -- Lotes con Stock Saludable
 INSERT INTO [lotes] ([id], [producto_id], [sede_id], [numero_lote], [fecha_fabricacion], [fecha_vencimiento], [cantidad]) VALUES 
-('LT-01', 'PRD-01', 'SED-001', 'L2024-001', '2024-01-01', '2026-12-31', 150),
-('LT-02', 'PRD-04', 'SED-001', 'L2024-002', '2024-02-15', '2025-08-20', 80);
+('LT-01', 'PRD-01', 'SED-001', 'L2024-001', DATEADD(month, -24, GETDATE()), DATEADD(month, 18, GETDATE()), 150),
+('LT-02', 'PRD-04', 'SED-001', 'L2024-002', DATEADD(month, -22, GETDATE()), DATEADD(month, 3, GETDATE()), 80);
 
 -- Lotes con STOCK CRITICO (Menos de 10)
 INSERT INTO [lotes] ([id], [producto_id], [sede_id], [numero_lote], [fecha_fabricacion], [fecha_vencimiento], [cantidad]) VALUES 
-('LT-03', 'PRD-02', 'SED-001', 'L2024-CRIT', '2024-01-10', '2026-05-15', 3),
-('LT-04', 'PRD-06', 'SED-001', 'L2024-LOW', '2024-03-01', '2026-04-10', 5);
+('LT-03', 'PRD-02', 'SED-001', 'L2024-CRIT', DATEADD(month, -23, GETDATE()), DATEADD(month, 1, GETDATE()), 3),
+('LT-04', 'PRD-06', 'SED-001', 'L2024-LOW', DATEADD(month, -21, GETDATE()), DATEADD(day, 15, GETDATE()), 5);
 
--- Lotes PROXIMOS A VENCER (En los próximos 30 días respecto a Mayo 2026)
--- Nota: Usamos fechas relativas a hoy para que la prueba sea efectiva hoy 14 de mayo de 2026.
+-- Lotes PROXIMOS A VENCER (En los próximos 30 días)
 INSERT INTO [lotes] ([id], [producto_id], [sede_id], [numero_lote], [fecha_fabricacion], [fecha_vencimiento], [cantidad]) VALUES 
-('LT-05', 'PRD-03', 'SED-001', 'L-VENC-1', '2024-05-01', '2026-05-30', 45),
-('LT-06', 'PRD-05', 'SED-001', 'L-VENC-2', '2024-06-01', '2026-06-05', 20);
+('LT-05', 'PRD-03', 'SED-001', 'L-VENC-1', DATEADD(month, -19, GETDATE()), DATEADD(day, 20, GETDATE()), 45),
+('LT-06', 'PRD-05', 'SED-001', 'L-VENC-2', DATEADD(month, -18, GETDATE()), DATEADD(day, 10, GETDATE()), 20);
 
 -- 4. PACIENTES (Para que no esté vacío)
 INSERT INTO [pacientes] ([id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono], [is_activo]) VALUES 

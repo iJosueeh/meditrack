@@ -77,9 +77,10 @@ public class GlobalSearchDAO {
         }
 
         // Búsqueda estática de módulos (hardcoded para velocidad)
-        if ("inventario".contains(query.toLowerCase())) results.add(new SearchResult("Módulo de Inventario", "Navegar a existencias", ResultType.MODULE, "NAV_INV"));
-        if ("atenciones".contains(query.toLowerCase()) || "dispensacion".contains(query.toLowerCase())) results.add(new SearchResult("Registro de Atenciones", "Navegar a dispensación", ResultType.MODULE, "NAV_ATT"));
-        if ("sedes".contains(query.toLowerCase())) results.add(new SearchResult("Gestión de Sedes", "Administración global", ResultType.MODULE, "NAV_SEDE"));
+        String q = query.toLowerCase();
+        if (q.contains("inventario")) results.add(new SearchResult("Módulo de Inventario", "Navegar a existencias", ResultType.MODULE, "NAV_INV"));
+        if (q.contains("atenciones") || q.contains("dispensacion")) results.add(new SearchResult("Registro de Atenciones", "Navegar a dispensación", ResultType.MODULE, "NAV_ATT"));
+        if (q.contains("sedes")) results.add(new SearchResult("Gestión de Sedes", "Administración global", ResultType.MODULE, "NAV_SEDE"));
 
         return results;
     }

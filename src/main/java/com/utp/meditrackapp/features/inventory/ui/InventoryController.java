@@ -40,6 +40,7 @@ public class InventoryController {
     @FXML private TableView<Movimiento> tableMovements;
     @FXML private TableView<Lote> tableBatches;
     @FXML private VBox alertsContainer;
+    @FXML private Button btnNewMovement;
     
     // Filters
     @FXML private TextField txtSearchMovement;
@@ -58,7 +59,11 @@ public class InventoryController {
     // Quick Registration
     @FXML private ComboBox<TipoMovimiento> cmbQuickType;
     @FXML private ComboBox<Lote> cmbQuickBatch;
+    @FXML private ComboBox<MotivoMovimiento> cmbQuickMotivo;
     @FXML private TextField txtQuickQty, txtQuickObs;
+
+    // Expiration threshold
+    @FXML private ComboBox<Integer> cmbExpirationThreshold;
 
     // Modal fields
     @FXML private StackPane modalMovement;
@@ -77,6 +82,19 @@ public class InventoryController {
         setupTables();
         loadInitialData();
         handleInitialSearch();
+        applyRolePermissions();
+    }
+
+    private void applyRolePermissions() {
+        // RF-05/RF-11: Solo Jefe de Sede (Químico) y Admin pueden registrar entradas
+        var user = sessionManager.getCurrentUser();
+        if (user != null) {
+            boolean canRegister = sessionManager.isAdmin() || sessionManager.isQuimico();
+            if (btnNewMovement != null) {
+                btnNewMovement.setVisible(canRegister);
+                btnNewMovement.setManaged(canRegister);
+            }
+        }
     }
 
     private void handleInitialSearch() {
@@ -184,18 +202,26 @@ public class InventoryController {
                     setText(item.toString());
                     long daysToExpiry = item.toEpochDay() - LocalDate.now().toEpochDay();
                     
+                    // RF-10: Read threshold from combo (default 30/90)
+                    int thresholdDanger = 30;
+                    int thresholdWarning = 90;
+                    if (cmbExpirationThreshold != null && cmbExpirationThreshold.getValue() != null) {
+                        thresholdDanger = cmbExpirationThreshold.getValue();
+                        thresholdWarning = thresholdDanger * 3;
+                    }
+                    
                     HBox box = new HBox(8);
                     box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                     Label label = new Label(item.toString());
                     FontIcon icon = new FontIcon();
                     
-                    if (daysToExpiry <= 30) {
+                    if (daysToExpiry <= thresholdDanger) {
                         icon.setIconLiteral("fas-exclamation-circle");
                         icon.getStyleClass().add("icon-danger");
                         label.getStyleClass().add("text-danger");
                         box.getChildren().addAll(icon, label);
                         setGraphic(box);
-                    } else if (daysToExpiry <= 90) {
+                    } else if (daysToExpiry <= thresholdWarning) {
                         icon.setIconLiteral("fas-exclamation-triangle");
                         icon.getStyleClass().add("icon-warning");
                         label.setStyle("-fx-text-fill: -color-warning-fg;");
@@ -236,6 +262,18 @@ public class InventoryController {
             cmbQuickType.setConverter(tipoConverter);
             cmbMovementType.setConverter(tipoConverter);
             
+            // Initialize motivo combo for quick update
+            try {
+                List<MotivoMovimiento> motivos = inventarioService.listarMotivosMovimiento();
+                cmbQuickMotivo.setItems(FXCollections.observableArrayList(motivos));
+                cmbQuickMotivo.setConverter(new StringConverter<>() {
+                    @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
+                    @Override public MotivoMovimiento fromString(String s) { return null; }
+                });
+            } catch (SQLException e) {
+                System.err.println("[INV] Error cargando motivos: " + e.getMessage());
+            }
+            
             cmbModalProduct.setConverter(new StringConverter<>() {
                 @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
                 @Override public Producto fromString(String s) { return null; }
@@ -252,7 +290,15 @@ public class InventoryController {
 
             refreshQuickBatchCombo();
 
-        } catch (Exception e) { e.printStackTrace(); }
+            // RF-10: Configurable expiration thresholds
+            cmbExpirationThreshold.setItems(FXCollections.observableArrayList(30, 60, 90));
+            cmbExpirationThreshold.getSelectionModel().selectFirst(); // Default: 30 days
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Error", "No se pudieron cargar los datos iniciales: " + e.getMessage());
+            return;
+        }
         refreshMovements();
         refreshBatches();
     }
@@ -300,12 +346,31 @@ public class InventoryController {
     private void loadBatchesForProduct(Producto p) {
         if (p == null) return;
         try {
-            String sedeId = sessionManager.getCurrentUser().getSedeId();
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            String sedeId = user.getSedeId();
             List<Lote> lotes = inventarioService.listarLotesFefo(sedeId, p.getId());
             cmbModalBatch.setItems(FXCollections.observableArrayList(lotes));
             cmbModalBatch.setConverter(new StringConverter<>() {
                 @Override public String toString(Lote l) { return l != null ? l.getNumeroLote() : ""; }
                 @Override public Lote fromString(String s) { return null; }
+            });
+            cmbModalBatch.setCellFactory(cb -> new javafx.scene.control.ListCell<>() {
+                @Override
+                protected void updateItem(Lote item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText(item.getNumeroLote() + " (vence: " + item.getFechaVencimiento() + ")");
+                        if (getIndex() == 0) {
+                            setStyle("-fx-font-weight: bold; -fx-text-fill: #2ea043;");
+                        } else {
+                            setStyle("");
+                        }
+                    }
+                }
             });
         } catch (SQLException e) { e.printStackTrace(); }
     }
@@ -408,8 +473,11 @@ public class InventoryController {
                 return;
             }
 
-            boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
-            String motivoId = isEntrada ? MotivoMovimientoEnum.COMPRA.getId() : MotivoMovimientoEnum.MERMA.getId();
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
+            boolean isEntrada = tipoEnum == TipoMovimientoEnum.ENTRADA;
+            MotivoMovimiento selectedMotivo = cmbQuickMotivo.getValue();
+            String motivoId = selectedMotivo != null ? selectedMotivo.getId()
+                : (isEntrada ? MotivoMovimientoEnum.COMPRA.getId() : MotivoMovimientoEnum.MERMA.getId());
             Usuario user = sessionManager.getCurrentUser();
 
             inventarioService.registrarMovimiento(lote, user.getId(), selectedType.getId(), motivoId, cantidad, txtQuickObs.getText());

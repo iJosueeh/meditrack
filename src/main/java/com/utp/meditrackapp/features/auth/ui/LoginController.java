@@ -1,7 +1,6 @@
 package com.utp.meditrackapp.features.auth.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
-import com.utp.meditrackapp.core.session.SessionContext;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;

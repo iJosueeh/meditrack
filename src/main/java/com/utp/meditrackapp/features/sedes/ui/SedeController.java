@@ -140,9 +140,14 @@ public class SedeController {
             @Override public com.utp.meditrackapp.core.models.entity.Usuario fromString(String s) { return null; }
         });
 
-        // Cargar lista de usuarios administradores elegibles
-        List<com.utp.meditrackapp.core.models.entity.Usuario> allUsers = usuarioDao.listarTodos();
-        cmbManager.setItems(FXCollections.observableArrayList(allUsers));
+        // Cargar y filtrar solo usuarios con rol de Administrador o Jefe (Mapeo Semántico)
+        List<com.utp.meditrackapp.core.models.entity.Usuario> admins = usuarioDao.listarTodos().stream()
+            .filter(u -> u.getRolNombre() != null && 
+                        (u.getRolNombre().toUpperCase().contains("ADMIN") || 
+                         u.getRolNombre().toUpperCase().contains("JEFE")))
+            .toList();
+            
+        cmbManager.setItems(FXCollections.observableArrayList(admins));
     }
 
     private void loadData() {
@@ -170,9 +175,9 @@ public class SedeController {
             filteredData.setPredicate(sede -> {
                 if (newValue == null || newValue.isEmpty()) return true;
                 String low = newValue.toLowerCase();
-                return sede.getNombre().toLowerCase().contains(low) || 
-                       sede.getAdministrador().toLowerCase().contains(low) ||
-                       sede.getId().toLowerCase().contains(low);
+                return (sede.getNombre() != null && sede.getNombre().toLowerCase().contains(low)) || 
+                       (sede.getAdministrador() != null && sede.getAdministrador().toLowerCase().contains(low)) ||
+                       (sede.getId() != null && sede.getId().toLowerCase().contains(low));
             });
             updatePagination(filteredData);
         });

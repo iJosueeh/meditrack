@@ -5,13 +5,23 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Set;
 
 public class IdGenerator {
+
+    private static final Set<String> ALLOWED_TABLES = Set.of(
+        "sedes", "usuarios", "atenciones", "atencion_detalles",
+        "categorias", "tipos_movimiento", "motivos_movimiento",
+        "pacientes", "roles", "lotes", "productos", "movimientos"
+    );
 
     /**
      * Generates a global sequential ID.
      */
     public static String generateId(Connection conn, String tableName, EntidadPrefix prefix, int padding) throws SQLException {
+        if (!ALLOWED_TABLES.contains(tableName)) {
+            throw new IllegalArgumentException("Invalid table name: " + tableName);
+        }
         String basePrefix = prefix.getPrefix();
         String sql = "SELECT id FROM " + tableName + " WHERE id LIKE ?";
         
@@ -34,6 +44,9 @@ public class IdGenerator {
      * Format: [PREFIX]-[SEDE_NUM]-[SEQUENCE]
      */
     public static String generateSedeDependentId(Connection conn, String tableName, EntidadPrefix prefix, String sedeId, int padding) throws SQLException {
+        if (!ALLOWED_TABLES.contains(tableName)) {
+            throw new IllegalArgumentException("Invalid table name: " + tableName);
+        }
         // Extract numeric part of sedeId, e.g., SED-001 -> 001
         String sedeNum = sedeId.contains("-") ? sedeId.split("-")[1] : sedeId;
         String basePrefix = prefix.getPrefix() + "-" + sedeNum;

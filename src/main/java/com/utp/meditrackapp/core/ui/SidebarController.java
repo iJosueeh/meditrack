@@ -40,39 +40,39 @@ public class SidebarController {
     private void applyRolePermissions() {
         SessionManager session = SessionManager.getInstance();
         
-        // 1. Técnico de Farmacia (Operativo)
+        // 1. Técnico de Farmacia — M7, M8, M9, M6 (salidas)
+        // No tiene: M2 (sedes), M3 (productos), M5 (entradas), M10 (reportes), usuarios
         if (session.isTecnico()) {
-            btnCatalog.setVisible(false);
-            btnCatalog.setManaged(false);
-            btnUsers.setVisible(false);
-            btnUsers.setManaged(false);
-            hideMaintenanceButtons();
+            hideButton(btnCatalog);      // Sedes
+            hideButton(btnUsers);        // Usuarios
+            hideButton(btnReports);      // Reportes
+            hideMaintenanceButtons();    // Categorias, Productos, Roles, Catálogos de Mov
         }
         
-        // 2. Químico Farmacéutico (Táctico)
+        // 2. Químico Farmacéutico (Jefe de Sede) — M2 parcial, M4, M5, M6, M7, M8, M9, M10
+        // No tiene: M3 (catálogo productos — solo admin)
         if (session.isQuimico()) {
-            btnCatalog.setVisible(false);
-            btnCatalog.setManaged(false);
-            btnUsers.setVisible(false);
-            btnUsers.setManaged(false);
-            hideMaintenanceButtons();
+            hideButton(btnCatalog);      // Sedes (solo admin)
+            hideButton(btnProductos);    // Catálogo productos (solo admin)
+            hideButton(btnRoles);        // Roles (solo admin)
+            hideButton(btnMovCatalog);   // Catálogos de movimiento (solo admin)
         }
         
-        // 3. Administrador (Estratégico)
-        if (session.isAdmin()) {
-            // Admins have access to everything, no restrictions needed
+        // 3. Administrador — acceso total, sin restricciones
+    }
+
+    private void hideButton(Button btn) {
+        if (btn != null) {
+            btn.setVisible(false);
+            btn.setManaged(false);
         }
     }
 
     private void hideMaintenanceButtons() {
-        btnCategorias.setVisible(false);
-        btnCategorias.setManaged(false);
-        btnProductos.setVisible(false);
-        btnProductos.setManaged(false);
-        btnRoles.setVisible(false);
-        btnRoles.setManaged(false);
-        btnMovCatalog.setVisible(false);
-        btnMovCatalog.setManaged(false);
+        hideButton(btnCategorias);
+        hideButton(btnProductos);
+        hideButton(btnRoles);
+        hideButton(btnMovCatalog);
     }
 
     @FXML

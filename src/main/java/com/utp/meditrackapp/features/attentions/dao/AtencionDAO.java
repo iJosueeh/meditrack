@@ -12,15 +12,29 @@ import java.util.Optional;
 public class AtencionDAO extends JdbcDaoSupport {
 
     public void insertar(Connection conn, Atencion atencion) throws SQLException {
-        String sql = "INSERT INTO atenciones (id, sede_id, paciente_id, usuario_id, numero_receta, fecha_atencion) VALUES (?, ?, ?, ?, ?, GETDATE())";
+        String sql = "INSERT INTO atenciones (id, sede_id, paciente_id, usuario_id, numero_receta, medico, fecha_atencion) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, atencion.getId());
             ps.setString(2, atencion.getSedeId());
             ps.setString(3, atencion.getPacienteId());
             ps.setString(4, atencion.getUsuarioId());
             ps.setString(5, atencion.getNumeroReceta());
+            ps.setString(6, atencion.getMedico());
             ps.executeUpdate();
         }
+    }
+
+    public boolean existeReceta(String sedeId, String numeroReceta) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM atenciones WHERE sede_id = ? AND numero_receta = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            ps.setString(2, numeroReceta);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        }
+        return false;
     }
 
     public void insertarDetalle(Connection conn, AtencionDetalle detalle) throws SQLException {
@@ -56,6 +70,21 @@ public class AtencionDAO extends JdbcDaoSupport {
             }
         }
         return Optional.empty();
+    }
+
+    public List<Atencion> buscarPorReceta(String sedeId, String numeroReceta) throws SQLException {
+        String sql = "SELECT * FROM atenciones WHERE sede_id = ? AND numero_receta LIKE ? ORDER BY fecha_atencion DESC";
+        List<Atencion> lista = new ArrayList<>();
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            ps.setString(2, "%" + numeroReceta + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapAtencion(rs));
+                }
+            }
+        }
+        return lista;
     }
 
     public List<Atencion> listarPorPaciente(String pacienteId) throws SQLException {
@@ -123,6 +152,7 @@ public class AtencionDAO extends JdbcDaoSupport {
         a.setPacienteId(rs.getString("paciente_id"));
         a.setUsuarioId(rs.getString("usuario_id"));
         a.setNumeroReceta(rs.getString("numero_receta"));
+        a.setMedico(rs.getString("medico"));
         Timestamp ts = rs.getTimestamp("fecha_atencion");
         if (ts != null) {
             a.setFechaAtencion(ts.toLocalDateTime());

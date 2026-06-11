@@ -13,10 +13,14 @@ public class DashboardDao {
     private final DatabaseConfig dbConfig = DatabaseConfig.getInstance();
 
     /**
-     * Cuenta cuántos productos tienen stock por debajo de un umbral (ej. 10 unidades).
+     * Cuenta cuántos productos tienen stock total por debajo de un umbral.
+     * Cuenta productos, no lotes individuales.
      */
     public int getStockCriticoCount(int umbral) {
-        String sql = "SELECT COUNT(*) as total FROM lotes WHERE cantidad < ?";
+        String sql = "SELECT COUNT(*) as total FROM (" +
+                     "  SELECT producto_id, SUM(cantidad) as stock_total " +
+                     "  FROM lotes GROUP BY producto_id " +
+                     ") as Resumen WHERE stock_total < ?";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, umbral);
@@ -88,39 +92,49 @@ public class DashboardDao {
     }
 
     /**
-     * Calcula la salud del inventario como un porcentaje.
-     * (Productos con stock > 10 / Total de productos) * 100
+     * Calcula la salud del inventario usando el mismo algoritmo que InventarioService.
+     * penaliza stock bajo y lotes por vencer.
      */
-    public int getSaludInventario() {
+    public int getSaludInventario(String sedeId) {
         String sql = "SELECT " +
-                     " (CAST(SUM(CASE WHEN stock_total > 10 THEN 1 ELSE 0 END) AS FLOAT) / " +
-                     "  CAST(COUNT(*) AS FLOAT)) * 100 as salud " +
+                     "  (CAST(SUM(CASE WHEN stock_total < ISNULL(s.stock_minimo, 10) THEN 1 ELSE 0 END) AS FLOAT) / " +
+                     "   CAST(COUNT(*) AS FLOAT)) * 100 as salud " +
                      "FROM ( " +
-                     "  SELECT producto_id, SUM(cantidad) as stock_total " +
-                     "  FROM lotes " +
-                     "  GROUP BY producto_id " +
-                     ") as Resumen";
+                     "  SELECT l.producto_id, SUM(l.cantidad) as stock_total " +
+                     "  FROM lotes l " +
+                     (sedeId != null ? "  WHERE l.sede_id = ? " : " ") +
+                     "  GROUP BY l.producto_id " +
+                     ") as Resumen " +
+                     "LEFT JOIN (SELECT id, stock_minimo FROM productos) s ON Resumen.producto_id = s.id";
         
         try (Connection conn = dbConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return (int) rs.getFloat("salud");
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return (int) rs.getFloat("salud");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 100;
+        return 0;
     }
 
     /**
-     * Retorna una serie de puntos por mes (periodo yyyy-MM) con total de unidades en lotes.
+     * Retorna una serie de puntos por mes (periodo yyyy-MM) con el total de unidades movidas.
+     * Usa la fecha de registro de movimientos en vez de fecha de fabricación.
      */
     public List<Map<String,Object>> getInventoryTrendMonths(int monthsBack) {
         List<Map<String,Object>> out = new LinkedList<>();
-        String sql = "SELECT FORMAT(fecha_fabricacion,'yyyy-MM') as periodo, SUM(cantidad) as total " +
-                     "FROM lotes WHERE fecha_fabricacion >= DATEADD(month, -?, GETDATE()) " +
-                     "GROUP BY FORMAT(fecha_fabricacion,'yyyy-MM') ORDER BY periodo";
+        String sql = "SELECT FORMAT(m.fecha_registro,'yyyy-MM') as periodo, " +
+                     "  SUM(CASE WHEN m.tipo_id = 'MOV-T-01' THEN m.cantidad ELSE 0 END) - " +
+                     "  SUM(CASE WHEN m.tipo_id = 'MOV-T-02' THEN m.cantidad ELSE 0 END) as total " +
+                     "FROM movimientos m " +
+                     "WHERE m.fecha_registro >= DATEADD(month, -?, GETDATE()) " +
+                     "GROUP BY FORMAT(m.fecha_registro,'yyyy-MM') ORDER BY periodo";
         try (Connection conn = dbConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, monthsBack);
             try (ResultSet rs = ps.executeQuery()) {
@@ -163,32 +177,21 @@ public class DashboardDao {
      * Calcula el valor total del inventario (suma de precio_unitario * cantidad).
      */
     public double getInventoryValue() {
-        String sqlCheck = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='productos' AND COLUMN_NAME='precio_unitario'";
-        String sqlAdd = "ALTER TABLE productos ADD precio_unitario decimal(18,2) DEFAULT 0";
-        String sqlSum = "SELECT SUM(ISNULL(p.precio_unitario,0) * l.cantidad) as valor FROM productos p JOIN lotes l ON p.id = l.producto_id";
-        try (Connection conn = dbConfig.getConnection(); Statement stmt = conn.createStatement()) {
-            try (ResultSet rsCheck = stmt.executeQuery(sqlCheck)) {
-                if (!rsCheck.next()) {
-                    try {
-                        stmt.execute(sqlAdd);
-                    } catch (SQLException e) {
-                        System.err.println("[DAO] No se pudo crear columna precio_unitario: " + e.getMessage());
-                    }
-                }
-            }
-            try (ResultSet rs = stmt.executeQuery(sqlSum)) {
-                if (rs.next()) return rs.getDouble("valor");
-            } catch (SQLException e) {
-                System.err.println("[DAO] No se pudo calcular valor por precio_unitario, usando fallback (unidades): " + e.getMessage());
-                // Fallback: sumar solo las unidades
-                try (ResultSet rs2 = stmt.executeQuery("SELECT SUM(l.cantidad) as unidades FROM lotes l")) {
-                    if (rs2.next()) return rs2.getDouble("unidades");
-                } catch (SQLException ex) {
-                    System.err.println("[DAO] Fallback también falló: " + ex.getMessage());
-                }
-            }
+        String sql = "SELECT SUM(ISNULL(p.precio_unitario,0) * l.cantidad) as valor " +
+                     "FROM productos p JOIN lotes l ON p.id = l.producto_id";
+        try (Connection conn = dbConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) return rs.getDouble("valor");
         } catch (SQLException e) {
-            e.printStackTrace();
+            // Fallback: if precio_unitario column doesn't exist, sum units only
+            try (Connection conn = dbConfig.getConnection();
+                 Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT SUM(l.cantidad) as unidades FROM lotes l")) {
+                if (rs.next()) return rs.getDouble("unidades");
+            } catch (SQLException ex) {
+                System.err.println("[DAO] Error calculando valor inventario: " + ex.getMessage());
+            }
         }
         return 0.0;
     }

@@ -104,9 +104,16 @@ public class InventarioService {
             throw new SQLException("La sede se encuentra inactiva. No se pueden registrar movimientos.");
         }
 
-        TipoMovimiento tipo = tipoMovimientoDAO.buscarPorId(tipoId)
-                .orElseThrow(() -> new SQLException("Tipo de movimiento no encontrado."));
-        boolean isEntrada = tipo.getNombre().toLowerCase().contains("entrada");
+        TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(tipoId);
+        boolean isEntrada;
+        if (tipoEnum != null) {
+            isEntrada = tipoEnum == TipoMovimientoEnum.ENTRADA;
+        } else {
+            // Dynamic type: match semantically by name from the DB
+            Optional<TipoMovimiento> tipoOpt = tipoMovimientoDAO.buscarPorId(tipoId);
+            String nombre = tipoOpt.map(TipoMovimiento::getNombre).orElse("").toLowerCase();
+            isEntrada = nombre.contains("entrada");
+        }
 
         Connection conn = null;
         try {

@@ -26,7 +26,7 @@
                             <Label text="Gestión de Inventario" styleClass="title-2" />
                             <Label text="Control centralizado de existencias y trazabilidad de lotes." styleClass="text-muted" />
                         </VBox>
-                        <Button text="Registrar Operación" onAction="#onOpenMovementModal" styleClass="button, accent">
+                        <Button fx:id="btnNewMovement" text="Registrar Operación" onAction="#onOpenMovementModal" styleClass="button, accent">
                             <graphic><FontIcon iconLiteral="fas-plus" iconColor="white" /></graphic>
                         </Button>
                     </HBox>
@@ -89,6 +89,8 @@
                                     <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
                                         <TextField fx:id="txtSearchBatch" promptText="Buscar producto, lote o DIGEMID..." prefWidth="350" onAction="#onFilterBatches" />
                                         <Button text="Buscar" onAction="#onFilterBatches" styleClass="button, sm" />
+                                        <Label text="Alerta vencimiento:" styleClass="text-muted" />
+                                        <ComboBox fx:id="cmbExpirationThreshold" prefWidth="130" onAction="#onFilterBatches" />
                                     </HBox>
 
                                     <HBox spacing="25" VBox.vgrow="ALWAYS">
@@ -143,6 +145,10 @@
                                                     <VBox spacing="5">
                                                         <Label text="LOTE DESTINO" styleClass="text-caption, text-muted" />
                                                         <ComboBox fx:id="cmbQuickBatch" maxWidth="Infinity" promptText="Seleccionar lote" />
+                                                    </VBox>
+                                                    <VBox spacing="5">
+                                                        <Label text="MOTIVO" styleClass="text-caption, text-muted" />
+                                                        <ComboBox fx:id="cmbQuickMotivo" maxWidth="Infinity" promptText="Seleccionar motivo" />
                                                     </VBox>
                                                     <VBox spacing="5">
                                                         <Label text="CANTIDAD" styleClass="text-caption, text-muted" />

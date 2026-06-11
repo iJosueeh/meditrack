@@ -39,6 +39,35 @@ public class ReportsController {
 
     @FXML private BorderPane rootPane;
     @FXML private DatePicker dpMovFrom, dpMovTo, dpDispFrom, dpDispTo;
+    @FXML private Label lblTotalProducts, lblCriticalStock, lblExpiringSoon, lblHealthScore, lblInventoryValue, lblMovements;
+
+    @javafx.fxml.FXML
+    public void initialize() {
+        loadKPIs();
+    }
+
+    private void loadKPIs() {
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            String sedeId = (user != null) ? user.getSedeId() : null;
+
+            int totalProducts = dashboardDao.getStockCriticoCount(Integer.MAX_VALUE);
+            int criticalStock = dashboardDao.getStockCriticoCount(10);
+            int expiringSoon = dashboardDao.getLotesPorVencerCount(30);
+            int health = dashboardDao.getSaludInventario(sedeId);
+            double inventoryValue = dashboardDao.getInventoryValue();
+            int movements = dashboardDao.getMovementsVolume(30);
+
+            if (lblTotalProducts != null) lblTotalProducts.setText(String.valueOf(totalProducts));
+            if (lblCriticalStock != null) lblCriticalStock.setText(String.valueOf(criticalStock));
+            if (lblExpiringSoon != null) lblExpiringSoon.setText(String.valueOf(expiringSoon));
+            if (lblHealthScore != null) lblHealthScore.setText(health + "%");
+            if (lblInventoryValue != null) lblInventoryValue.setText(String.format("S/ %,.2f", inventoryValue));
+            if (lblMovements != null) lblMovements.setText(String.valueOf(movements));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     public void onGenerateConsolidated() {
@@ -49,15 +78,12 @@ public class ReportsController {
             // 1. Gather Data
             List<MedicamentoResumen> topProducts = dashboardDao.getTopBajoStock();
             
-            // Unify total value calculation based on what the report actually shows
-            double invValue = topProducts.stream()
-                .map(p -> p.getFormattedTotalValue().replaceAll("[^\\d,.]", "").replace(",", ""))
-                .mapToDouble(Double::parseDouble)
-                .sum();
+            // Use direct calculation instead of parsing formatted strings
+            double invValue = dashboardDao.getInventoryValue();
                 
             int criticalStock = dashboardDao.getStockCriticoCount(10);
             int movementsVol = dashboardDao.getMovementsVolume(30);
-            int efficiency = dashboardDao.getSaludInventario();
+            int efficiency = dashboardDao.getSaludInventario(user.getSedeId());
 
             // 2. Charts with improved labels
             Map<String, Double> trendData = new HashMap<>();
@@ -84,7 +110,22 @@ public class ReportsController {
             vars.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
             vars.put("SEDE", SedeResolver.getSedeName(user));
             vars.put("VALOR_INVENTARIO", String.format("S/ %,.2f", invValue));
-            vars.put("CRECIMIENTO_VALOR", "+2.4% vs. mes anterior");
+
+            String crecimiento;
+            if (trendData.size() >= 2) {
+                java.util.List<Double> values = new java.util.ArrayList<>(trendData.values());
+                double prev = values.get(values.size() - 2);
+                double curr = values.get(values.size() - 1);
+                if (prev > 0) {
+                    double pct = ((curr - prev) / prev) * 100;
+                    crecimiento = String.format("%+.1f%% vs. mes anterior", pct);
+                } else {
+                    crecimiento = "N/A";
+                }
+            } else {
+                crecimiento = "N/A";
+            }
+            vars.put("CRECIMIENTO_VALOR", crecimiento);
             vars.put("ALERTAS_STOCK", criticalStock + " Críticos");
             vars.put("VOLUMEN_MOVIMIENTOS", String.format("%,d", movementsVol));
             vars.put("EFICIENCIA_OPERATIVA", efficiency + "%");

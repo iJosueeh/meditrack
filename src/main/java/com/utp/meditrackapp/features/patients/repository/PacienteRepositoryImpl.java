@@ -16,7 +16,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     @Override
     public List<Paciente> findAll() {
         List<Paciente> pacientes = new ArrayList<>();
-        String sql = "SELECT * FROM pacientes ORDER BY apellidos ASC";
+        String sql = "SELECT * FROM pacientes WHERE is_activo = 1 ORDER BY apellidos ASC";
         try (Connection conn = dbConfig.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -37,7 +37,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
         }
         
         String[] terms = query.trim().split("\\s+");
-        StringBuilder sql = new StringBuilder("SELECT * FROM pacientes WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT * FROM pacientes WHERE is_activo = 1");
         for (int i = 0; i < terms.length; i++) {
             sql.append(" AND (numero_documento LIKE ? OR nombres LIKE ? OR apellidos LIKE ?)");
         }
@@ -66,7 +66,7 @@ public class PacienteRepositoryImpl implements PacienteRepository {
 
     @Override
     public Paciente findByDocumento(String numeroDocumento) {
-        String sql = "SELECT * FROM pacientes WHERE numero_documento = ?";
+        String sql = "SELECT * FROM pacientes WHERE numero_documento = ? AND is_activo = 1";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numeroDocumento);
@@ -83,7 +83,8 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     public boolean save(Paciente paciente) {
         String sql = "INSERT INTO pacientes (id, tipo_documento, numero_documento, nombres, apellidos, telefono, is_activo) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = dbConfig.getConnection()) {
-            String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+            var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+            String sedeId = user != null ? user.getSedeId() : "SED-001";
             String id = IdGenerator.generateSedeDependentId(conn, "pacientes", EntidadPrefix.PACIENTE, sedeId, 6);
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {

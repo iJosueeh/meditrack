@@ -22,7 +22,7 @@ public class DatabaseConfig {
         String dbUser = dotenv.get("DB_USER");
         String dbPassword = dotenv.get("DB_PASSWORD");
 
-        System.out.println("[DB DEBUG] Intentando conectar a: " + dbHost + ":" + dbPort + " BD: " + dbName + " como " + dbUser);
+        System.out.println("[DB] Conectando a: " + dbHost + ":" + dbPort + " BD: " + dbName);
 
         // URL simplificada para evitar problemas de cifrado/certificados en local
         String url = String.format(
