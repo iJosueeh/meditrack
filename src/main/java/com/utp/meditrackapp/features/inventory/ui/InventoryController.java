@@ -40,6 +40,7 @@ public class InventoryController {
     @FXML private TableView<Movimiento> tableMovements;
     @FXML private TableView<Lote> tableBatches;
     @FXML private VBox alertsContainer;
+    @FXML private Button btnNewMovement;
     
     // Filters
     @FXML private TextField txtSearchMovement;
@@ -61,6 +62,9 @@ public class InventoryController {
     @FXML private ComboBox<MotivoMovimiento> cmbQuickMotivo;
     @FXML private TextField txtQuickQty, txtQuickObs;
 
+    // Expiration threshold
+    @FXML private ComboBox<Integer> cmbExpirationThreshold;
+
     // Modal fields
     @FXML private StackPane modalMovement;
     @FXML private VBox vboxEntradaDetails;
@@ -78,6 +82,19 @@ public class InventoryController {
         setupTables();
         loadInitialData();
         handleInitialSearch();
+        applyRolePermissions();
+    }
+
+    private void applyRolePermissions() {
+        // RF-05/RF-11: Solo Jefe de Sede (Químico) y Admin pueden registrar entradas
+        var user = sessionManager.getCurrentUser();
+        if (user != null) {
+            boolean canRegister = sessionManager.isAdmin() || sessionManager.isQuimico();
+            if (btnNewMovement != null) {
+                btnNewMovement.setVisible(canRegister);
+                btnNewMovement.setManaged(canRegister);
+            }
+        }
     }
 
     private void handleInitialSearch() {
@@ -185,18 +202,26 @@ public class InventoryController {
                     setText(item.toString());
                     long daysToExpiry = item.toEpochDay() - LocalDate.now().toEpochDay();
                     
+                    // RF-10: Read threshold from combo (default 30/90)
+                    int thresholdDanger = 30;
+                    int thresholdWarning = 90;
+                    if (cmbExpirationThreshold != null && cmbExpirationThreshold.getValue() != null) {
+                        thresholdDanger = cmbExpirationThreshold.getValue();
+                        thresholdWarning = thresholdDanger * 3;
+                    }
+                    
                     HBox box = new HBox(8);
                     box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                     Label label = new Label(item.toString());
                     FontIcon icon = new FontIcon();
                     
-                    if (daysToExpiry <= 30) {
+                    if (daysToExpiry <= thresholdDanger) {
                         icon.setIconLiteral("fas-exclamation-circle");
                         icon.getStyleClass().add("icon-danger");
                         label.getStyleClass().add("text-danger");
                         box.getChildren().addAll(icon, label);
                         setGraphic(box);
-                    } else if (daysToExpiry <= 90) {
+                    } else if (daysToExpiry <= thresholdWarning) {
                         icon.setIconLiteral("fas-exclamation-triangle");
                         icon.getStyleClass().add("icon-warning");
                         label.setStyle("-fx-text-fill: -color-warning-fg;");
@@ -265,6 +290,10 @@ public class InventoryController {
 
             refreshQuickBatchCombo();
 
+            // RF-10: Configurable expiration thresholds
+            cmbExpirationThreshold.setItems(FXCollections.observableArrayList(30, 60, 90));
+            cmbExpirationThreshold.getSelectionModel().selectFirst(); // Default: 30 days
+
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Error", "No se pudieron cargar los datos iniciales: " + e.getMessage());
@@ -325,6 +354,23 @@ public class InventoryController {
             cmbModalBatch.setConverter(new StringConverter<>() {
                 @Override public String toString(Lote l) { return l != null ? l.getNumeroLote() : ""; }
                 @Override public Lote fromString(String s) { return null; }
+            });
+            cmbModalBatch.setCellFactory(cb -> new javafx.scene.control.ListCell<>() {
+                @Override
+                protected void updateItem(Lote item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText(item.getNumeroLote() + " (vence: " + item.getFechaVencimiento() + ")");
+                        if (getIndex() == 0) {
+                            setStyle("-fx-font-weight: bold; -fx-text-fill: #2ea043;");
+                        } else {
+                            setStyle("");
+                        }
+                    }
+                }
             });
         } catch (SQLException e) { e.printStackTrace(); }
     }

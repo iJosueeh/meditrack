@@ -127,6 +127,15 @@ public class AtencionService {
         }
     }
 
+    public List<Atencion> buscarHistorialPorReceta(String sedeId, String numeroReceta) {
+        try {
+            return atencionDAO.buscarPorReceta(sedeId, numeroReceta);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
     /**
      * Sugiere qué lotes utilizar siguiendo la lógica FEFO (First Expire, First Out).
      */

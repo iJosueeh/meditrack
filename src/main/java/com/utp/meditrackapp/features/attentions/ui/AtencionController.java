@@ -34,7 +34,7 @@ public class AtencionController {
     private final HtmlReportService reportService = new HtmlReportService();
 
     // Patient & Prescription
-    @FXML private TextField txtPacienteDni, txtReceta, txtMedico;
+    @FXML private TextField txtPacienteDni, txtReceta, txtMedico, txtSearchReceta;
     @FXML private DatePicker dpFromDate, dpToDate;
     @FXML private Label lblPatientName, lblPatientPhone;
     @FXML private VBox vboxPatientInfo;
@@ -177,6 +177,36 @@ public class AtencionController {
             vboxPatientInfo.setVisible(false);
             vboxPatientInfo.setManaged(false);
             showAlert(Alert.AlertType.ERROR, "No Encontrado", "No se encontró un paciente con ese DNI.");
+        }
+    }
+
+    @FXML
+    protected void onSearchByReceta() {
+        String receta = txtSearchReceta.getText();
+        if (receta == null || receta.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un número de receta para buscar.");
+            return;
+        }
+
+        Usuario user = sessionManager.getCurrentUser();
+        if (user == null) return;
+
+        List<Atencion> results = atencionService.buscarHistorialPorReceta(user.getSedeId(), receta);
+        ObservableList<String> historyStrings = FXCollections.observableArrayList();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        for (Atencion a : results) {
+            historyStrings.add(a.getFechaAtencion().format(formatter) + " - Receta: " + a.getNumeroReceta());
+        }
+
+        if (historyStrings.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "Sin Resultados", "No se encontraron atenciones con la receta " + receta);
+        } else {
+            listHistory.setItems(historyStrings);
+            vboxPatientInfo.setVisible(true);
+            vboxPatientInfo.setManaged(true);
+            lblPatientName.setText("Búsqueda por receta: " + receta);
+            lblPatientPhone.setText(results.size() + " resultado(s) encontrado(s)");
         }
     }
 

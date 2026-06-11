@@ -72,6 +72,21 @@ public class AtencionDAO extends JdbcDaoSupport {
         return Optional.empty();
     }
 
+    public List<Atencion> buscarPorReceta(String sedeId, String numeroReceta) throws SQLException {
+        String sql = "SELECT * FROM atenciones WHERE sede_id = ? AND numero_receta LIKE ? ORDER BY fecha_atencion DESC";
+        List<Atencion> lista = new ArrayList<>();
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            ps.setString(2, "%" + numeroReceta + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapAtencion(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
     public List<Atencion> listarPorPaciente(String pacienteId) throws SQLException {
         List<Atencion> lista = new ArrayList<>();
         String sql = "SELECT * FROM atenciones WHERE paciente_id = ? ORDER BY fecha_atencion DESC";

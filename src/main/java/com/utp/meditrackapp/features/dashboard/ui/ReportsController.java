@@ -39,6 +39,35 @@ public class ReportsController {
 
     @FXML private BorderPane rootPane;
     @FXML private DatePicker dpMovFrom, dpMovTo, dpDispFrom, dpDispTo;
+    @FXML private Label lblTotalProducts, lblCriticalStock, lblExpiringSoon, lblHealthScore, lblInventoryValue, lblMovements;
+
+    @javafx.fxml.FXML
+    public void initialize() {
+        loadKPIs();
+    }
+
+    private void loadKPIs() {
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            String sedeId = (user != null) ? user.getSedeId() : null;
+
+            int totalProducts = dashboardDao.getStockCriticoCount(Integer.MAX_VALUE);
+            int criticalStock = dashboardDao.getStockCriticoCount(10);
+            int expiringSoon = dashboardDao.getLotesPorVencerCount(30);
+            int health = dashboardDao.getSaludInventario(sedeId);
+            double inventoryValue = dashboardDao.getInventoryValue();
+            int movements = dashboardDao.getMovementsVolume(30);
+
+            if (lblTotalProducts != null) lblTotalProducts.setText(String.valueOf(totalProducts));
+            if (lblCriticalStock != null) lblCriticalStock.setText(String.valueOf(criticalStock));
+            if (lblExpiringSoon != null) lblExpiringSoon.setText(String.valueOf(expiringSoon));
+            if (lblHealthScore != null) lblHealthScore.setText(health + "%");
+            if (lblInventoryValue != null) lblInventoryValue.setText(String.format("S/ %,.2f", inventoryValue));
+            if (lblMovements != null) lblMovements.setText(String.valueOf(movements));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     public void onGenerateConsolidated() {
