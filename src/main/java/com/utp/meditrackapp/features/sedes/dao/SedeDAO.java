@@ -1,18 +1,22 @@
 package com.utp.meditrackapp.features.sedes.dao;
 
-import com.utp.meditrackapp.core.config.DatabaseConfig;
+import com.utp.meditrackapp.core.dao.JdbcDaoSupport;
 import com.utp.meditrackapp.core.models.entity.Sede;
+import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
+import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.features.sedes.models.SedeDetalleDTO;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SedeDAO {
+public class SedeDAO extends JdbcDaoSupport {
 
     public Optional<Sede> buscarPorId(String id) throws SQLException {
         String sql = "SELECT * FROM sedes WHERE id = ?";
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -33,7 +37,6 @@ public class SedeDAO {
 
     public List<SedeDetalleDTO> getAllWithDetails() throws SQLException {
         List<SedeDetalleDTO> list = new ArrayList<>();
-        // Query que identifica al admin por rol (ROL-001) y cuenta personal
         String sql = "SELECT s.*, " +
                      "(SELECT TOP 1 (u.nombres + ' ' + u.apellidos) " +
                      " FROM usuarios u " +
@@ -49,7 +52,7 @@ public class SedeDAO {
                      "(SELECT COUNT(*) FROM lotes l WHERE l.sede_id = s.id AND l.cantidad < 10) as critico_count " +
                      "FROM sedes s ORDER BY s.nombre";
 
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -64,9 +67,8 @@ public class SedeDAO {
                 dto.setAdministradorId(rs.getString("admin_id"));
                 dto.setTotalEmpleados(rs.getInt("emp_count"));
                 dto.setItemsCriticos(rs.getInt("critico_count"));
-                dto.setTelefono(rs.getString("telefono")); // Recuperar teléfono
+                dto.setTelefono(rs.getString("telefono"));
 
-                // Lógica de estado de inventario
                 if (dto.getItemsCriticos() > 5) dto.setEstadoInventario("Crítico");
                 else if (dto.getItemsCriticos() > 0) dto.setEstadoInventario("Bajo Stock");
                 else dto.setEstadoInventario("Óptimo");
@@ -77,17 +79,17 @@ public class SedeDAO {
         return list;
     }
 
-    public List<com.utp.meditrackapp.core.models.entity.Usuario> getStaffBySede(String sedeId) throws SQLException {
+    public List<Usuario> getStaffBySede(String sedeId) throws SQLException {
         String sql = "SELECT u.*, r.nombre as rol_nombre FROM usuarios u " +
                      "JOIN roles r ON u.rol_id = r.id " +
                      "WHERE u.sede_id = ? AND u.is_activo = 1";
-        List<com.utp.meditrackapp.core.models.entity.Usuario> staff = new ArrayList<>();
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        List<Usuario> staff = new ArrayList<>();
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sedeId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    com.utp.meditrackapp.core.models.entity.Usuario u = new com.utp.meditrackapp.core.models.entity.Usuario(
+                    Usuario u = new Usuario(
                         rs.getString("id"), rs.getString("sede_id"), rs.getString("rol_id"),
                         rs.getString("tipo_documento"), rs.getString("numero_documento"),
                         rs.getString("nombres"), rs.getString("apellidos"), null, rs.getInt("is_activo")
@@ -102,7 +104,7 @@ public class SedeDAO {
 
     public boolean assignUserToSede(String userId, String sedeId, String rolId) throws SQLException {
         String sql = "UPDATE usuarios SET sede_id = ?, rol_id = ? WHERE id = ?";
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sedeId);
             ps.setString(2, rolId);
@@ -113,7 +115,7 @@ public class SedeDAO {
 
     public int getTotalEmployeesGlobal() throws SQLException {
         String sql = "SELECT COUNT(*) FROM usuarios";
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             return rs.next() ? rs.getInt(1) : 0;
@@ -121,34 +123,50 @@ public class SedeDAO {
     }
 
     public boolean save(Sede sede) throws SQLException {
-        try (Connection conn = DatabaseConfig.getInstance().getConnection()) {
+        validarSede(sede);
+        try (Connection conn = getConnection()) {
             if (sede.getId() == null || sede.getId().isBlank()) {
-                sede.setId(com.utp.meditrackapp.core.util.IdGenerator.generateId(conn, "sedes", com.utp.meditrackapp.core.models.enums.EntidadPrefix.SEDE, 3));
+                sede.setId(IdGenerator.generateId(conn, "sedes", EntidadPrefix.SEDE, 3));
             }
-            String tel = (sede instanceof SedeDetalleDTO) ? ((SedeDetalleDTO) sede).getTelefono() : null;
             String sql = "INSERT INTO sedes (id, nombre, direccion, is_activa, telefono) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, sede.getId());
                 ps.setString(2, sede.getNombre());
                 ps.setString(3, sede.getDireccion());
                 ps.setInt(4, sede.getIsActiva());
-                ps.setString(5, tel);
+                ps.setString(5, sede.getTelefono());
                 return ps.executeUpdate() > 0;
             }
         }
     }
 
     public boolean update(Sede sede) throws SQLException {
-        String tel = (sede instanceof SedeDetalleDTO) ? ((SedeDetalleDTO) sede).getTelefono() : null;
+        validarSede(sede);
         String sql = "UPDATE sedes SET nombre = ?, direccion = ?, is_activa = ?, telefono = ? WHERE id = ?";
-        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sede.getNombre());
             ps.setString(2, sede.getDireccion());
             ps.setInt(3, sede.getIsActiva());
-            ps.setString(4, tel);
+            ps.setString(4, sede.getTelefono());
             ps.setString(5, sede.getId());
             return ps.executeUpdate() > 0;
+        }
+    }
+
+    private void validarSede(Sede sede) {
+        if (sede == null) {
+            throw new IllegalArgumentException("Los datos de la sede son obligatorios.");
+        }
+        if (sede.getNombre() == null || sede.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de la sede es obligatorio.");
+        }
+        if (sede.getDireccion() == null || sede.getDireccion().trim().isEmpty()) {
+            throw new IllegalArgumentException("La dirección de la sede es obligatoria.");
+        }
+        String tel = sede.getTelefono();
+        if (tel == null || tel.trim().length() != 9 || !tel.trim().matches("\\d+")) {
+            throw new IllegalArgumentException("El teléfono debe tener exactamente 9 dígitos numéricos.");
         }
     }
 }
