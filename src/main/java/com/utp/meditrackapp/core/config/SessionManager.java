@@ -2,17 +2,14 @@ package com.utp.meditrackapp.core.config;
 
 import com.utp.meditrackapp.core.models.entity.Usuario;
 public class SessionManager {
-    private static SessionManager instance;
-    private Usuario currentUser;
+    private static final SessionManager instance = new SessionManager();
+    private volatile Usuario currentUser;
 
     private SessionManager() {
        
     }
     
-    public static synchronized SessionManager getInstance() {
-        if (instance == null) {
-            instance = new SessionManager();
-        }
+    public static SessionManager getInstance() {
         return instance;
     }
 

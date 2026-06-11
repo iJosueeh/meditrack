@@ -96,10 +96,11 @@ public class ProductoController {
                     setText(item.toString());
                     Producto p = getTableRow().getItem();
                     if (p != null && p.getStockMinimo() != null && item < p.getStockMinimo()) {
+                        getStyleClass().removeAll("text-danger");
                         getStyleClass().add("text-danger");
                         setStyle("-fx-font-weight: bold;");
                     } else {
-                        getStyleClass().remove("text-danger");
+                        getStyleClass().removeAll("text-danger");
                         setStyle("");
                     }
                 }

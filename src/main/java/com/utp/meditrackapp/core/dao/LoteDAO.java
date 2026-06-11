@@ -136,11 +136,7 @@ public class LoteDAO extends JdbcDaoSupport {
         try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             int index = 1;
             statement.setInt(index++, STOCK_MINIMO_DEFAULT);
-            if (hasStockMinimoColumn()) {
-                statement.setString(index++, sedeId);
-            } else {
-                statement.setString(index++, sedeId);
-            }
+            statement.setString(index++, sedeId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -285,8 +281,8 @@ public class LoteDAO extends JdbcDaoSupport {
         lote.setCantidad(resultSet.getInt("cantidad"));
         
         // Map transient fields if present
-        try { lote.setProductoNombre(resultSet.getString("producto_nombre")); } catch (SQLException e) {}
-        try { lote.setCodigoDigemid(resultSet.getString("codigo_digemid")); } catch (SQLException e) {}
+        try { lote.setProductoNombre(resultSet.getString("producto_nombre")); } catch (SQLException ignored) {}
+        try { lote.setCodigoDigemid(resultSet.getString("codigo_digemid")); } catch (SQLException ignored) {}
         
         return lote;
     }

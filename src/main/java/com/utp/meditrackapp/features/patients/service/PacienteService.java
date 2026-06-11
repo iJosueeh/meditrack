@@ -59,9 +59,9 @@ public class PacienteService {
     }
 
     public int getContadorTotal() {
-        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
-        // Assuming PacienteRepository doesn't have this, I might need to cast or add to interface.
-        // For now, I'll use the impl directly if it's safe or just add to interface.
+        var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        if (user == null) return 0;
+        String sedeId = user.getSedeId();
         if (pacienteRepository instanceof PacienteRepositoryImpl) {
             return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTotal(sedeId);
         }
@@ -69,13 +69,15 @@ public class PacienteService {
     }
 
     public int getAtendidosHoy() {
-        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
-        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTodayAttentions(sedeId);
+        var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        if (user == null) return 0;
+        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countTodayAttentions(user.getSedeId());
     }
 
     public int getNuevosDelMes() {
-        String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
-        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countNewPatientsMonth(sedeId);
+        var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        if (user == null) return 0;
+        return new com.utp.meditrackapp.features.patients.Dao.PacienteDao().countNewPatientsMonth(user.getSedeId());
     }
 
     private String validarDocumento(String tipo, String numero) {

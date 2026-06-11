@@ -83,7 +83,8 @@ public class PacienteRepositoryImpl implements PacienteRepository {
     public boolean save(Paciente paciente) {
         String sql = "INSERT INTO pacientes (id, tipo_documento, numero_documento, nombres, apellidos, telefono, is_activo) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = dbConfig.getConnection()) {
-            String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+            var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+            String sedeId = user != null ? user.getSedeId() : "SED-001";
             String id = IdGenerator.generateSedeDependentId(conn, "pacientes", EntidadPrefix.PACIENTE, sedeId, 6);
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {

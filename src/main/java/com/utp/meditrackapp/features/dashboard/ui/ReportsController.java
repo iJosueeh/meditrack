@@ -84,7 +84,22 @@ public class ReportsController {
             vars.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
             vars.put("SEDE", SedeResolver.getSedeName(user));
             vars.put("VALOR_INVENTARIO", String.format("S/ %,.2f", invValue));
-            vars.put("CRECIMIENTO_VALOR", "+2.4% vs. mes anterior");
+
+            String crecimiento;
+            if (trendData.size() >= 2) {
+                java.util.List<Double> values = new java.util.ArrayList<>(trendData.values());
+                double prev = values.get(values.size() - 2);
+                double curr = values.get(values.size() - 1);
+                if (prev > 0) {
+                    double pct = ((curr - prev) / prev) * 100;
+                    crecimiento = String.format("%+.1f%% vs. mes anterior", pct);
+                } else {
+                    crecimiento = "N/A";
+                }
+            } else {
+                crecimiento = "N/A";
+            }
+            vars.put("CRECIMIENTO_VALOR", crecimiento);
             vars.put("ALERTAS_STOCK", criticalStock + " Críticos");
             vars.put("VOLUMEN_MOVIMIENTOS", String.format("%,d", movementsVol));
             vars.put("EFICIENCIA_OPERATIVA", efficiency + "%");

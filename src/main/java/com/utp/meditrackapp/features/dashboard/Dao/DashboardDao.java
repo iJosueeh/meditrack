@@ -163,32 +163,21 @@ public class DashboardDao {
      * Calcula el valor total del inventario (suma de precio_unitario * cantidad).
      */
     public double getInventoryValue() {
-        String sqlCheck = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='productos' AND COLUMN_NAME='precio_unitario'";
-        String sqlAdd = "ALTER TABLE productos ADD precio_unitario decimal(18,2) DEFAULT 0";
-        String sqlSum = "SELECT SUM(ISNULL(p.precio_unitario,0) * l.cantidad) as valor FROM productos p JOIN lotes l ON p.id = l.producto_id";
-        try (Connection conn = dbConfig.getConnection(); Statement stmt = conn.createStatement()) {
-            try (ResultSet rsCheck = stmt.executeQuery(sqlCheck)) {
-                if (!rsCheck.next()) {
-                    try {
-                        stmt.execute(sqlAdd);
-                    } catch (SQLException e) {
-                        System.err.println("[DAO] No se pudo crear columna precio_unitario: " + e.getMessage());
-                    }
-                }
-            }
-            try (ResultSet rs = stmt.executeQuery(sqlSum)) {
-                if (rs.next()) return rs.getDouble("valor");
-            } catch (SQLException e) {
-                System.err.println("[DAO] No se pudo calcular valor por precio_unitario, usando fallback (unidades): " + e.getMessage());
-                // Fallback: sumar solo las unidades
-                try (ResultSet rs2 = stmt.executeQuery("SELECT SUM(l.cantidad) as unidades FROM lotes l")) {
-                    if (rs2.next()) return rs2.getDouble("unidades");
-                } catch (SQLException ex) {
-                    System.err.println("[DAO] Fallback también falló: " + ex.getMessage());
-                }
-            }
+        String sql = "SELECT SUM(ISNULL(p.precio_unitario,0) * l.cantidad) as valor " +
+                     "FROM productos p JOIN lotes l ON p.id = l.producto_id";
+        try (Connection conn = dbConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) return rs.getDouble("valor");
         } catch (SQLException e) {
-            e.printStackTrace();
+            // Fallback: if precio_unitario column doesn't exist, sum units only
+            try (Connection conn = dbConfig.getConnection();
+                 Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT SUM(l.cantidad) as unidades FROM lotes l")) {
+                if (rs.next()) return rs.getDouble("unidades");
+            } catch (SQLException ex) {
+                System.err.println("[DAO] Error calculando valor inventario: " + ex.getMessage());
+            }
         }
         return 0.0;
     }

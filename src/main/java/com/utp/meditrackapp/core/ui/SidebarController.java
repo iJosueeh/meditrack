@@ -141,6 +141,7 @@ public class SidebarController {
 
     @FXML
     protected void onLogout() throws IOException {
+        com.utp.meditrackapp.core.session.SessionContext.clear();
         com.utp.meditrackapp.core.config.SessionManager.getInstance().logout();
         NavigationService.toLogin();
     }

@@ -212,14 +212,18 @@ public class AtencionController {
             int qty = Integer.parseInt(qtyStr);
             if (qty <= 0) throw new NumberFormatException();
 
-            String sedeId = sessionManager.getCurrentUser().getSedeId();
-            // Implement logic to find FEFO batches and add to basket
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) {
+                showAlert(Alert.AlertType.ERROR, "Sesión", "No hay una sesión activa.");
+                return;
+            }
+            String sedeId = user.getSedeId();
+
+            List<Lote> lotesDisponibles = inventarioService.listarLotesConProducto(sedeId);
             List<AtencionDetalle> suggestions = atencionService.sugerirDispensacion(sedeId, p.getId(), qty);
             
             for (AtencionDetalle det : suggestions) {
-                // To show in UI, we should fetch batch number
-                // Fetching batch info for display
-                Optional<Lote> loteOpt = inventarioService.listarLotesConProducto(sedeId).stream()
+                Optional<Lote> loteOpt = lotesDisponibles.stream()
                     .filter(l -> l.getId().equals(det.getLoteId()))
                     .findFirst();
                 

@@ -252,7 +252,11 @@ public class InventoryController {
 
             refreshQuickBatchCombo();
 
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Error", "No se pudieron cargar los datos iniciales: " + e.getMessage());
+            return;
+        }
         refreshMovements();
         refreshBatches();
     }
@@ -300,7 +304,9 @@ public class InventoryController {
     private void loadBatchesForProduct(Producto p) {
         if (p == null) return;
         try {
-            String sedeId = sessionManager.getCurrentUser().getSedeId();
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            String sedeId = user.getSedeId();
             List<Lote> lotes = inventarioService.listarLotesFefo(sedeId, p.getId());
             cmbModalBatch.setItems(FXCollections.observableArrayList(lotes));
             cmbModalBatch.setConverter(new StringConverter<>() {
