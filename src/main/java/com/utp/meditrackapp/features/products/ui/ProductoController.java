@@ -279,6 +279,24 @@ public class ProductoController {
 
     private void confirmDelete(Producto p) {
         if (p == null) return;
+
+        // Verificar si tiene stock activo antes de desactivar
+        try {
+            var user = SessionManager.getInstance().getCurrentUser();
+            String sedeId = user != null ? user.getSedeId() : null;
+            if (sedeId != null) {
+                int stock = loteDAO.obtenerStockTotal(sedeId, p.getId());
+                if (stock > 0) {
+                    showAlert(Alert.AlertType.WARNING, "Stock Activo",
+                        "El producto \"" + p.getNombre() + "\" tiene " + stock + " unidades en stock. No se puede desactivar mientras tenga inventario.");
+                    return;
+                }
+            }
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo verificar el stock del producto.");
+            return;
+        }
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea desactivar el producto " + p.getNombre() + "?", ButtonType.YES, ButtonType.NO);
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {

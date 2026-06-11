@@ -48,17 +48,12 @@ public class SeedDataLoader {
                 for (String batch : batches) {
                     String s = batch.trim();
                     if (s.isEmpty()) continue;
-                    // Ejecutar cada statement individualmente
-                    try {
-                        stmt.execute(s);
-                    } catch (SQLException e) {
-                        System.err.println("[SEED] Error ejecutando batch: " + e.getMessage());
-                    }
+                    stmt.execute(s);
                 }
                 conn.commit();
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 conn.rollback();
-                throw e;
+                throw new SQLException("Error cargando seed data: " + e.getMessage(), e);
             } finally {
                 conn.setAutoCommit(true);
             }

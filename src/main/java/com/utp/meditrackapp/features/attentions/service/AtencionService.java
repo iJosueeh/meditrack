@@ -41,6 +41,10 @@ public class AtencionService {
         if (!isAuthorized(user)) return "No tiene permisos para esta operación.";
 
         atencion.setUsuarioId(user.getId());
+        // Usar siempre la sede del usuario en sesión
+        if (atencion.getSedeId() != null && !atencion.getSedeId().equals(user.getSedeId())) {
+            System.err.println("[ATTN] SedeId del request (" + atencion.getSedeId() + ") difiere de la sesión (" + user.getSedeId() + "). Usando sede de sesión.");
+        }
         atencion.setSedeId(user.getSedeId());
 
         try {
@@ -55,6 +59,15 @@ public class AtencionService {
         if (atencion.getPacienteId() == null || atencion.getPacienteId().isEmpty()) return "El paciente es obligatorio.";
         if (detalles == null || detalles.isEmpty()) return "Debe agregar medicamentos.";
         if (atencion.getNumeroReceta() == null || atencion.getNumeroReceta().trim().isEmpty()) return "La receta es obligatoria.";
+
+        // Verificar número de receta duplicado
+        try {
+            if (atencionDAO.existeReceta(atencion.getSedeId(), atencion.getNumeroReceta().trim())) {
+                return "Ya existe una atención registrada con el número de receta " + atencion.getNumeroReceta().trim() + " en esta sede.";
+            }
+        } catch (SQLException e) {
+            return "Error al validar el número de receta: " + e.getMessage();
+        }
 
         Connection conn = null;
         try {
@@ -147,6 +160,10 @@ public class AtencionService {
         return atencionDAO.listarDispensacionesReporte(sedeId, desde, hasta);
     }
 
+    /**
+     * Verifica si el usuario tiene permisos para registrar atenciones.
+     * Nota: El rol Técnico (ROL-003) tiene permisos de dispensación por diseño del sistema.
+     */
     private boolean isAuthorized(Usuario user) {
         return sessionManager.isAdmin() || sessionManager.isQuimico() || sessionManager.isTecnico();
     }

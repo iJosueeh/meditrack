@@ -269,8 +269,27 @@ public class AtencionController {
         Atencion a = new Atencion();
         a.setPacienteId(currentPaciente.getId());
         a.setNumeroReceta(txtReceta.getText().trim());
-        // Medico could be added to table but using reciept notes for now or extra field
-        
+        a.setMedico(txtMedico.getText().trim());
+
+        // Re-validar stock antes de confirmar (FEFO)
+        try {
+            String sedeId = sessionManager.getCurrentUser().getSedeId();
+            List<Lote> lotesActuales = inventarioService.listarLotesConProducto(sedeId);
+            for (AtencionDetalle det : basketItems) {
+                Optional<Lote> loteActual = lotesActuales.stream()
+                    .filter(l -> l.getId().equals(det.getLoteId()))
+                    .findFirst();
+                if (loteActual.isEmpty() || loteActual.get().getCantidad() < det.getCantidadEntregada()) {
+                    showAlert(Alert.AlertType.WARNING, "Stock Cambiado",
+                        "El lote " + det.getLoteNumero() + " ya no tiene stock suficiente. Por favor actualice la canasta.");
+                    return;
+                }
+            }
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo validar el stock actual.");
+            return;
+        }
+
         String result = atencionService.registrarAtencion(a, new ArrayList<>(basketItems));
         
         if (result.equals("OK")) {

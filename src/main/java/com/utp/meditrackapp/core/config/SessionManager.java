@@ -30,18 +30,14 @@ public class SessionManager {
      }
 
      public boolean isTecnico() {
-         return isLoggedIn() && currentUser.getRolNombre() != null && 
-                currentUser.getRolNombre().toLowerCase().contains("tecnic");
+         return isLoggedIn() && "ROL-003".equals(currentUser.getRolId());
      }
 
      public boolean isQuimico() {
-         return isLoggedIn() && currentUser.getRolNombre() != null && 
-                (currentUser.getRolNombre().toLowerCase().contains("farmac") || 
-                 currentUser.getRolNombre().toLowerCase().contains("quimic"));
+         return isLoggedIn() && "ROL-002".equals(currentUser.getRolId());
      }
 
      public boolean isAdmin() {
-         return isLoggedIn() && currentUser.getRolNombre() != null && 
-                currentUser.getRolNombre().toLowerCase().contains("admin");
+         return isLoggedIn() && "ROL-001".equals(currentUser.getRolId());
      }
 }

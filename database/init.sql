@@ -106,6 +106,7 @@ CREATE TABLE [atenciones] (
 [paciente_id] varchar(50),
 [usuario_id] varchar(50),
 [numero_receta] varchar(100),
+[medico] varchar(255),
 [fecha_atencion] datetime DEFAULT GETDATE()
 );
 

@@ -145,6 +145,10 @@
                                                         <ComboBox fx:id="cmbQuickBatch" maxWidth="Infinity" promptText="Seleccionar lote" />
                                                     </VBox>
                                                     <VBox spacing="5">
+                                                        <Label text="MOTIVO" styleClass="text-caption, text-muted" />
+                                                        <ComboBox fx:id="cmbQuickMotivo" maxWidth="Infinity" promptText="Seleccionar motivo" />
+                                                    </VBox>
+                                                    <VBox spacing="5">
                                                         <Label text="CANTIDAD" styleClass="text-caption, text-muted" />
                                                         <TextField fx:id="txtQuickQty" promptText="0" />
                                                     </VBox>

@@ -4,7 +4,6 @@ import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
 import com.utp.meditrackapp.core.models.entity.Lote;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
 import com.utp.meditrackapp.core.service.InventoryRules;
-import com.utp.meditrackapp.core.session.SessionContext;
 import com.utp.meditrackapp.core.util.IdGenerator;
 
 import java.sql.Connection;

@@ -130,16 +130,6 @@ public class PacienteDao {
     }
 
     public int countTotal(String sedeId) {
-        if (sedeId != null && !sedeId.isEmpty()) {
-            String sql = "SELECT COUNT(DISTINCT a.paciente_id) FROM atenciones a JOIN pacientes p ON a.paciente_id = p.id WHERE a.sede_id = ? AND p.is_activo = 1";
-            try (Connection conn = dbConfig.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, sedeId);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) return rs.getInt(1);
-                }
-            } catch (SQLException e) { e.printStackTrace(); }
-            return 0;
-        }
         String sql = "SELECT COUNT(*) FROM pacientes WHERE is_activo = 1";
         try (Connection conn = dbConfig.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) return rs.getInt(1);

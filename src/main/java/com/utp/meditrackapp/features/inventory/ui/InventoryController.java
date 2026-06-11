@@ -58,6 +58,7 @@ public class InventoryController {
     // Quick Registration
     @FXML private ComboBox<TipoMovimiento> cmbQuickType;
     @FXML private ComboBox<Lote> cmbQuickBatch;
+    @FXML private ComboBox<MotivoMovimiento> cmbQuickMotivo;
     @FXML private TextField txtQuickQty, txtQuickObs;
 
     // Modal fields
@@ -235,6 +236,18 @@ public class InventoryController {
             cmbModalType.setConverter(tipoConverter);
             cmbQuickType.setConverter(tipoConverter);
             cmbMovementType.setConverter(tipoConverter);
+            
+            // Initialize motivo combo for quick update
+            try {
+                List<MotivoMovimiento> motivos = inventarioService.listarMotivosMovimiento();
+                cmbQuickMotivo.setItems(FXCollections.observableArrayList(motivos));
+                cmbQuickMotivo.setConverter(new StringConverter<>() {
+                    @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
+                    @Override public MotivoMovimiento fromString(String s) { return null; }
+                });
+            } catch (SQLException e) {
+                System.err.println("[INV] Error cargando motivos: " + e.getMessage());
+            }
             
             cmbModalProduct.setConverter(new StringConverter<>() {
                 @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
@@ -414,8 +427,11 @@ public class InventoryController {
                 return;
             }
 
-            boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
-            String motivoId = isEntrada ? MotivoMovimientoEnum.COMPRA.getId() : MotivoMovimientoEnum.MERMA.getId();
+            TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(selectedType.getId());
+            boolean isEntrada = tipoEnum == TipoMovimientoEnum.ENTRADA;
+            MotivoMovimiento selectedMotivo = cmbQuickMotivo.getValue();
+            String motivoId = selectedMotivo != null ? selectedMotivo.getId()
+                : (isEntrada ? MotivoMovimientoEnum.COMPRA.getId() : MotivoMovimientoEnum.MERMA.getId());
             Usuario user = sessionManager.getCurrentUser();
 
             inventarioService.registrarMovimiento(lote, user.getId(), selectedType.getId(), motivoId, cantidad, txtQuickObs.getText());

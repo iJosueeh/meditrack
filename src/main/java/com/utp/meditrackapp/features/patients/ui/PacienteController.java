@@ -278,10 +278,11 @@ public class PacienteController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            if (pacienteService.eliminarPaciente(p.getId())) {
+            String resultMsg = pacienteService.eliminarPaciente(p.getId());
+            if ("OK".equals(resultMsg)) {
                 loadPatients();
             } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo dar de baja al paciente.");
+                showAlert(Alert.AlertType.WARNING, "No se pudo desactivar", resultMsg);
             }
         }
     }

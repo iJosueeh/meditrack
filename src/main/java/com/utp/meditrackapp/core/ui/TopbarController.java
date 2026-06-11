@@ -161,7 +161,6 @@ public class TopbarController {
 
     @FXML
     protected void onLogout() throws IOException {
-        com.utp.meditrackapp.core.session.SessionContext.clear();
         SessionManager.getInstance().logout();
         NavigationService.toLogin();
     }

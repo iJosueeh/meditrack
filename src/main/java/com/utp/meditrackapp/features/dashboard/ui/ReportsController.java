@@ -49,15 +49,12 @@ public class ReportsController {
             // 1. Gather Data
             List<MedicamentoResumen> topProducts = dashboardDao.getTopBajoStock();
             
-            // Unify total value calculation based on what the report actually shows
-            double invValue = topProducts.stream()
-                .map(p -> p.getFormattedTotalValue().replaceAll("[^\\d,.]", "").replace(",", ""))
-                .mapToDouble(Double::parseDouble)
-                .sum();
+            // Use direct calculation instead of parsing formatted strings
+            double invValue = dashboardDao.getInventoryValue();
                 
             int criticalStock = dashboardDao.getStockCriticoCount(10);
             int movementsVol = dashboardDao.getMovementsVolume(30);
-            int efficiency = dashboardDao.getSaludInventario();
+            int efficiency = dashboardDao.getSaludInventario(user.getSedeId());
 
             // 2. Charts with improved labels
             Map<String, Double> trendData = new HashMap<>();
