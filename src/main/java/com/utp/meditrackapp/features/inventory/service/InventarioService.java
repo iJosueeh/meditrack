@@ -105,10 +105,15 @@ public class InventarioService {
         }
 
         TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(tipoId);
-        if (tipoEnum == null) {
-            throw new SQLException("Tipo de movimiento no válido: " + tipoId);
+        boolean isEntrada;
+        if (tipoEnum != null) {
+            isEntrada = tipoEnum == TipoMovimientoEnum.ENTRADA;
+        } else {
+            // Dynamic type: match semantically by name from the DB
+            Optional<TipoMovimiento> tipoOpt = tipoMovimientoDAO.buscarPorId(tipoId);
+            String nombre = tipoOpt.map(TipoMovimiento::getNombre).orElse("").toLowerCase();
+            isEntrada = nombre.contains("entrada");
         }
-        boolean isEntrada = tipoEnum == TipoMovimientoEnum.ENTRADA;
 
         Connection conn = null;
         try {
