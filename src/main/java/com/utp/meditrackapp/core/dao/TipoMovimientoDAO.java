@@ -71,11 +71,31 @@ public class TipoMovimientoDAO extends JdbcDaoSupport {
     }
 
     public void eliminar(String id) throws SQLException {
-        String sql = "DELETE FROM tipos_movimiento WHERE id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
-            ps.executeUpdate();
+        String checkSql = "SELECT COUNT(*) FROM movimientos WHERE tipo_id = ?";
+        String deleteSql = "DELETE FROM tipos_movimiento WHERE id = ?";
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+                    ps.setString(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            conn.rollback();
+                            throw new SQLException("No se puede eliminar el tipo de movimiento porque tiene movimientos asociados.");
+                        }
+                    }
+                }
+                try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+                    ps.setString(1, id);
+                    ps.executeUpdate();
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
     }
 }

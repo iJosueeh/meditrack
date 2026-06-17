@@ -121,10 +121,7 @@
                             <Label text="PRECIO UNITARIO" styleClass="text-caption, text-bold, text-muted" />
                             <TextField fx:id="txtPrecio" promptText="0.00" styleClass="large" />
                         </VBox>
-                        <VBox HBox.hgrow="ALWAYS" spacing="8">
-                            <Label text="STOCK MÍNIMO DE ALERTA" styleClass="text-caption, text-bold, text-muted" />
-                            <Spinner fx:id="spnStockMinimo" maxWidth="Infinity" editable="true" />
-                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
                     </HBox>
 
                     <HBox spacing="20">

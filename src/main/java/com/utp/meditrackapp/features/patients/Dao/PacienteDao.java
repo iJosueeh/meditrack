@@ -56,7 +56,8 @@ public class PacienteDao {
         String sql = "INSERT INTO pacientes (id, tipo_documento, numero_documento, nombres, apellidos, telefono, is_activo) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = dbConfig.getConnection()) {
-            String sedeId = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser().getSedeId();
+            var user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+            String sedeId = user != null ? user.getSedeId() : "SED-001";
             String id = IdGenerator.generateSedeDependentId(conn, "pacientes", EntidadPrefix.PACIENTE, sedeId, 6);
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -129,9 +130,6 @@ public class PacienteDao {
     }
 
     public int countTotal(String sedeId) {
-        // Patients are global but we filter by those who had at least one attention in this sede if needed, 
-        // or just return global total if they are shared. 
-        // Based on RF-03, we should segment info by sede.
         String sql = "SELECT COUNT(*) FROM pacientes WHERE is_activo = 1";
         try (Connection conn = dbConfig.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) return rs.getInt(1);

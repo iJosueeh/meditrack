@@ -27,6 +27,43 @@
                         <Separator style="-fx-padding: 10 0 0 0;" />
                     </VBox>
 
+                    <!-- KPI Cards -->
+                    <VBox spacing="15">
+                        <Label text="Indicadores Clave de la Sede" styleClass="title-3" />
+                        <HBox spacing="20">
+                            <VBox styleClass="card, elevated" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-padding: 18;">
+                                <FontIcon iconLiteral="fas-box" iconSize="22" styleClass="icon-accent" />
+                                <Label fx:id="lblTotalProducts" text="0" styleClass="title-3" />
+                                <Label text="Productos Activos" styleClass="text-caption, text-muted" />
+                            </VBox>
+                            <VBox styleClass="card, elevated" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-padding: 18;">
+                                <FontIcon iconLiteral="fas-exclamation-circle" iconSize="22" styleClass="icon-danger" />
+                                <Label fx:id="lblCriticalStock" text="0" styleClass="title-3, text-danger" />
+                                <Label text="Stock Crítico" styleClass="text-caption, text-muted" />
+                            </VBox>
+                            <VBox styleClass="card, elevated" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-padding: 18;">
+                                <FontIcon iconLiteral="fas-clock" iconSize="22" styleClass="icon-warning" />
+                                <Label fx:id="lblExpiringSoon" text="0" styleClass="title-3" style="-fx-text-fill: -color-warning-fg;" />
+                                <Label text="Por Vencer (30d)" styleClass="text-caption, text-muted" />
+                            </VBox>
+                            <VBox styleClass="card, elevated" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-padding: 18;">
+                                <FontIcon iconLiteral="fas-heartbeat" iconSize="22" styleClass="icon-success" />
+                                <Label fx:id="lblHealthScore" text="0%" styleClass="title-3, text-success" />
+                                <Label text="Salud Inventario" styleClass="text-caption, text-muted" />
+                            </VBox>
+                            <VBox styleClass="card, elevated" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-padding: 18;">
+                                <FontIcon iconLiteral="fas-chart-line" iconSize="22" styleClass="icon-accent" />
+                                <Label fx:id="lblInventoryValue" text="S/ 0" styleClass="title-3" />
+                                <Label text="Valor Inventario" styleClass="text-caption, text-muted" />
+                            </VBox>
+                            <VBox styleClass="card, elevated" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER" style="-fx-padding: 18;">
+                                <FontIcon iconLiteral="fas-exchange-alt" iconSize="22" styleClass="icon-muted" />
+                                <Label fx:id="lblMovements" text="0" styleClass="title-3" />
+                                <Label text="Movimientos (30d)" styleClass="text-caption, text-muted" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
                     <FlowPane hgap="30" vgap="30" prefWrapLength="1100">
                         
                         <!-- Card 1: Consolidated Management -->

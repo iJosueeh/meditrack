@@ -8,16 +8,18 @@ public class Atencion {
     private String pacienteId;
     private String usuarioId;
     private String numeroReceta;
+    private String medico;
     private LocalDateTime fechaAtencion;
 
     public Atencion() {}
 
-    public Atencion(String id, String sedeId, String pacienteId, String usuarioId, String numeroReceta, LocalDateTime fechaAtencion) {
+    public Atencion(String id, String sedeId, String pacienteId, String usuarioId, String numeroReceta, String medico, LocalDateTime fechaAtencion) {
         this.id = id;
         this.sedeId = sedeId;
         this.pacienteId = pacienteId;
         this.usuarioId = usuarioId;
         this.numeroReceta = numeroReceta;
+        this.medico = medico;
         this.fechaAtencion = fechaAtencion;
     }
 
@@ -35,6 +37,9 @@ public class Atencion {
 
     public String getNumeroReceta() { return numeroReceta; }
     public void setNumeroReceta(String numeroReceta) { this.numeroReceta = numeroReceta; }
+
+    public String getMedico() { return medico; }
+    public void setMedico(String medico) { this.medico = medico; }
 
     public LocalDateTime getFechaAtencion() { return fechaAtencion; }
     public void setFechaAtencion(LocalDateTime fechaAtencion) { this.fechaAtencion = fechaAtencion; }

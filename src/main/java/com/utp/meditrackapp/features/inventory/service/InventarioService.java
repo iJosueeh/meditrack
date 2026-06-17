@@ -92,12 +92,27 @@ public class InventarioService {
         return InventoryHealthCalculator.calcularSaludInventario(productosCriticos, lotesPorVencer30, lotesPorVencer60);
     }
 
+    public List<MotivoMovimiento> listarMotivosMovimiento() throws SQLException {
+        return new com.utp.meditrackapp.core.dao.MotivoMovimientoDAO().listarTodas();
+    }
+
     // --- Métodos Operacionales (Transaccionales) ---
 
-    public void registrarMovimiento(Lote lote, String usuarioId, TipoMovimientoEnum tipo, MotivoMovimientoEnum motivo, int cantidad, String observacion) throws SQLException {
+    public void registrarMovimiento(Lote lote, String usuarioId, String tipoId, String motivoId, int cantidad, String observacion) throws SQLException {
         Optional<Sede> sedeOpt = sedeDAO.buscarPorId(lote.getSedeId());
         if (sedeOpt.isEmpty() || sedeOpt.get().getIsActiva() == 0) {
             throw new SQLException("La sede se encuentra inactiva. No se pueden registrar movimientos.");
+        }
+
+        TipoMovimientoEnum tipoEnum = TipoMovimientoEnum.fromId(tipoId);
+        boolean isEntrada;
+        if (tipoEnum != null) {
+            isEntrada = tipoEnum == TipoMovimientoEnum.ENTRADA;
+        } else {
+            // Dynamic type: match semantically by name from the DB
+            Optional<TipoMovimiento> tipoOpt = tipoMovimientoDAO.buscarPorId(tipoId);
+            String nombre = tipoOpt.map(TipoMovimiento::getNombre).orElse("").toLowerCase();
+            isEntrada = nombre.contains("entrada");
         }
 
         Connection conn = null;
@@ -106,7 +121,7 @@ public class InventarioService {
             conn.setAutoCommit(false);
 
             // 1. Actualizar o Registrar Lote
-            if (tipo == TipoMovimientoEnum.ENTRADA) {
+            if (isEntrada) {
                 if (lote.getId() == null || lote.getId().isEmpty()) {
                     loteDAO.registrarIngreso(conn, lote);
                 } else {
@@ -117,33 +132,23 @@ public class InventarioService {
             }
 
             // 2. Registrar Movimiento
-            registrarMovimientoInterno(conn, lote, usuarioId, tipo, motivo, cantidad, observacion);
+            registrarMovimientoInterno(conn, lote, usuarioId, tipoId, motivoId, cantidad, observacion);
 
             conn.commit();
         } catch (SQLException e) {
             rollback(conn);
-            throw e; // Rethrow to let UI handle the specific error message
+            throw e; 
         } finally {
             close(conn);
         }
     }
 
-    public void registrarEntrada(Lote lote, String usuarioId, String observacion) throws SQLException {
-        registrarMovimiento(lote, usuarioId, TipoMovimientoEnum.ENTRADA, MotivoMovimientoEnum.COMPRA, lote.getCantidad(), observacion);
-    }
-
-    public void registrarMerma(String loteId, int cantidad, String usuarioId, String observacion) throws SQLException {
-        Optional<Lote> loteOpt = loteDAO.buscarPorId(loteId);
-        if (loteOpt.isEmpty()) throw new SQLException("El lote con ID " + loteId + " no existe.");
-        registrarMovimiento(loteOpt.get(), usuarioId, TipoMovimientoEnum.SALIDA, MotivoMovimientoEnum.MERMA, cantidad, observacion);
-    }
-
     private void registrarMovimientoInterno(Connection conn, Lote lote, String usuarioId, 
-                                          TipoMovimientoEnum tipo, MotivoMovimientoEnum motivo, 
+                                          String tipoId, String motivoId, 
                                           int cantidad, String obs) throws SQLException {
         Movimiento mov = new Movimiento();
-        mov.setTipoId(tipo.getId());
-        mov.setMotivoId(motivo.getId());
+        mov.setTipoId(tipoId);
+        mov.setMotivoId(motivoId);
         mov.setSedeId(lote.getSedeId());
         mov.setUsuarioId(usuarioId);
         mov.setLoteId(lote.getId());

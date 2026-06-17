@@ -74,6 +74,7 @@ public class NavigationService {
         switchRoot("/com/utp/meditrackapp/profile-view.fxml", "MediTrack — Mi Perfil", true);
     }
 
+    // Read-once search terms — safe because JavaFX UI runs on a single thread.
     private static String patientInitialSearch;
 
     public static void toPatients() throws IOException {
@@ -140,10 +141,6 @@ public class NavigationService {
         } else {
             Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         }
-    }
-
-    public static void toCatalog() throws IOException {
-        toSedes();
     }
 
     public static void toUsers() throws IOException {

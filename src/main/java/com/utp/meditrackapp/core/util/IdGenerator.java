@@ -5,27 +5,38 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Set;
 
 public class IdGenerator {
+
+    private static final Set<String> ALLOWED_TABLES = Set.of(
+        "sedes", "usuarios", "atenciones", "atencion_detalles",
+        "categorias", "tipos_movimiento", "motivos_movimiento",
+        "pacientes", "roles", "lotes", "productos", "movimientos"
+    );
 
     /**
      * Generates a global sequential ID.
      */
     public static String generateId(Connection conn, String tableName, EntidadPrefix prefix, int padding) throws SQLException {
+        if (!ALLOWED_TABLES.contains(tableName)) {
+            throw new IllegalArgumentException("Invalid table name: " + tableName);
+        }
         String basePrefix = prefix.getPrefix();
-        String sql = "SELECT MAX(id) FROM [" + tableName + "] WHERE id LIKE ?";
+        String sql = "SELECT id FROM " + tableName + " WHERE id LIKE ?";
         
+        int maxVal = 0;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, basePrefix + "-%");
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && rs.getString(1) != null) {
-                    String maxId = rs.getString(1);
-                    int nextVal = extractNextValue(maxId);
-                    return formatId(basePrefix, nextVal, padding);
+                while (rs.next()) {
+                    String id = rs.getString(1);
+                    int val = extractNumericValue(id);
+                    if (val > maxVal) maxVal = val;
                 }
             }
         }
-        return formatId(basePrefix, 1, padding);
+        return formatId(basePrefix, maxVal + 1, padding);
     }
 
     /**
@@ -33,32 +44,53 @@ public class IdGenerator {
      * Format: [PREFIX]-[SEDE_NUM]-[SEQUENCE]
      */
     public static String generateSedeDependentId(Connection conn, String tableName, EntidadPrefix prefix, String sedeId, int padding) throws SQLException {
+        if (!ALLOWED_TABLES.contains(tableName)) {
+            throw new IllegalArgumentException("Invalid table name: " + tableName);
+        }
         // Extract numeric part of sedeId, e.g., SED-001 -> 001
         String sedeNum = sedeId.contains("-") ? sedeId.split("-")[1] : sedeId;
         String basePrefix = prefix.getPrefix() + "-" + sedeNum;
         
-        String sql = "SELECT MAX(id) FROM [" + tableName + "] WHERE id LIKE ?";
+        String sql = "SELECT id FROM " + tableName + " WHERE id LIKE ?";
+        int maxVal = 0;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, basePrefix + "-%");
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && rs.getString(1) != null) {
-                    String maxId = rs.getString(1);
-                    int nextVal = extractNextValue(maxId);
-                    return formatId(basePrefix, nextVal, padding);
+                while (rs.next()) {
+                    String id = rs.getString(1);
+                    int val = extractNumericValue(id);
+                    if (val > maxVal) maxVal = val;
                 }
             }
         }
-        return formatId(basePrefix, 1, padding);
+        return formatId(basePrefix, maxVal + 1, padding);
+    }
+
+    private static int extractNumericValue(String id) {
+        if (id == null || id.isBlank()) return 0;
+        try {
+            String trimmed = id.trim();
+            // Buscamos la última secuencia de números
+            StringBuilder numPart = new StringBuilder();
+            for (int i = trimmed.length() - 1; i >= 0; i--) {
+                char c = trimmed.charAt(i);
+                if (Character.isDigit(c)) {
+                    numPart.insert(0, c);
+                } else if (numPart.length() > 0) {
+                    break;
+                }
+            }
+            if (numPart.length() > 0) {
+                return Integer.parseInt(numPart.toString());
+            }
+        } catch (Exception e) {
+            // Fallback
+        }
+        return 0;
     }
 
     private static int extractNextValue(String maxId) {
-        try {
-            String[] parts = maxId.split("-");
-            String lastPart = parts[parts.length - 1];
-            return Integer.parseInt(lastPart) + 1;
-        } catch (Exception e) {
-            return 1;
-        }
+        return extractNumericValue(maxId) + 1;
     }
 
     private static String formatId(String prefix, int value, int padding) {

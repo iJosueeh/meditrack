@@ -136,6 +136,11 @@ public class ProfileController {
             return;
         }
 
+        if (newPass.length() < 6) {
+            showAlert("Contraseña débil", "La nueva contraseña debe tener al menos 6 caracteres.");
+            return;
+        }
+
         Usuario user = SessionManager.getInstance().getCurrentUser();
         if (user == null) return;
 
@@ -190,5 +195,7 @@ public class ProfileController {
         alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message); alert.showAndWait();
     }
 
-    @FXML protected void onCloseAllSessions() { System.out.println("Closing sessions..."); }
+    @FXML protected void onCloseAllSessions() {
+        showAlert("Próximamente", "Esta funcionalidad está en desarrollo. Actualmente solo puede cerrar la sesión actual desde el menú superior.");
+    }
 }

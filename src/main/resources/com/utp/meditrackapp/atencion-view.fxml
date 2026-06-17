@@ -54,6 +54,12 @@
                                         <graphic><FontIcon iconLiteral="fas-search" iconColor="white" /></graphic>
                                     </Button>
                                 </HBox>
+                                <HBox spacing="10">
+                                    <TextField fx:id="txtSearchReceta" promptText="Buscar por N° de receta..." HBox.hgrow="ALWAYS" onAction="#onSearchByReceta" />
+                                    <Button text="Buscar" onAction="#onSearchByReceta" styleClass="button">
+                                        <graphic><FontIcon iconLiteral="fas-search" /></graphic>
+                                    </Button>
+                                </HBox>
                                 
                                 <VBox fx:id="vboxPatientInfo" visible="false" managed="false" spacing="12" styleClass="bg-accent-subtle" style="-fx-padding: 15; -fx-background-radius: 8;">
                                     <VBox spacing="2">

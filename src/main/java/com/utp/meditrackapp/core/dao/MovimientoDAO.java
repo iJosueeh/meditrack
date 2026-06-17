@@ -135,10 +135,10 @@ public class MovimientoDAO extends JdbcDaoSupport {
         if (ts != null) m.setFechaRegistro(ts.toLocalDateTime());
         
         // Map transient fields if present in ResultSet
-        try { m.setTipoNombre(rs.getString("tipo_nombre")); } catch (SQLException e) {}
-        try { m.setMotivoNombre(rs.getString("motivo_nombre")); } catch (SQLException e) {}
-        try { m.setProductoNombre(rs.getString("producto_nombre")); } catch (SQLException e) {}
-        try { m.setNumeroLote(rs.getString("numero_lote")); } catch (SQLException e) {}
+        try { m.setTipoNombre(rs.getString("tipo_nombre")); } catch (SQLException ignored) {}
+        try { m.setMotivoNombre(rs.getString("motivo_nombre")); } catch (SQLException ignored) {}
+        try { m.setProductoNombre(rs.getString("producto_nombre")); } catch (SQLException ignored) {}
+        try { m.setNumeroLote(rs.getString("numero_lote")); } catch (SQLException ignored) {}
         
         return m;
     }

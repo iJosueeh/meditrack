@@ -45,7 +45,6 @@ public class ProductoController {
     @FXML private ComboBox<Categoria> cmbCategoria;
     @FXML private ComboBox<String> cmbUnidad;
     @FXML private TextArea txtDetalle;
-    @FXML private Spinner<Integer> spnStockMinimo;
     @FXML private CheckBox chkActivo;
 
     private final ProductoDAO productoDAO = new ProductoDAO();
@@ -97,10 +96,11 @@ public class ProductoController {
                     setText(item.toString());
                     Producto p = getTableRow().getItem();
                     if (p != null && p.getStockMinimo() != null && item < p.getStockMinimo()) {
+                        getStyleClass().removeAll("text-danger");
                         getStyleClass().add("text-danger");
                         setStyle("-fx-font-weight: bold;");
                     } else {
-                        getStyleClass().remove("text-danger");
+                        getStyleClass().removeAll("text-danger");
                         setStyle("");
                     }
                 }
@@ -152,8 +152,6 @@ public class ProductoController {
             @Override public String toString(Categoria c) { return c != null ? c.getNombre() : ""; }
             @Override public Categoria fromString(String s) { return null; }
         });
-
-        spnStockMinimo.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 1000, 10));
     }
 
     @FXML
@@ -216,7 +214,6 @@ public class ProductoController {
         txtPrecio.setText(p.getPrecioUnitario() != null ? String.valueOf(p.getPrecioUnitario()) : "0.00");
         cmbUnidad.setValue(p.getUnidadMedida());
         chkActivo.setSelected(p.getIsActivo() == 1);
-        spnStockMinimo.getValueFactory().setValue(p.getStockMinimo() != null ? p.getStockMinimo() : 10);
         
         cmbCategoria.getItems().stream()
             .filter(c -> c.getId().equals(p.getCategoriaId()))
@@ -255,7 +252,6 @@ public class ProductoController {
         p.setUnidadMedida(cmbUnidad.getValue());
         p.setDetalle(txtDetalle.getText());
         p.setIsActivo(chkActivo.isSelected() ? 1 : 0);
-        p.setStockMinimo(spnStockMinimo.getValue());
         
         try {
             p.setPrecioUnitario(Double.parseDouble(txtPrecio.getText()));
@@ -283,6 +279,24 @@ public class ProductoController {
 
     private void confirmDelete(Producto p) {
         if (p == null) return;
+
+        // Verificar si tiene stock activo antes de desactivar
+        try {
+            var user = SessionManager.getInstance().getCurrentUser();
+            String sedeId = user != null ? user.getSedeId() : null;
+            if (sedeId != null) {
+                int stock = loteDAO.obtenerStockTotal(sedeId, p.getId());
+                if (stock > 0) {
+                    showAlert(Alert.AlertType.WARNING, "Stock Activo",
+                        "El producto \"" + p.getNombre() + "\" tiene " + stock + " unidades en stock. No se puede desactivar mientras tenga inventario.");
+                    return;
+                }
+            }
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo verificar el stock del producto.");
+            return;
+        }
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea desactivar el producto " + p.getNombre() + "?", ButtonType.YES, ButtonType.NO);
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.YES) {
@@ -301,11 +315,11 @@ public class ProductoController {
     private void clearForm() {
         txtNombre.clear();
         txtDigemid.clear();
+        txtPrecio.clear();
         txtDetalle.clear();
         cmbCategoria.getSelectionModel().clearSelection();
         cmbUnidad.getSelectionModel().selectFirst();
         chkActivo.setSelected(true);
-        spnStockMinimo.getValueFactory().setValue(10);
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

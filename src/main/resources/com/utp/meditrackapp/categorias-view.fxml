@@ -58,9 +58,10 @@
                         
                         <TableView fx:id="tableCategorias" VBox.vgrow="ALWAYS" fixedCellSize="55">
                             <columns>
-                                <TableColumn fx:id="colId" text="CÓDIGO" prefWidth="150" />
-                                <TableColumn fx:id="colNombre" text="NOMBRE DE CATEGORÍA" prefWidth="400" />
-                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="150" sortable="false" />
+                                <TableColumn fx:id="colId" text="CÓDIGO" prefWidth="120" />
+                                <TableColumn fx:id="colNombre" text="NOMBRE DE CATEGORÍA" prefWidth="300" />
+                                <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="120" sortable="false" />
+                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="180" sortable="false" />
                             </columns>
                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                             <placeholder>

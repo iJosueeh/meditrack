@@ -34,7 +34,7 @@ public class AtencionController {
     private final HtmlReportService reportService = new HtmlReportService();
 
     // Patient & Prescription
-    @FXML private TextField txtPacienteDni, txtReceta, txtMedico;
+    @FXML private TextField txtPacienteDni, txtReceta, txtMedico, txtSearchReceta;
     @FXML private DatePicker dpFromDate, dpToDate;
     @FXML private Label lblPatientName, lblPatientPhone;
     @FXML private VBox vboxPatientInfo;
@@ -180,6 +180,36 @@ public class AtencionController {
         }
     }
 
+    @FXML
+    protected void onSearchByReceta() {
+        String receta = txtSearchReceta.getText();
+        if (receta == null || receta.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un número de receta para buscar.");
+            return;
+        }
+
+        Usuario user = sessionManager.getCurrentUser();
+        if (user == null) return;
+
+        List<Atencion> results = atencionService.buscarHistorialPorReceta(user.getSedeId(), receta);
+        ObservableList<String> historyStrings = FXCollections.observableArrayList();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        for (Atencion a : results) {
+            historyStrings.add(a.getFechaAtencion().format(formatter) + " - Receta: " + a.getNumeroReceta());
+        }
+
+        if (historyStrings.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "Sin Resultados", "No se encontraron atenciones con la receta " + receta);
+        } else {
+            listHistory.setItems(historyStrings);
+            vboxPatientInfo.setVisible(true);
+            vboxPatientInfo.setManaged(true);
+            lblPatientName.setText("Búsqueda por receta: " + receta);
+            lblPatientPhone.setText(results.size() + " resultado(s) encontrado(s)");
+        }
+    }
+
     private void loadPatientHistory(String pacienteId) {
         List<Atencion> history = atencionService.buscarHistorialPorPaciente(pacienteId);
         ObservableList<String> historyStrings = FXCollections.observableArrayList();
@@ -212,14 +242,18 @@ public class AtencionController {
             int qty = Integer.parseInt(qtyStr);
             if (qty <= 0) throw new NumberFormatException();
 
-            String sedeId = sessionManager.getCurrentUser().getSedeId();
-            // Implement logic to find FEFO batches and add to basket
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) {
+                showAlert(Alert.AlertType.ERROR, "Sesión", "No hay una sesión activa.");
+                return;
+            }
+            String sedeId = user.getSedeId();
+
+            List<Lote> lotesDisponibles = inventarioService.listarLotesConProducto(sedeId);
             List<AtencionDetalle> suggestions = atencionService.sugerirDispensacion(sedeId, p.getId(), qty);
             
             for (AtencionDetalle det : suggestions) {
-                // To show in UI, we should fetch batch number
-                // Fetching batch info for display
-                Optional<Lote> loteOpt = inventarioService.listarLotesConProducto(sedeId).stream()
+                Optional<Lote> loteOpt = lotesDisponibles.stream()
                     .filter(l -> l.getId().equals(det.getLoteId()))
                     .findFirst();
                 
@@ -265,8 +299,27 @@ public class AtencionController {
         Atencion a = new Atencion();
         a.setPacienteId(currentPaciente.getId());
         a.setNumeroReceta(txtReceta.getText().trim());
-        // Medico could be added to table but using reciept notes for now or extra field
-        
+        a.setMedico(txtMedico.getText().trim());
+
+        // Re-validar stock antes de confirmar (FEFO)
+        try {
+            String sedeId = sessionManager.getCurrentUser().getSedeId();
+            List<Lote> lotesActuales = inventarioService.listarLotesConProducto(sedeId);
+            for (AtencionDetalle det : basketItems) {
+                Optional<Lote> loteActual = lotesActuales.stream()
+                    .filter(l -> l.getId().equals(det.getLoteId()))
+                    .findFirst();
+                if (loteActual.isEmpty() || loteActual.get().getCantidad() < det.getCantidadEntregada()) {
+                    showAlert(Alert.AlertType.WARNING, "Stock Cambiado",
+                        "El lote " + det.getLoteNumero() + " ya no tiene stock suficiente. Por favor actualice la canasta.");
+                    return;
+                }
+            }
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo validar el stock actual.");
+            return;
+        }
+
         String result = atencionService.registrarAtencion(a, new ArrayList<>(basketItems));
         
         if (result.equals("OK")) {

@@ -34,8 +34,8 @@ public class SeedDataLoader {
             }
 
             System.out.println("[SEED] Datos insuficientes. Productos=" + productos + ", Lotes=" + lotes + ". Cargando seed_data.sql...");
-            Path script = Path.of("database", "seed_data.sql");
-            if (!Files.exists(script)) {
+            Path script = findSeedScript();
+            if (script == null) {
                 System.err.println("[SEED] No se encontró database/seed_data.sql");
                 return false;
             }
@@ -48,17 +48,12 @@ public class SeedDataLoader {
                 for (String batch : batches) {
                     String s = batch.trim();
                     if (s.isEmpty()) continue;
-                    // Ejecutar cada statement individualmente
-                    try {
-                        stmt.execute(s);
-                    } catch (SQLException e) {
-                        System.err.println("[SEED] Error ejecutando batch: " + e.getMessage());
-                    }
+                    stmt.execute(s);
                 }
                 conn.commit();
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 conn.rollback();
-                throw e;
+                throw new SQLException("Error cargando seed data: " + e.getMessage(), e);
             } finally {
                 conn.setAutoCommit(true);
             }
@@ -78,5 +73,23 @@ public class SeedDataLoader {
             if (rs.next()) return rs.getInt("c");
         }
         return 0;
+    }
+
+    private Path findSeedScript() {
+        // Try classpath resource first
+        var url = getClass().getResource("/database/seed_data.sql");
+        if (url != null && "file".equals(url.getProtocol())) {
+            Path p = Path.of(url.getPath());
+            if (Files.exists(p)) return p;
+        }
+        // Walk up from CWD looking for database/seed_data.sql
+        Path dir = Path.of("").toAbsolutePath();
+        for (int i = 0; i < 10; i++) {
+            Path candidate = dir.resolve("database").resolve("seed_data.sql");
+            if (Files.exists(candidate)) return candidate;
+            dir = dir.getParent();
+            if (dir == null) break;
+        }
+        return null;
     }
 }

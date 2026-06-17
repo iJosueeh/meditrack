@@ -11,7 +11,6 @@ public class UsuarioDao {
     private final DatabaseConfig dbConfig = DatabaseConfig.getInstance();
 
     public Usuario login(String numeroDocumento, String password) {
-        System.out.println("[AUTH DEBUG] Intento de login para DNI: " + numeroDocumento);
         String sql = "SELECT u.*, s.nombre as sede_nombre, r.nombre as rol_nombre " +
                      "FROM usuarios u " +
                      "LEFT JOIN sedes s ON u.sede_id = s.id " +
@@ -26,10 +25,8 @@ public class UsuarioDao {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String storedHash = rs.getString("password");
-                    System.out.println("[AUTH DEBUG] Usuario encontrado, verificando contraseña...");
-                    
+
                     if (PasswordHasher.checkPassword(password, storedHash)) {
-                        System.out.println("[AUTH DEBUG] Login exitoso para: " + rs.getString("nombres"));
                         Usuario usuario = new Usuario(
                             rs.getString("id"),
                             rs.getString("sede_id"),
@@ -44,11 +41,7 @@ public class UsuarioDao {
                         usuario.setSedeNombre(rs.getString("sede_nombre"));
                         usuario.setRolNombre(rs.getString("rol_nombre"));
                         return usuario;
-                    } else {
-                        System.out.println("[AUTH DEBUG] Contraseña incorrecta.");
                     }
-                } else {
-                    System.out.println("[AUTH DEBUG] Usuario no encontrado en la BD.");
                 }
             }
         } catch (SQLException e) {

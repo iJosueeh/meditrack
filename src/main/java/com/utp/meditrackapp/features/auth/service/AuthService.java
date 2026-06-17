@@ -25,7 +25,7 @@ public class AuthService {
 
         Usuario usuario = usuarioDao.login(dni, password);
         
-        if (usuario != null && usuario.getIsActivo() == 1) {
+        if (usuario != null) {
             SessionManager.getInstance().login(usuario);
             return true;
         }
