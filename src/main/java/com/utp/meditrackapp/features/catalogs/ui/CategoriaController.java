@@ -21,6 +21,7 @@ public class CategoriaController {
     @FXML private TableView<Categoria> tableCategorias;
     @FXML private TableColumn<Categoria, String> colId;
     @FXML private TableColumn<Categoria, String> colNombre;
+    @FXML private TableColumn<Categoria, String> colEstado;
     @FXML private TableColumn<Categoria, Void> colAcciones;
 
     @FXML private TextField txtSearch;
@@ -44,19 +45,46 @@ public class CategoriaController {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
 
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colEstado.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    Categoria cat = getTableRow().getItem();
+                    Label label = new Label(cat.getIsActivo() == 1 ? "ACTIVA" : "INACTIVA");
+                    label.getStyleClass().add("status-badge-base");
+                    label.getStyleClass().add(cat.getIsActivo() == 1 ? "status-badge-active" : "status-badge-critico");
+                    setGraphic(label);
+                }
+            }
+        });
+
         colAcciones.setCellFactory(column -> new TableCell<>() {
             private final Button editBtn = new Button();
+            private final Button toggleBtn = new Button();
             private final Button deleteBtn = new Button();
             {
                 editBtn.setGraphic(new FontIcon("fas-edit"));
                 editBtn.getStyleClass().addAll("button", "flat", "accent", "sm");
+                editBtn.setTooltip(new Tooltip("Editar"));
                 editBtn.setOnAction(event -> {
                     Categoria cat = getTableRow().getItem();
                     if (cat != null) openEditModal(cat);
                 });
 
+                toggleBtn.getStyleClass().addAll("button", "flat", "sm");
+                toggleBtn.setTooltip(new Tooltip("Activar/Desactivar"));
+                toggleBtn.setOnAction(event -> {
+                    Categoria cat = getTableRow().getItem();
+                    if (cat != null) confirmToggle(cat);
+                });
+
                 deleteBtn.setGraphic(new FontIcon("fas-trash"));
                 deleteBtn.getStyleClass().addAll("button", "flat", "danger", "sm");
+                deleteBtn.setTooltip(new Tooltip("Eliminar"));
                 deleteBtn.setOnAction(event -> {
                     Categoria cat = getTableRow().getItem();
                     if (cat != null) confirmDelete(cat);
@@ -66,9 +94,13 @@ public class CategoriaController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) setGraphic(null);
-                else {
-                    HBox box = new HBox(10, editBtn, deleteBtn);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    Categoria cat = getTableRow().getItem();
+                    toggleBtn.setGraphic(new FontIcon(
+                        cat.getIsActivo() == 1 ? "fas-toggle-on" : "fas-toggle-off"));
+                    HBox box = new HBox(8, editBtn, toggleBtn, deleteBtn);
                     box.setStyle("-fx-alignment: center;");
                     setGraphic(box);
                 }
@@ -139,6 +171,25 @@ public class CategoriaController {
             onCloseModal();
         } catch (SQLException | IllegalArgumentException e) {
             showAlert("Error", e.getMessage());
+        }
+    }
+
+    private void confirmToggle(Categoria cat) {
+        String accion = cat.getIsActivo() == 1 ? "desactivar" : "activar";
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmar Cambio de Estado");
+        alert.setHeaderText("¿Está seguro de " + accion + " la categoría?");
+        alert.setContentText("La categoría \"" + cat.getNombre() + "\" será " + (cat.getIsActivo() == 1 ? "desactivada" : "activada") + ".");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                categoriaDAO.toggleEstado(cat.getId());
+                loadData();
+                showAlert("Éxito", "Categoría " + (cat.getIsActivo() == 1 ? "desactivada" : "activada") + ".");
+            } catch (SQLException e) {
+                showAlert("Error", "No se pudo cambiar el estado: " + e.getMessage());
+            }
         }
     }
 

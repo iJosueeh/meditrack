@@ -14,6 +14,16 @@ import java.util.Optional;
 
 public class SedeDAO extends JdbcDaoSupport {
 
+    private static String safeGetString(ResultSet rs, String column) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();
+        for (int i = 1; i <= meta.getColumnCount(); i++) {
+            if (meta.getColumnLabel(i).equalsIgnoreCase(column)) {
+                return rs.getString(i);
+            }
+        }
+        return null;
+    }
+
     public Optional<Sede> buscarPorId(String id) throws SQLException {
         String sql = "SELECT * FROM sedes WHERE id = ?";
         try (Connection conn = getConnection();
@@ -28,6 +38,7 @@ public class SedeDAO extends JdbcDaoSupport {
                         rs.getInt("is_activa")
                     );
                     s.setTelefono(rs.getString("telefono"));
+                    s.setUbigeo(safeGetString(rs, "ubigeo"));
                     return Optional.of(s);
                 }
             }
@@ -68,6 +79,7 @@ public class SedeDAO extends JdbcDaoSupport {
                 dto.setTotalEmpleados(rs.getInt("emp_count"));
                 dto.setItemsCriticos(rs.getInt("critico_count"));
                 dto.setTelefono(rs.getString("telefono"));
+                dto.setUbigeo(safeGetString(rs, "ubigeo"));
 
                 if (dto.getItemsCriticos() > 5) dto.setEstadoInventario("Crítico");
                 else if (dto.getItemsCriticos() > 0) dto.setEstadoInventario("Bajo Stock");
@@ -124,33 +136,83 @@ public class SedeDAO extends JdbcDaoSupport {
 
     public boolean save(Sede sede) throws SQLException {
         validarSede(sede);
-        try (Connection conn = getConnection()) {
+        Connection conn = getConnection();
+        try {
             if (sede.getId() == null || sede.getId().isBlank()) {
                 sede.setId(IdGenerator.generateId(conn, "sedes", EntidadPrefix.SEDE, 3));
             }
-            String sql = "INSERT INTO sedes (id, nombre, direccion, is_activa, telefono) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO sedes (id, nombre, direccion, is_activa, telefono, ubigeo) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, sede.getId());
                 ps.setString(2, sede.getNombre());
                 ps.setString(3, sede.getDireccion());
                 ps.setInt(4, sede.getIsActiva());
                 ps.setString(5, sede.getTelefono());
+                ps.setString(6, sede.getUbigeo());
                 return ps.executeUpdate() > 0;
             }
+        } catch (SQLException e) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("ubigeo")) {
+                String sql = "INSERT INTO sedes (id, nombre, direccion, is_activa, telefono) VALUES (?, ?, ?, ?, ?)";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, sede.getId());
+                    ps.setString(2, sede.getNombre());
+                    ps.setString(3, sede.getDireccion());
+                    ps.setInt(4, sede.getIsActiva());
+                    ps.setString(5, sede.getTelefono());
+                    return ps.executeUpdate() > 0;
+                }
+            }
+            throw e;
+        } finally {
+            closeConn(conn);
         }
     }
 
     public boolean update(Sede sede) throws SQLException {
         validarSede(sede);
-        String sql = "UPDATE sedes SET nombre = ?, direccion = ?, is_activa = ?, telefono = ? WHERE id = ?";
+        Connection conn = getConnection();
+        try {
+            String sql = "UPDATE sedes SET nombre = ?, direccion = ?, is_activa = ?, telefono = ?, ubigeo = ? WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, sede.getNombre());
+                ps.setString(2, sede.getDireccion());
+                ps.setInt(3, sede.getIsActiva());
+                ps.setString(4, sede.getTelefono());
+                ps.setString(5, sede.getUbigeo());
+                ps.setString(6, sede.getId());
+                return ps.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase().contains("ubigeo")) {
+                String sql = "UPDATE sedes SET nombre = ?, direccion = ?, is_activa = ?, telefono = ? WHERE id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, sede.getNombre());
+                    ps.setString(2, sede.getDireccion());
+                    ps.setInt(3, sede.getIsActiva());
+                    ps.setString(4, sede.getTelefono());
+                    ps.setString(5, sede.getId());
+                    return ps.executeUpdate() > 0;
+                }
+            }
+            throw e;
+        } finally {
+            closeConn(conn);
+        }
+    }
+
+    public void toggleEstado(String id) throws SQLException {
+        String sql = "UPDATE sedes SET is_activa = CASE WHEN is_activa = 1 THEN 0 ELSE 1 END WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, sede.getNombre());
-            ps.setString(2, sede.getDireccion());
-            ps.setInt(3, sede.getIsActiva());
-            ps.setString(4, sede.getTelefono());
-            ps.setString(5, sede.getId());
-            return ps.executeUpdate() > 0;
+            ps.setString(1, id);
+            ps.executeUpdate();
+        }
+    }
+
+    private void closeConn(Connection conn) {
+        if (conn != null) {
+            try { conn.close(); } catch (SQLException ignored) {}
         }
     }
 

@@ -5,6 +5,7 @@ public class Sede {
     private String nombre;
     private String direccion;
     private String telefono;
+    private String ubigeo;
     private String administradorId;
     private String tipoSede;
     private int capacidadAlmacen;
@@ -30,6 +31,9 @@ public class Sede {
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getUbigeo() { return ubigeo; }
+    public void setUbigeo(String ubigeo) { this.ubigeo = ubigeo; }
 
     public String getAdministradorId() { return administradorId; }
     public void setAdministradorId(String administradorId) { this.administradorId = administradorId; }

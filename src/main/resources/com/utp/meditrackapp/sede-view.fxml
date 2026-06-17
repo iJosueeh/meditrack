@@ -83,6 +83,7 @@
                                 <TableColumn fx:id="colEmp" text="PERSONAL" prefWidth="90" />
                                 <TableColumn fx:id="colStockStatus" text="ESTADO INV." prefWidth="130" />
                                 <TableColumn fx:id="colEstado" text="ESTADO OP." prefWidth="110" />
+                                <TableColumn fx:id="colUbigeo" text="UBIGEO" prefWidth="100" sortable="false" />
                                 <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="110" sortable="false" />
                             </columns>
                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
@@ -121,6 +122,13 @@
                         <Label text="DIRECCIÓN" styleClass="text-caption, text-bold, text-muted" />
                         <TextArea fx:id="txtDireccion" prefHeight="60" wrapText="true" />
                     </VBox>
+
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="CÓDIGO DE UBIGEO" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtUbigeo" promptText="Ej: 150101 (6 dígitos)" maxWidth="200" />
+                        </VBox>
+                    </HBox>
 
                     <HBox spacing="20">
                         <VBox HBox.hgrow="ALWAYS" spacing="8">
