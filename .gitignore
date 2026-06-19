@@ -39,7 +39,9 @@ replay_pid*
 *.iws
 *.iml
 *.ipr
-out/
+/build/
+/bin/
+/target/
 
 # Eclipse
 .apt_generated

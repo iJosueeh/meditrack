@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.core.config;
 
-import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.domain.entities.Usuario;
+
 public class SessionManager {
     private static final SessionManager instance = new SessionManager();
     private volatile Usuario currentUser;
@@ -30,7 +31,7 @@ public class SessionManager {
      }
 
      public boolean isTecnico() {
-         return isLoggedIn() && "ROL-003".equals(currentUser.getRolId());
+         return currentUser != null && currentUser.isTecnico();
      }
 
      public boolean isQuimico() {
@@ -38,6 +39,6 @@ public class SessionManager {
      }
 
      public boolean isAdmin() {
-         return isLoggedIn() && "ROL-001".equals(currentUser.getRolId());
+         return currentUser != null && currentUser.isAdmin();
      }
 }

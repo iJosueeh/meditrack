@@ -1,0 +1,50 @@
+package com.utp.meditrackapp.domain.entities;
+
+/**
+ * Entidad de dominio Categoria con comportamiento de negocio.
+ */
+public class Categoria {
+    private String id;
+    private String nombre;
+    private int isActivo;
+
+    public Categoria() {
+    }
+
+    public Categoria(String id, String nombre) {
+        this.id = id;
+        this.nombre = nombre;
+    }
+
+    // === Comportamiento de Dominio ===
+
+    public boolean isActiva() {
+        return isActivo == 1;
+    }
+
+    public void activar() {
+        this.isActivo = 1;
+    }
+
+    public void desactivar() {
+        this.isActivo = 0;
+    }
+
+    public String validate() {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return "El nombre de la categoría es obligatorio.";
+        }
+        return null;
+    }
+
+    // === Getters y Setters ===
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public int getIsActivo() { return isActivo; }
+    public void setIsActivo(int isActivo) { this.isActivo = isActivo; }
+}

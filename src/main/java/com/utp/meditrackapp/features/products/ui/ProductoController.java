@@ -2,12 +2,10 @@ package com.utp.meditrackapp.features.products.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.dao.CategoriaDAO;
-import com.utp.meditrackapp.core.dao.LoteDAO;
-import com.utp.meditrackapp.core.dao.ProductoDAO;
-import com.utp.meditrackapp.core.models.entity.Categoria;
-import com.utp.meditrackapp.core.models.entity.Producto;
-import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.infrastructure.adapters.ProductoAdapter;
+import com.utp.meditrackapp.domain.entities.Categoria;
+import com.utp.meditrackapp.domain.entities.Producto;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -47,9 +45,7 @@ public class ProductoController {
     @FXML private TextArea txtDetalle;
     @FXML private CheckBox chkActivo;
 
-    private final ProductoDAO productoDAO = new ProductoDAO();
-    private final CategoriaDAO categoriaDAO = new CategoriaDAO();
-    private final LoteDAO loteDAO = new LoteDAO();
+    private final ProductoAdapter productoAdapter = new ProductoAdapter();
     private final SessionManager sessionManager = SessionManager.getInstance();
     
     private final ObservableList<Producto> masterData = FXCollections.observableArrayList();
@@ -160,17 +156,17 @@ public class ProductoController {
             Usuario user = sessionManager.getCurrentUser();
             if (user != null) {
                 stockMap.clear();
-                stockMap.putAll(loteDAO.obtenerStockTotalPorSede(user.getSedeId()));
+                stockMap.putAll(productoAdapter.obtenerStockTotalPorSede(user.getSedeId()));
             }
 
-            List<Producto> list = productoDAO.listarTodos();
+            List<Producto> list = productoAdapter.listarProductos();
             masterData.setAll(list);
             tableProductos.setItems(masterData);
             lblTotalProductos.setText(String.valueOf(list.size()));
             
             // Reload categories for the modal
-            cmbCategoria.setItems(FXCollections.observableArrayList(categoriaDAO.listarTodas()));
-        } catch (SQLException e) {
+            cmbCategoria.setItems(FXCollections.observableArrayList(productoAdapter.listarCategorias()));
+        } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Error", "Error al cargar datos: " + e.getMessage());
         }
     }
@@ -231,16 +227,16 @@ public class ProductoController {
             if (selectedProducto == null) {
                 Producto nuevo = new Producto();
                 setProductoFromForm(nuevo);
-                productoDAO.crear(nuevo);
+                productoAdapter.guardarProducto(nuevo);
                 showAlert(Alert.AlertType.INFORMATION, "Éxito", "Producto creado correctamente.");
             } else {
                 setProductoFromForm(selectedProducto);
-                productoDAO.actualizar(selectedProducto);
+                productoAdapter.actualizarProducto(selectedProducto);
                 showAlert(Alert.AlertType.INFORMATION, "Éxito", "Producto actualizado correctamente.");
             }
             loadData();
             onCloseModal();
-        } catch (SQLException | IllegalArgumentException e) {
+        } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
         }
     }
@@ -285,29 +281,31 @@ public class ProductoController {
             var user = SessionManager.getInstance().getCurrentUser();
             String sedeId = user != null ? user.getSedeId() : null;
             if (sedeId != null) {
-                int stock = loteDAO.obtenerStockTotal(sedeId, p.getId());
+                int stock = productoAdapter.obtenerStockTotal(sedeId, p.getId());
                 if (stock > 0) {
                     showAlert(Alert.AlertType.WARNING, "Stock Activo",
                         "El producto \"" + p.getNombre() + "\" tiene " + stock + " unidades en stock. No se puede desactivar mientras tenga inventario.");
                     return;
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Error", "No se pudo verificar el stock del producto.");
             return;
         }
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea desactivar el producto " + p.getNombre() + "?", ButtonType.YES, ButtonType.NO);
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
-                try {
-                    productoDAO.desactivar(p.getId());
-                    loadData();
-                } catch (SQLException e) {
-                    showAlert(Alert.AlertType.ERROR, "Error", "No se pudo desactivar el producto.");
-                }
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Confirmar Eliminación");
+        dialog.setHeaderText("¿Está seguro de desactivar el producto \"" + p.getNombre() + "\"?");
+        dialog.setContentText("Esta acción no se puede deshacer. Escriba 'ELIMINAR' para confirmar:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+            try {
+                productoAdapter.desactivarProducto(p.getId());
+                loadData();
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo desactivar el producto.");
             }
-        });
+        }
     }
 
     @FXML protected void onCloseModal() { modalProducto.setVisible(false); }

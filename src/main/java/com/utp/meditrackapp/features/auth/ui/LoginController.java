@@ -9,15 +9,15 @@ import javafx.scene.control.TextField;
 import org.kordamp.ikonli.javafx.FontIcon;
 import java.io.IOException;
 
-import com.utp.meditrackapp.features.auth.service.AuthService;
+import com.utp.meditrackapp.infrastructure.adapters.AuthAdapter;
 
 public class LoginController {
 
-    private AuthService authService;
+    private AuthAdapter authAdapter;
 
     @FXML
     public void initialize() {
-        authService = new AuthService();
+        authAdapter = new AuthAdapter();
     }
 
     @FXML
@@ -78,7 +78,7 @@ public class LoginController {
             return;
         }
 
-        if (authService.authenticate(dni, password)) {
+        if (authAdapter.authenticate(dni, password)) {
             try {
                 NavigationService.toDashboard();
             } catch (IOException e) {

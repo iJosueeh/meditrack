@@ -2,11 +2,16 @@ package com.utp.meditrackapp.features.inventory.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.dto.StockCriticoItem;
-import com.utp.meditrackapp.core.models.entity.*;
+import com.utp.meditrackapp.application.dto.StockCriticoDTO;
+import com.utp.meditrackapp.domain.entities.Lote;
+import com.utp.meditrackapp.domain.entities.MotivoMovimiento;
+import com.utp.meditrackapp.domain.entities.Movimiento;
+import com.utp.meditrackapp.domain.entities.Producto;
+import com.utp.meditrackapp.domain.entities.TipoMovimiento;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
-import com.utp.meditrackapp.features.inventory.service.InventarioService;
+import com.utp.meditrackapp.infrastructure.adapters.InventoryAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,7 +23,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,13 +32,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javafx.stage.FileChooser;
-import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
+import com.utp.meditrackapp.infrastructure.reports.HtmlPdfReportService;
 
 public class InventoryController {
 
-    private final InventarioService inventarioService = new InventarioService();
+    private final InventoryAdapter inventoryAdapter = new InventoryAdapter();
     private final SessionManager sessionManager = SessionManager.getInstance();
-    private final HtmlReportService reportService = new HtmlReportService();
+    private final HtmlPdfReportService reportService = new HtmlPdfReportService();
 
     @FXML private TabPane inventoryTabPane;
     @FXML private TableView<Movimiento> tableMovements;
@@ -238,17 +242,20 @@ public class InventoryController {
 
     private void loadInitialData() {
         try {
-            List<Producto> productos = inventarioService.listarProductosActivos();
+            List<Producto> productos = inventoryAdapter.listarProductosActivos();
             cmbModalProduct.setItems(FXCollections.observableArrayList(productos));
             
-            List<TipoMovimiento> tipos = inventarioService.listarTiposMovimiento();
+            List<TipoMovimiento> tipos = inventoryAdapter.listarTiposMovimiento();
             ObservableList<TipoMovimiento> obsTipos = FXCollections.observableArrayList(tipos);
             
             cmbModalType.setItems(obsTipos);
             cmbQuickType.setItems(obsTipos);
             
             ObservableList<TipoMovimiento> filterTipos = FXCollections.observableArrayList();
-            filterTipos.add(new TipoMovimiento("", "TODOS"));
+            TipoMovimiento todos = new TipoMovimiento();
+            todos.setId("");
+            todos.setNombre("TODOS");
+            filterTipos.add(todos);
             filterTipos.addAll(tipos);
             cmbMovementType.setItems(filterTipos);
             cmbMovementType.getSelectionModel().selectFirst();
@@ -264,13 +271,13 @@ public class InventoryController {
             
             // Initialize motivo combo for quick update
             try {
-                List<MotivoMovimiento> motivos = inventarioService.listarMotivosMovimiento();
+                List<MotivoMovimiento> motivos = inventoryAdapter.listarMotivosMovimiento();
                 cmbQuickMotivo.setItems(FXCollections.observableArrayList(motivos));
                 cmbQuickMotivo.setConverter(new StringConverter<>() {
                     @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
                     @Override public MotivoMovimiento fromString(String s) { return null; }
                 });
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 System.err.println("[INV] Error cargando motivos: " + e.getMessage());
             }
             
@@ -301,16 +308,17 @@ public class InventoryController {
         }
         refreshMovements();
         refreshBatches();
+        populateAlerts();
     }
 
     private void refreshQuickBatchCombo() {
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user != null) {
-                List<Lote> batches = inventarioService.listarLotesConProducto(user.getSedeId());
+                List<Lote> batches = inventoryAdapter.listarLotesConProducto(user.getSedeId());
                 cmbQuickBatch.setItems(FXCollections.observableArrayList(batches));
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML protected void onOpenMovementModal() { modalMovement.setVisible(true); }
@@ -336,9 +344,9 @@ public class InventoryController {
         cmbModalBatchContainer.setManaged(!isEntrada);
         
         try {
-            List<MotivoMovimiento> motivos = inventarioService.listarMotivosMovimiento();
+            List<MotivoMovimiento> motivos = inventoryAdapter.listarMotivosMovimiento();
             cmbModalMotivo.setItems(FXCollections.observableArrayList(motivos));
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
         
         if (!isEntrada) loadBatchesForProduct(cmbModalProduct.getValue());
     }
@@ -349,7 +357,7 @@ public class InventoryController {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
             String sedeId = user.getSedeId();
-            List<Lote> lotes = inventarioService.listarLotesFefo(sedeId, p.getId());
+            List<Lote> lotes = inventoryAdapter.listarLotesFefo(sedeId, p.getId());
             cmbModalBatch.setItems(FXCollections.observableArrayList(lotes));
             cmbModalBatch.setConverter(new StringConverter<>() {
                 @Override public String toString(Lote l) { return l != null ? l.getNumeroLote() : ""; }
@@ -372,7 +380,7 @@ public class InventoryController {
                     }
                 }
             });
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
@@ -415,14 +423,14 @@ public class InventoryController {
                     return;
                 }
 
-                inventarioService.registrarMovimiento(nuevoLote, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
+                inventoryAdapter.registrarMovimiento(nuevoLote, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
             } else {
                 Lote loteExistente = cmbModalBatch.getValue();
                 if (loteExistente == null) {
                     showAlert(Alert.AlertType.WARNING, "Lote no seleccionado", "Debe seleccionar un lote para realizar una salida.");
                     return;
                 }
-                inventarioService.registrarMovimiento(loteExistente, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
+                inventoryAdapter.registrarMovimiento(loteExistente, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
             }
 
             showAlert(Alert.AlertType.INFORMATION, "Operación Exitosa", "El movimiento se ha registrado correctamente.");
@@ -432,8 +440,6 @@ public class InventoryController {
             refreshQuickBatchCombo();
             clearModalFields();
 
-        } catch (SQLException e) {
-            showAlert(Alert.AlertType.ERROR, "Error de Inventario", e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Error Inesperado", "Ocurrió un error al procesar el movimiento.");
@@ -480,7 +486,7 @@ public class InventoryController {
                 : (isEntrada ? MotivoMovimientoEnum.COMPRA.getId() : MotivoMovimientoEnum.MERMA.getId());
             Usuario user = sessionManager.getCurrentUser();
 
-            inventarioService.registrarMovimiento(lote, user.getId(), selectedType.getId(), motivoId, cantidad, txtQuickObs.getText());
+            inventoryAdapter.registrarMovimiento(lote, user.getId(), selectedType.getId(), motivoId, cantidad, txtQuickObs.getText());
 
             showAlert(Alert.AlertType.INFORMATION, "Stock Actualizado", "Se ha actualizado el stock del lote seleccionado.");
             txtQuickQty.clear();
@@ -488,8 +494,6 @@ public class InventoryController {
             refreshMovements();
             refreshBatches();
 
-        } catch (SQLException e) {
-            showAlert(Alert.AlertType.ERROR, "Error de Inventario", e.getMessage());
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Error", "No se pudo realizar la actualización rápida.");
         }
@@ -519,7 +523,7 @@ public class InventoryController {
             LocalDate desde = dpFromDate != null ? dpFromDate.getValue() : null;
             LocalDate hasta = dpToDate != null ? dpToDate.getValue() : null;
 
-            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta); 
+            List<Movimiento> movements = inventoryAdapter.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta); 
             tableMovements.setItems(FXCollections.observableArrayList(movements));
             tableMovements.refresh();
 
@@ -532,7 +536,7 @@ public class InventoryController {
             if (lblEntryQty != null) lblEntryQty.setText(String.valueOf(entry));
             if (lblExitQty != null) lblExitQty.setText(String.valueOf(exit));
 
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
@@ -545,7 +549,7 @@ public class InventoryController {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
             
-            List<Lote> batches = inventarioService.listarLotesConProducto(user.getSedeId());
+            List<Lote> batches = inventoryAdapter.listarLotesConProducto(user.getSedeId());
             
             // Apply Filter
             String query = (txtSearchBatch != null) ? txtSearchBatch.getText().toLowerCase().trim() : "";
@@ -563,7 +567,8 @@ public class InventoryController {
             tableBatches.setItems(FXCollections.observableArrayList(batches));
             tableBatches.refresh();
             updateBatchSummary(user.getSedeId(), batches);
-        } catch (SQLException e) { e.printStackTrace(); }
+            populateAlerts();
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
@@ -578,7 +583,7 @@ public class InventoryController {
             TipoMovimiento selectedType = cmbMovementType.getValue();
             String tipoId = (selectedType != null && !selectedType.getId().isEmpty()) ? selectedType.getId() : null;
 
-            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta);
+            List<Movimiento> movements = inventoryAdapter.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta);
 
             if (movements.isEmpty()) {
                 showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay movimientos que coincidan con los filtros seleccionados.");
@@ -608,7 +613,7 @@ public class InventoryController {
                 params.put("TOTAL_QUANTITY", String.valueOf(totalQty));
                 params.put("items", movements);
 
-                reportService.generatePdf("movimientos", params, file);
+                reportService.generarPdf("movimientos", params, file);
                 showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente en:\n" + file.getAbsolutePath());
             }
         } catch (Exception e) {
@@ -617,14 +622,59 @@ public class InventoryController {
         }
     }
 
+    private void populateAlerts() {
+        if (alertsContainer == null) return;
+        alertsContainer.getChildren().clear();
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            List<StockCriticoDTO> criticos = inventoryAdapter.obtenerStockCritico(user.getSedeId());
+            for (StockCriticoDTO item : criticos) {
+                HBox alertCard = new HBox(10);
+                alertCard.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; -fx-alignment: center-left;");
+
+                FontIcon icon = new FontIcon();
+                String bgColor;
+                if (item.isStockBajo() && item.isVencePronto()) {
+                    icon.setIconLiteral("fas-exclamation-triangle");
+                    bgColor = "-fx-background-color: #fce4e4; -fx-border-color: #e74c3c;";
+                } else if (item.isStockBajo()) {
+                    icon.setIconLiteral("fas-box-open");
+                    bgColor = "-fx-background-color: #fff3cd; -fx-border-color: #ffc107;";
+                } else {
+                    icon.setIconLiteral("fas-clock");
+                    bgColor = "-fx-background-color: #d1ecf1; -fx-border-color: #17a2b8;";
+                }
+                icon.setIconSize(18);
+                alertCard.setStyle(alertCard.getStyle() + bgColor);
+
+                String riesgo = switch (item.getNivelRiesgo()) {
+                    case "CRITICO" -> "CRITICO";
+                    case "STOCK_BAJO" -> "Stock Bajo";
+                    case "VENCIMIENTO_INMINENTE" -> "Vence pronto";
+                    case "POR_VENCER" -> "Por vencer";
+                    default -> "Alerta";
+                };
+
+                String prodName = item.getProductoNombre() != null ? item.getProductoNombre() : "(Producto desconocido)";
+                Label text = new Label(riesgo + ": " + prodName
+                    + " (Stock: " + item.getStockActual() + "/" + item.getStockMinimo() + ")");
+                text.setStyle("-fx-font-size: 12px;");
+                alertCard.getChildren().addAll(icon, text);
+                alertsContainer.getChildren().add(alertCard);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
     private void updateBatchSummary(String sedeId, List<Lote> batches) {
         if (lblActiveBatches == null || lblCriticalBatches == null) return;
         try {
-            List<StockCriticoItem> criticos = inventarioService.obtenerStockCritico(sedeId);
+            List<StockCriticoDTO> criticos = inventoryAdapter.obtenerStockCritico(sedeId);
             long active = batches.stream().filter(l -> l.getCantidad() > 0).count();
-            long critical = criticos.stream().filter(StockCriticoItem::isVencePronto).count();
+            long expiring = criticos.stream().filter(StockCriticoDTO::isVencePronto).count();
+            long lowStock = criticos.stream().filter(StockCriticoDTO::isStockBajo).count();
             lblActiveBatches.setText(String.valueOf(active));
-            lblCriticalBatches.setText(String.valueOf(critical));
-        } catch (SQLException e) { e.printStackTrace(); }
+            lblCriticalBatches.setText("Por vencer: " + expiring + " | Stock bajo: " + lowStock);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }

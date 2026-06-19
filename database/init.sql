@@ -4,7 +4,8 @@
 
 CREATE TABLE [roles] (
 [id] varchar(50) PRIMARY KEY,
-[nombre] varchar(100) UNIQUE NOT NULL
+[nombre] varchar(100) UNIQUE NOT NULL,
+[is_activo] int DEFAULT 1
 );
 
 CREATE TABLE [sedes] (
@@ -12,6 +13,10 @@ CREATE TABLE [sedes] (
 [nombre] varchar(255) NOT NULL,
 [direccion] varchar(500),
 [telefono] varchar(50),
+[ubigeo] varchar(20),
+[tipo_sede] varchar(50),
+[capacidad_almacen] int DEFAULT 0,
+[administrador_id] varchar(50),
 [is_activa] int DEFAULT 1
 );
 
@@ -23,6 +28,8 @@ CREATE TABLE [usuarios] (
 [numero_documento] varchar(50) UNIQUE,
 [nombres] varchar(255),
 [apellidos] varchar(255),
+[telefono] varchar(50),
+[ubigeo] varchar(20),
 [password] varchar(max),
 [is_activo] int DEFAULT 1
 );
@@ -39,7 +46,8 @@ CREATE TABLE [pacientes] (
 
 CREATE TABLE [categorias] (
 [id] varchar(50) PRIMARY KEY,
-[nombre] varchar(100) UNIQUE NOT NULL
+[nombre] varchar(100) UNIQUE NOT NULL,
+[is_activo] int DEFAULT 1
 );
 
 CREATE TABLE [productos] (
@@ -49,6 +57,8 @@ CREATE TABLE [productos] (
 [nombre] varchar(255),
 [detalle] varchar(255),
 [unidad_medida] varchar(50),
+[stock_minimo] int DEFAULT 10,
+[precio_unitario] decimal(18,2) DEFAULT 0,
 [is_activo] int DEFAULT 1
 );
 
@@ -72,12 +82,14 @@ CREATE TABLE [lotes] (
 
 CREATE TABLE [tipos_movimiento] (
 [id] varchar(50) PRIMARY KEY,
-[nombre] varchar(50) NOT NULL
+[nombre] varchar(50) NOT NULL,
+[is_activo] int DEFAULT 1
 );
 
 CREATE TABLE [motivos_movimiento] (
 [id] varchar(50) PRIMARY KEY,
-[nombre] varchar(100) NOT NULL
+[nombre] varchar(100) NOT NULL,
+[is_activo] int DEFAULT 1
 );
 
 -- ========================
@@ -121,6 +133,7 @@ CREATE TABLE [atencion_detalles] (
 -- FOREIGN KEYS
 -- ========================
 
+ALTER TABLE [sedes] ADD CONSTRAINT [FK_sedes_administrador] FOREIGN KEY ([administrador_id]) REFERENCES [usuarios] ([id]);
 ALTER TABLE [usuarios] ADD CONSTRAINT [FK_usuarios_sedes] FOREIGN KEY ([sede_id]) REFERENCES [sedes] ([id]);
 ALTER TABLE [usuarios] ADD CONSTRAINT [FK_usuarios_roles] FOREIGN KEY ([rol_id]) REFERENCES [roles] ([id]);
 ALTER TABLE [productos] ADD CONSTRAINT [FK_productos_categorias] FOREIGN KEY ([categoria_id]) REFERENCES [categorias] ([id]);
@@ -138,21 +151,18 @@ ALTER TABLE [atencion_detalles] ADD CONSTRAINT [FK_atencion_detalles_atenciones]
 ALTER TABLE [atencion_detalles] ADD CONSTRAINT [FK_atencion_detalles_lotes] FOREIGN KEY ([lote_id]) REFERENCES [lotes] ([id]);
 
 -- ========================
--- DATA INICIAL (SEED)
+-- DATA INICIAL MINIMA (requerida por FKs)
 -- ========================
-
+-- Roles basicos
 INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-001', 'Administrador');
 INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-002', 'Químico Farmacéutico');
 INSERT INTO [roles] ([id], [nombre]) VALUES ('ROL-003', 'Técnico de Farmacia');
 
-INSERT INTO [sedes] ([id], [nombre], [direccion]) VALUES ('SED-001', 'Sede Central Lima', 'Av. Principal 123');
-
--- El password es 'admin123' (hash BCrypt) para todos
-INSERT INTO [usuarios] ([id], [sede_id], [rol_id], [tipo_documento], [numero_documento], [nombres], [apellidos], [password], [is_activo])
-VALUES 
-('USR-001', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1),
-('USR-002', 'SED-001', 'ROL-002', 'DNI', '22222222', 'Jefe', 'Farmacia', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1),
-('USR-003', 'SED-001', 'ROL-003', 'DNI', '33333333', 'Tecnico', 'Operativo', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=', 1);
-
-INSERT INTO [tipos_movimiento] ([id], [nombre]) VALUES ('MOV-T-01', 'entrada'), ('MOV-T-02', 'salida');
-INSERT INTO [motivos_movimiento] ([id], [nombre]) VALUES ('MOV-M-01', 'compra'), ('MOV-M-02', 'transferencia'), ('MOV-M-03', 'atencion'), ('MOV-M-04', 'merma');
+-- Catalogos de movimiento
+INSERT INTO [tipos_movimiento] ([id], [nombre]) VALUES ('MOV-T-01', 'entrada');
+INSERT INTO [tipos_movimiento] ([id], [nombre]) VALUES ('MOV-T-02', 'salida');
+INSERT INTO [motivos_movimiento] ([id], [nombre]) VALUES ('MOV-M-01', 'compra');
+INSERT INTO [motivos_movimiento] ([id], [nombre]) VALUES ('MOV-M-02', 'transferencia');
+INSERT INTO [motivos_movimiento] ([id], [nombre]) VALUES ('MOV-M-03', 'atencion');
+INSERT INTO [motivos_movimiento] ([id], [nombre]) VALUES ('MOV-M-04', 'merma');
+GO
