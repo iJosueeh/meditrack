@@ -1,8 +1,8 @@
 package com.utp.meditrackapp.features.patients.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.entity.Paciente;
-import com.utp.meditrackapp.features.patients.service.PacienteService;
+import com.utp.meditrackapp.domain.entities.Paciente;
+import com.utp.meditrackapp.infrastructure.adapters.PacienteAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -46,7 +46,7 @@ public class PacienteController {
     @FXML private TextField phoneField;
     @FXML private CheckBox chkActivo;
 
-    private final PacienteService pacienteService = new PacienteService();
+    private final PacienteAdapter pacienteAdapter = new PacienteAdapter();
     private Paciente currentPaciente; // Para edición
 
     @FXML
@@ -124,7 +124,7 @@ public class PacienteController {
 
     private void loadPatients() {
         try {
-            List<Paciente> pacientes = pacienteService.listarPacientes();
+            List<Paciente> pacientes = pacienteAdapter.listarPacientes();
             patientsTable.setItems(FXCollections.observableArrayList(pacientes));
             updateSummary();
         } catch (Exception e) {
@@ -135,9 +135,9 @@ public class PacienteController {
     private void updateSummary() {
         javafx.application.Platform.runLater(() -> {
             try {
-                lblTotalPatients.setText(String.valueOf(pacienteService.getContadorTotal()));
-                lblTodayAttentions.setText(String.valueOf(pacienteService.getAtendidosHoy()));
-                lblNewPatientsMonth.setText(String.valueOf(pacienteService.getNuevosDelMes()));
+                lblTotalPatients.setText(String.valueOf(pacienteAdapter.getContadorTotal()));
+                lblTodayAttentions.setText(String.valueOf(pacienteAdapter.getAtendidosHoy()));
+                lblNewPatientsMonth.setText(String.valueOf(pacienteAdapter.getNuevosDelMes()));
             } catch (Exception e) {
                 System.err.println("[UI ERROR] Fallo al actualizar resumen: " + e.getMessage());
             }
@@ -147,7 +147,7 @@ public class PacienteController {
     @FXML
     protected void onSearch() {
         String query = searchField.getText();
-        List<Paciente> resultados = pacienteService.buscarPacientes(query);
+        List<Paciente> resultados = pacienteAdapter.buscarPacientes(query);
         patientsTable.setItems(FXCollections.observableArrayList(resultados));
         updateSummary();
     }
@@ -173,7 +173,7 @@ public class PacienteController {
         currentPaciente.setTelefono(phoneField.getText());
         currentPaciente.setIsActivo(chkActivo.isSelected() ? 1 : 0);
 
-        String result = pacienteService.guardarPaciente(currentPaciente);
+        String result = pacienteAdapter.guardarPaciente(currentPaciente);
 
         if (result.equals("OK")) {
             showAlert(Alert.AlertType.INFORMATION, "Éxito", "Paciente guardado correctamente.");
@@ -278,7 +278,7 @@ public class PacienteController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            String resultMsg = pacienteService.eliminarPaciente(p.getId());
+            String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
             if ("OK".equals(resultMsg)) {
                 loadPatients();
             } else {

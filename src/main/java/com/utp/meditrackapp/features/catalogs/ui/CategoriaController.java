@@ -1,7 +1,7 @@
 package com.utp.meditrackapp.features.catalogs.ui;
 
-import com.utp.meditrackapp.core.dao.CategoriaDAO;
-import com.utp.meditrackapp.core.models.entity.Categoria;
+import com.utp.meditrackapp.infrastructure.adapters.CatalogAdapter;
+import com.utp.meditrackapp.domain.entities.Categoria;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -30,7 +30,7 @@ public class CategoriaController {
     @FXML private Label modalTitle;
     @FXML private TextField txtNombre;
 
-    private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private final CatalogAdapter catalogAdapter = new CatalogAdapter();
     private final ObservableList<Categoria> masterData = FXCollections.observableArrayList();
     private Categoria selectedCategoria;
 
@@ -124,12 +124,12 @@ public class CategoriaController {
     @FXML
     public void loadData() {
         try {
-            List<Categoria> list = categoriaDAO.listarTodas();
+            List<Categoria> list = catalogAdapter.listarCategorias();
             masterData.setAll(list);
             if (lblTotalCategorias != null) {
                 lblTotalCategorias.setText(String.valueOf(list.size()));
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             showAlert("Error", "No se pudieron cargar las categorías: " + e.getMessage());
         }
     }
@@ -157,21 +157,21 @@ public class CategoriaController {
             return;
         }
 
-        try {
-            if (selectedCategoria == null) {
-                Categoria nueva = new Categoria(null, nombre);
-                categoriaDAO.crear(nueva);
-                showAlert("Éxito", "Categoría creada correctamente.");
-            } else {
-                selectedCategoria.setNombre(nombre);
-                categoriaDAO.actualizar(selectedCategoria);
-                showAlert("Éxito", "Categoría actualizada correctamente.");
+        if (selectedCategoria == null) {
+            Categoria nueva = new Categoria(null, nombre);
+            String result = catalogAdapter.crearCategoria(nueva);
+            if (!"OK".equals(result)) {
+                showAlert("Error", result);
+                return;
             }
-            loadData();
-            onCloseModal();
-        } catch (SQLException | IllegalArgumentException e) {
-            showAlert("Error", e.getMessage());
+            showAlert("Éxito", "Categoría creada correctamente.");
+        } else {
+            selectedCategoria.setNombre(nombre);
+            catalogAdapter.actualizarCategoria(selectedCategoria);
+            showAlert("Éxito", "Categoría actualizada correctamente.");
         }
+        loadData();
+        onCloseModal();
     }
 
     private void confirmToggle(Categoria cat) {
@@ -180,33 +180,32 @@ public class CategoriaController {
         alert.setTitle("Confirmar Cambio de Estado");
         alert.setHeaderText("¿Está seguro de " + accion + " la categoría?");
         alert.setContentText("La categoría \"" + cat.getNombre() + "\" será " + (cat.getIsActivo() == 1 ? "desactivada" : "activada") + ".");
-
+        
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                categoriaDAO.toggleEstado(cat.getId());
+            String r = catalogAdapter.toggleEstadoCategoria(cat.getId());
+            if ("OK".equals(r)) {
                 loadData();
                 showAlert("Éxito", "Categoría " + (cat.getIsActivo() == 1 ? "desactivada" : "activada") + ".");
-            } catch (SQLException e) {
-                showAlert("Error", "No se pudo cambiar el estado: " + e.getMessage());
+            } else {
+                showAlert("Error", r);
             }
         }
     }
 
     private void confirmDelete(Categoria cat) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmar Eliminación");
-        alert.setHeaderText("¿Está seguro de eliminar la categoría?");
-        alert.setContentText("Esta acción no se puede deshacer y puede fallar si la categoría está en uso.");
-        
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                categoriaDAO.eliminar(cat.getId());
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Confirmar Eliminación");
+        dialog.setHeaderText("¿Está seguro de eliminar la categoría \"" + cat.getNombre() + "\"?");
+        dialog.setContentText("Esta acción no se puede deshacer. Escriba 'ELIMINAR' para confirmar:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+            String r = catalogAdapter.eliminarCategoria(cat.getId());
+            if ("OK".equals(r)) {
                 loadData();
                 showAlert("Éxito", "Categoría eliminada.");
-            } catch (SQLException e) {
-                showAlert("Error", "No se pudo eliminar: " + e.getMessage());
+            } else {
+                showAlert("Error", r);
             }
         }
     }

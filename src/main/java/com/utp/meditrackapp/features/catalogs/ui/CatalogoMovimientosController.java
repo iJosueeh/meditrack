@@ -1,9 +1,8 @@
 package com.utp.meditrackapp.features.catalogs.ui;
 
-import com.utp.meditrackapp.core.dao.MotivoMovimientoDAO;
-import com.utp.meditrackapp.core.dao.TipoMovimientoDAO;
-import com.utp.meditrackapp.core.models.entity.MotivoMovimiento;
-import com.utp.meditrackapp.core.models.entity.TipoMovimiento;
+import com.utp.meditrackapp.infrastructure.adapters.CatalogAdapter;
+import com.utp.meditrackapp.domain.entities.MotivoMovimiento;
+import com.utp.meditrackapp.domain.entities.TipoMovimiento;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -37,8 +36,7 @@ public class CatalogoMovimientosController {
     @FXML private Label modalTitle, modalSubtitle, lblFieldName;
     @FXML private TextField txtNombre;
 
-    private final TipoMovimientoDAO tipoDAO = new TipoMovimientoDAO();
-    private final MotivoMovimientoDAO motivoDAO = new MotivoMovimientoDAO();
+    private final CatalogAdapter catalogAdapter = new CatalogAdapter();
     
     private final ObservableList<TipoMovimiento> masterTipos = FXCollections.observableArrayList();
     private final ObservableList<MotivoMovimiento> masterMotivos = FXCollections.observableArrayList();
@@ -116,11 +114,11 @@ public class CatalogoMovimientosController {
     }
 
     @FXML public void loadTipos() {
-        try { masterTipos.setAll(tipoDAO.listarTodas()); } catch (SQLException e) { showAlert("Error", e.getMessage()); }
+        try { masterTipos.setAll(catalogAdapter.listarTiposMovimiento()); } catch (Exception e) { showAlert("Error", e.getMessage()); }
     }
 
     @FXML public void loadMotivos() {
-        try { masterMotivos.setAll(motivoDAO.listarTodas()); } catch (SQLException e) { showAlert("Error", e.getMessage()); }
+        try { masterMotivos.setAll(catalogAdapter.listarMotivosMovimiento()); } catch (Exception e) { showAlert("Error", e.getMessage()); }
     }
 
     @FXML protected void onOpenRegisterTipo() {
@@ -153,42 +151,53 @@ public class CatalogoMovimientosController {
         String nombre = txtNombre.getText();
         if (nombre == null || nombre.isBlank()) { showAlert("Validación", "El nombre es obligatorio."); return; }
 
-        try {
-            if (isEditingTipo) {
-                if (selectedItem == null) tipoDAO.crear(new TipoMovimiento(null, nombre));
-                else {
-                    TipoMovimiento t = (TipoMovimiento) selectedItem;
-                    t.setNombre(nombre);
-                    tipoDAO.actualizar(t);
-                }
-                loadTipos();
+        if (isEditingTipo) {
+            if (selectedItem == null) {
+                TipoMovimiento t = new TipoMovimiento();
+                t.setNombre(nombre);
+                String r = catalogAdapter.crearTipoMovimiento(t);
+                if (!"OK".equals(r)) { showAlert("Error", r); return; }
             } else {
-                if (selectedItem == null) motivoDAO.crear(new MotivoMovimiento(null, nombre));
-                else {
-                    MotivoMovimiento m = (MotivoMovimiento) selectedItem;
-                    m.setNombre(nombre);
-                    motivoDAO.actualizar(m);
-                }
-                loadMotivos();
+                TipoMovimiento t = (TipoMovimiento) selectedItem;
+                t.setNombre(nombre);
+                catalogAdapter.actualizarTipoMovimiento(t);
             }
-            onCloseModal();
-            showAlert("Éxito", "Registro guardado correctamente.");
-        } catch (SQLException e) { showAlert("Error", e.getMessage()); }
+            loadTipos();
+        } else {
+            if (selectedItem == null) {
+                MotivoMovimiento m = new MotivoMovimiento();
+                m.setNombre(nombre);
+                String r = catalogAdapter.crearMotivoMovimiento(m);
+                if (!"OK".equals(r)) { showAlert("Error", r); return; }
+            } else {
+                MotivoMovimiento m = (MotivoMovimiento) selectedItem;
+                m.setNombre(nombre);
+                catalogAdapter.actualizarMotivoMovimiento(m);
+            }
+            loadMotivos();
+        }
+        onCloseModal();
+        showAlert("Éxito", "Registro guardado correctamente.");
     }
 
     private void confirmDelete(Object item, boolean isTipo) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Está seguro de eliminar este registro?", ButtonType.YES, ButtonType.NO);
-        alert.setTitle("Confirmar Eliminación");
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.YES) {
-                try {
-                    if (isTipo) tipoDAO.eliminar(((TipoMovimiento)item).getId());
-                    else motivoDAO.eliminar(((MotivoMovimiento)item).getId());
-                    loadTipos(); loadMotivos();
-                    showAlert("Éxito", "Registro eliminado.");
-                } catch (SQLException e) { showAlert("Error", "No se puede eliminar porque está en uso."); }
+        String nombre = isTipo ? ((TipoMovimiento)item).getNombre() : ((MotivoMovimiento)item).getNombre();
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Confirmar Eliminación");
+        dialog.setHeaderText("¿Está seguro de eliminar \"" + nombre + "\"?");
+        dialog.setContentText("Esta acción no se puede deshacer. Escriba 'ELIMINAR' para confirmar:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+            String r = isTipo
+                ? catalogAdapter.eliminarTipoMovimiento(((TipoMovimiento)item).getId())
+                : catalogAdapter.eliminarMotivoMovimiento(((MotivoMovimiento)item).getId());
+            if ("OK".equals(r)) {
+                loadTipos(); loadMotivos();
+                showAlert("Éxito", "Registro eliminado.");
+            } else {
+                showAlert("Error", r);
             }
-        });
+        }
     }
 
     @FXML protected void onCloseModal() { modalCatalogo.setVisible(false); }

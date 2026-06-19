@@ -1,7 +1,7 @@
 package com.utp.meditrackapp.core.util;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
-import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -1,9 +1,9 @@
 package com.utp.meditrackapp.features.profile.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.core.util.PasswordHasher;
-import com.utp.meditrackapp.features.auth.Dao.UsuarioDao;
+import com.utp.meditrackapp.infrastructure.adapters.ProfileAdapter;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -29,7 +29,7 @@ public class ProfileController {
     @FXML private FontIcon currentEyeIcon, newEyeIcon, confirmEyeIcon;
 
     private boolean isCurrentVisible = false, isNewVisible = false, isConfirmVisible = false;
-    private final UsuarioDao usuarioDao = new UsuarioDao();
+    private final ProfileAdapter profileAdapter = new ProfileAdapter();
 
     @FXML
     public void initialize() {
@@ -54,7 +54,7 @@ public class ProfileController {
             tipoDocField.setText(user.getTipoDocumento());
             numDocField.setText(user.getNumeroDocumento());
 
-            lastAccessValue.setText(usuarioDao.getUltimaActividad(user.getId()));
+            lastAccessValue.setText("N/A");
             accountStatusValue.setText(user.getIsActivo() == 1 ? "ACTIVO" : "INACTIVO");
         }
     }
@@ -107,7 +107,7 @@ public class ProfileController {
             user.setTipoDocumento(editTipoDocField.getText());
             user.setNumeroDocumento(editNumDocField.getText());
             
-            if (usuarioDao.updateUser(user)) {
+            if ("OK".equals(profileAdapter.actualizarUsuario(user))) {
                 loadUserData();
                 showAlert("Éxito", "Sus datos han sido actualizados correctamente.");
             } else {
@@ -157,7 +157,7 @@ public class ProfileController {
 
         // Hashing y Guardado
         String newHash = PasswordHasher.hashPassword(newPass);
-        if (usuarioDao.updatePassword(user.getId(), newHash)) {
+        if ("OK".equals(profileAdapter.actualizarPassword(user.getId(), newHash))) {
             user.setPassword(newHash); // Actualizar en sesión
             showAlert("Éxito", "Su contraseña ha sido actualizada correctamente.");
             onClosePasswordModal();

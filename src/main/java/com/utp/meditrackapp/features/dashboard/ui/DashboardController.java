@@ -2,7 +2,7 @@ package com.utp.meditrackapp.features.dashboard.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;

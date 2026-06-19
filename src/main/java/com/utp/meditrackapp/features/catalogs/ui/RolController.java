@@ -1,7 +1,8 @@
 package com.utp.meditrackapp.features.catalogs.ui;
 
-import com.utp.meditrackapp.core.dao.RolDAO;
-import com.utp.meditrackapp.core.models.entity.Rol;
+import com.utp.meditrackapp.core.config.SessionManager;
+import com.utp.meditrackapp.infrastructure.adapters.CatalogAdapter;
+import com.utp.meditrackapp.domain.entities.Rol;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -30,7 +31,7 @@ public class RolController {
     @FXML private Label modalTitle;
     @FXML private TextField txtNombre;
 
-    private final RolDAO rolDAO = new RolDAO();
+    private final CatalogAdapter catalogAdapter = new CatalogAdapter();
     private final ObservableList<Rol> masterData = FXCollections.observableArrayList();
     private Rol selectedRol;
 
@@ -124,12 +125,12 @@ public class RolController {
     @FXML
     public void loadData() {
         try {
-            List<Rol> list = rolDAO.listarTodas();
+            List<Rol> list = catalogAdapter.listarRoles();
             masterData.setAll(list);
             if (lblTotalRoles != null) {
                 lblTotalRoles.setText(String.valueOf(list.size()));
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             showAlert("Error", "No se pudieron cargar los roles: " + e.getMessage());
         }
     }
@@ -157,37 +158,43 @@ public class RolController {
             return;
         }
 
-        try {
-            if (selectedRol == null) {
-                Rol nuevo = new Rol(null, nombre);
-                rolDAO.crear(nuevo);
-                showAlert("Éxito", "Rol creado correctamente.");
-            } else {
-                selectedRol.setNombre(nombre);
-                rolDAO.actualizar(selectedRol);
-                showAlert("Éxito", "Rol actualizado correctamente.");
+        if (selectedRol == null) {
+            Rol nuevo = new Rol(null, nombre);
+            String result = catalogAdapter.crearRol(nuevo);
+            if (!"OK".equals(result)) {
+                showAlert("Error", result);
+                return;
             }
-            loadData();
-            onCloseModal();
-        } catch (SQLException e) {
-            showAlert("Error", e.getMessage());
+            showAlert("Éxito", "Rol creado correctamente.");
+        } else {
+            selectedRol.setNombre(nombre);
+            catalogAdapter.actualizarRol(selectedRol);
+            showAlert("Éxito", "Rol actualizado correctamente.");
         }
+        loadData();
+        onCloseModal();
     }
 
     private void confirmToggle(Rol rol) {
         String accion = rol.getIsActivo() == 1 ? "desactivar" : "activar";
 
-        // Check if users are assigned to this role before deactivating
         if (rol.getIsActivo() == 1) {
+            var currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser != null && currentUser.getRolId() != null
+                && currentUser.getRolId().equals(rol.getId())) {
+                showAlert("Acción no permitida",
+                    "No puedes desactivar tu propio rol (\"" + rol.getNombre() + "\") mientras estás autenticado.");
+                return;
+            }
             try {
-                int userCount = rolDAO.countUsersByRole(rol.getId());
+                int userCount = catalogAdapter.contarUsuariosPorRol(rol.getId());
                 if (userCount > 0) {
                     showAlert("No se puede desactivar",
                         "Hay " + userCount + " usuario(s) asignado(s) al rol \"" + rol.getNombre() + "\".\n\n" +
                         "Primero reassigne o elimine los usuarios antes de desactivar este rol.");
                     return;
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 showAlert("Error", "No se pudo verificar usuarios: " + e.getMessage());
                 return;
             }
@@ -200,30 +207,29 @@ public class RolController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                rolDAO.toggleEstado(rol.getId());
+            String r = catalogAdapter.toggleEstadoRol(rol.getId());
+            if ("OK".equals(r)) {
                 loadData();
                 showAlert("Éxito", "Rol " + (rol.getIsActivo() == 1 ? "desactivado" : "activado") + ".");
-            } catch (SQLException e) {
-                showAlert("Error", "No se pudo cambiar el estado: " + e.getMessage());
+            } else {
+                showAlert("Error", r);
             }
         }
     }
 
     private void confirmDelete(Rol rol) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmar Eliminación");
-        alert.setHeaderText("¿Está seguro de eliminar el rol?");
-        alert.setContentText("Esta acción no se puede deshacer y puede fallar si el rol está en uso por usuarios.");
-        
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                rolDAO.eliminar(rol.getId());
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Confirmar Eliminación");
+        dialog.setHeaderText("¿Está seguro de eliminar el rol \"" + rol.getNombre() + "\"?");
+        dialog.setContentText("Esta acción no se puede deshacer. Escriba 'ELIMINAR' para confirmar:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+            String r = catalogAdapter.eliminarRol(rol.getId());
+            if ("OK".equals(r)) {
                 loadData();
                 showAlert("Éxito", "Rol eliminado.");
-            } catch (SQLException e) {
-                showAlert("Error", "No se pudo eliminar: " + e.getMessage());
+            } else {
+                showAlert("Error", r);
             }
         }
     }

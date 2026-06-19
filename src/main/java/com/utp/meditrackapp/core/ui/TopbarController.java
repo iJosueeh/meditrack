@@ -2,7 +2,7 @@ package com.utp.meditrackapp.core.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.features.search.dao.GlobalSearchDAO;
+import com.utp.meditrackapp.infrastructure.adapters.SearchAdapter;
 import com.utp.meditrackapp.features.search.models.SearchResult;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -14,7 +14,6 @@ import javafx.util.Duration;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 public class TopbarController {
@@ -22,7 +21,7 @@ public class TopbarController {
     @FXML private FontIcon themeIcon;
     @FXML private TextField txtGlobalSearch;
     
-    private final GlobalSearchDAO searchDAO = new GlobalSearchDAO();
+    private final SearchAdapter searchAdapter = new SearchAdapter();
     private ContextMenu searchResultsPopup;
 
     @FXML
@@ -53,7 +52,7 @@ public class TopbarController {
 
     private void performSearch(String query) {
         try {
-            List<SearchResult> results = searchDAO.searchGlobal(query);
+            List<SearchResult> results = searchAdapter.searchGlobal(query);
             searchResultsPopup.getItems().clear();
 
             if (results.isEmpty()) {
@@ -70,7 +69,7 @@ public class TopbarController {
             if (!searchResultsPopup.isShowing()) {
                 searchResultsPopup.show(txtGlobalSearch, javafx.geometry.Side.BOTTOM, 0, 5);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
