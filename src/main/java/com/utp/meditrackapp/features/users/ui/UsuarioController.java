@@ -1,12 +1,12 @@
 package com.utp.meditrackapp.features.users.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.entity.Rol;
-import com.utp.meditrackapp.core.models.entity.Sede;
-import com.utp.meditrackapp.core.models.entity.Usuario;
+import com.utp.meditrackapp.domain.entities.Rol;
+import com.utp.meditrackapp.domain.entities.Sede;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
-import com.utp.meditrackapp.features.auth.Dao.UsuarioDao;
+import com.utp.meditrackapp.infrastructure.adapters.UserAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -47,7 +47,7 @@ public class UsuarioController {
     @FXML private TextField resetPasswordTextField;
     @FXML private FontIcon resetToggleIcon;
 
-    private final UsuarioDao usuarioDao = new UsuarioDao();
+    private final UserAdapter userAdapter = new UserAdapter();
     private Usuario currentUsuario;
 
     @FXML
@@ -94,12 +94,12 @@ public class UsuarioController {
             @Override public Sede fromString(String s) { return null; }
         });
 
-        rolCombo.setItems(FXCollections.observableArrayList(usuarioDao.listarRoles()));
-        sedeCombo.setItems(FXCollections.observableArrayList(usuarioDao.listarSedes()));
+        rolCombo.setItems(FXCollections.observableArrayList(userAdapter.listarRoles()));
+        sedeCombo.setItems(FXCollections.observableArrayList(userAdapter.listarSedes()));
     }
 
     private void loadData() {
-        List<Usuario> users = usuarioDao.listarTodos();
+        List<Usuario> users = userAdapter.listarUsuarios();
         usersTable.setItems(FXCollections.observableArrayList(users));
     }
 
@@ -112,7 +112,7 @@ public class UsuarioController {
         }
 
         String[] terms = query.split("\\s+");
-        List<Usuario> filtered = usuarioDao.listarTodos().stream()
+        List<Usuario> filtered = userAdapter.listarUsuarios().stream()
             .filter(u -> {
                 String fullData = (u.getNombreCompleto() + " " + u.getNumeroDocumento()).toLowerCase();
                 for (String term : terms) {
@@ -151,9 +151,9 @@ public class UsuarioController {
 
             boolean success;
             if (isNew) {
-                success = usuarioDao.registrar(currentUsuario, passwordField.getText());
+                success = "OK".equals(userAdapter.guardarUsuario(currentUsuario, passwordField.getText()));
             } else {
-                success = usuarioDao.updateUser(currentUsuario);
+                success = "OK".equals(userAdapter.actualizarUsuario(currentUsuario));
             }
 
             if (success) {
@@ -208,7 +208,7 @@ public class UsuarioController {
         }
 
         String hashedPassword = com.utp.meditrackapp.core.util.PasswordHasher.hashPassword(newPassword);
-        if (usuarioDao.updatePassword(currentUsuario.getId(), hashedPassword)) {
+        if ("OK".equals(userAdapter.actualizarPassword(currentUsuario.getId(), hashedPassword))) {
             showAlert(Alert.AlertType.INFORMATION, "Éxito", "Contraseña restablecida correctamente.");
             resetPasswordOverlay.setVisible(false);
         } else {
@@ -319,7 +319,7 @@ public class UsuarioController {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿" + action + " usuario " + u.getNombreCompleto() + "?", ButtonType.YES, ButtonType.NO);
         alert.showAndWait().ifPresent(type -> {
             if (type == ButtonType.YES) {
-                if (usuarioDao.toggleEstado(u.getId(), deactivating ? 0 : 1)) {
+                if ("OK".equals(userAdapter.toggleEstado(u.getId()))) {
                     loadData();
                 }
             }

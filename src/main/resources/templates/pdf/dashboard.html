@@ -263,14 +263,14 @@
         </thead>
         <tbody>
             <tr th:each="prod : ${items}">
-                <td th:text="${prod.code}">P-001</td>
-                <td style="font-weight: bold;" th:text="${prod.name}">Paracetamol 500mg</td>
-                <td th:text="${prod.category}">Medicamentos</td>
-                <td style="text-align: center;" th:text="${prod.currentStock}">1,200</td>
-                <td style="text-align: right;" th:text="${prod.formattedTotalValue}">S/ 12,000.00</td>
+                <td th:text="${prod.codigo}">P-001</td>
+                <td style="font-weight: bold;" th:text="${prod.nombre}">Paracetamol 500mg</td>
+                <td th:text="${prod.categoria}">Medicamentos</td>
+                <td style="text-align: center;" th:text="${prod.stockActual}">1,200</td>
+                <td style="text-align: right;" th:text="${prod.valorFormateado}">S/ 12,000.00</td>
                 <td style="text-align: center;">
-                    <span th:if="${prod.currentStock > prod.minStock}" class="badge badge-high">ALTO</span>
-                    <span th:if="${prod.currentStock <= prod.minStock}" class="badge badge-low">STOCK BAJO</span>
+                    <span th:if="${prod.stockActual > prod.stockMinimo}" class="badge badge-high">ALTO</span>
+                    <span th:if="${prod.stockActual <= prod.stockMinimo}" class="badge badge-low">STOCK BAJO</span>
                 </td>
             </tr>
         </tbody>

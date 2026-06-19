@@ -1,40 +1,18 @@
 package com.utp.meditrackapp.features.dashboard.ui;
 
-import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.entity.Usuario;
-import com.utp.meditrackapp.core.models.entity.Movimiento;
-import com.utp.meditrackapp.core.models.dto.DispensacionReportItem;
-import com.utp.meditrackapp.core.util.SedeResolver;
-import com.utp.meditrackapp.features.dashboard.Dao.DashboardDao;
-import com.utp.meditrackapp.features.dashboard.models.MedicamentoResumen;
-import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
-import com.utp.meditrackapp.features.inventory.service.InventarioService;
-import com.utp.meditrackapp.features.attentions.service.AtencionService;
+import com.utp.meditrackapp.domain.entities.Usuario;
+import com.utp.meditrackapp.infrastructure.adapters.ReportAdapter;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ReportsController {
 
-    private final DashboardDao dashboardDao = new DashboardDao();
-    private final InventarioService inventarioService = new InventarioService();
-    private final AtencionService atencionService = new AtencionService();
-    private final HtmlReportService reportService = new HtmlReportService();
+    private final ReportAdapter reportAdapter = new ReportAdapter();
     private final SessionManager sessionManager = SessionManager.getInstance();
 
     @FXML private BorderPane rootPane;
@@ -51,19 +29,14 @@ public class ReportsController {
             Usuario user = sessionManager.getCurrentUser();
             String sedeId = (user != null) ? user.getSedeId() : null;
 
-            int totalProducts = dashboardDao.getStockCriticoCount(Integer.MAX_VALUE);
-            int criticalStock = dashboardDao.getStockCriticoCount(10);
-            int expiringSoon = dashboardDao.getLotesPorVencerCount(30);
-            int health = dashboardDao.getSaludInventario(sedeId);
-            double inventoryValue = dashboardDao.getInventoryValue();
-            int movements = dashboardDao.getMovementsVolume(30);
+            var kpis = reportAdapter.obtenerKpis(sedeId);
 
-            if (lblTotalProducts != null) lblTotalProducts.setText(String.valueOf(totalProducts));
-            if (lblCriticalStock != null) lblCriticalStock.setText(String.valueOf(criticalStock));
-            if (lblExpiringSoon != null) lblExpiringSoon.setText(String.valueOf(expiringSoon));
-            if (lblHealthScore != null) lblHealthScore.setText(health + "%");
-            if (lblInventoryValue != null) lblInventoryValue.setText(String.format("S/ %,.2f", inventoryValue));
-            if (lblMovements != null) lblMovements.setText(String.valueOf(movements));
+            if (lblTotalProducts != null) lblTotalProducts.setText(String.valueOf(kpis.totalProductos()));
+            if (lblCriticalStock != null) lblCriticalStock.setText(String.valueOf(kpis.stockCritico()));
+            if (lblExpiringSoon != null) lblExpiringSoon.setText(String.valueOf(kpis.lotesPorVencer()));
+            if (lblHealthScore != null) lblHealthScore.setText(kpis.saludInventario() + "%");
+            if (lblInventoryValue != null) lblInventoryValue.setText(String.format("S/ %,.2f", kpis.valorInventario()));
+            if (lblMovements != null) lblMovements.setText(String.valueOf(kpis.volumenMovimientos()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,66 +48,22 @@ public class ReportsController {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
 
-            // 1. Gather Data
-            List<MedicamentoResumen> topProducts = dashboardDao.getTopBajoStock();
-            
-            // Use direct calculation instead of parsing formatted strings
-            double invValue = dashboardDao.getInventoryValue();
-                
-            int criticalStock = dashboardDao.getStockCriticoCount(10);
-            int movementsVol = dashboardDao.getMovementsVolume(30);
-            int efficiency = dashboardDao.getSaludInventario(user.getSedeId());
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Guardar Reporte Consolidado");
+            fileChooser.setInitialFileName("reporte_consolidado_" + LocalDate.now() + ".pdf");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(rootPane.getScene().getWindow());
 
-            // 2. Charts with improved labels
-            Map<String, Double> trendData = new HashMap<>();
-            dashboardDao.getInventoryTrendMonths(6).forEach(m -> {
-                String periodo = (String)m.get("period"); // yyyy-MM
-                try {
-                    java.time.YearMonth ym = YearMonth.parse(periodo);
-                    String monthName = ym.getMonth().getDisplayName(TextStyle.SHORT, new java.util.Locale("es", "PE"));
-                    trendData.put(monthName + " " + ym.getYear(), ((Number)m.get("value")).doubleValue());
-                } catch (Exception e) {
-                    trendData.put(periodo, ((Number)m.get("value")).doubleValue());
-                }
-            });
-
-            Map<String, Double> catData = dashboardDao.getCategoryDistribution().stream()
-                .collect(Collectors.toMap(m -> (String)m.get("category"), m -> ((Number)m.get("total")).doubleValue()));
-
-            String chartTrend = reportService.generateBarChartBase64(trendData, "Existencias por Periodo", "Mes", "Unidades");
-            String chartCat = reportService.generatePieChartBase64(catData, "Distribución por Categoría");
-
-            // 3. Variables
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("REPORT_DATE", LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            vars.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
-            vars.put("SEDE", SedeResolver.getSedeName(user));
-            vars.put("VALOR_INVENTARIO", String.format("S/ %,.2f", invValue));
-
-            String crecimiento;
-            if (trendData.size() >= 2) {
-                java.util.List<Double> values = new java.util.ArrayList<>(trendData.values());
-                double prev = values.get(values.size() - 2);
-                double curr = values.get(values.size() - 1);
-                if (prev > 0) {
-                    double pct = ((curr - prev) / prev) * 100;
-                    crecimiento = String.format("%+.1f%% vs. mes anterior", pct);
-                } else {
-                    crecimiento = "N/A";
-                }
-            } else {
-                crecimiento = "N/A";
+            if (file != null) {
+                String sedeName = user.getSedeNombre() != null ? user.getSedeNombre() : "";
+                reportAdapter.generarReporteConsolidado(
+                    user.getSedeId(),
+                    user.getNombres() + " " + user.getApellidos(),
+                    sedeName,
+                    file
+                );
+                showAlert("Reporte Generado", "El documento se ha guardado en:\n" + file.getAbsolutePath());
             }
-            vars.put("CRECIMIENTO_VALOR", crecimiento);
-            vars.put("ALERTAS_STOCK", criticalStock + " Críticos");
-            vars.put("VOLUMEN_MOVIMIENTOS", String.format("%,d", movementsVol));
-            vars.put("EFICIENCIA_OPERATIVA", efficiency + "%");
-            vars.put("CHART_TREND", chartTrend);
-            vars.put("CHART_CAT", chartCat);
-            vars.put("items", topProducts);
-
-            saveReport("reporte_consolidado", "dashboard", vars);
-
         } catch (Exception e) { showException(e); }
     }
 
@@ -142,27 +71,33 @@ public class ReportsController {
     public void onGenerateMovements() {
         try {
             Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            
             LocalDate desde = dpMovFrom.getValue();
             LocalDate hasta = dpMovTo.getValue();
 
-            List<Movimiento> movements = inventarioService.listarMovimientosConFiltros(user.getSedeId(), null, null, desde, hasta);
-            if (movements.isEmpty()) { showAlert("Sin Datos", "No hay movimientos en el rango seleccionado."); return; }
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Guardar Reporte de Movimientos");
+            fileChooser.setInitialFileName("reporte_movimientos_" + LocalDate.now() + ".pdf");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(rootPane.getScene().getWindow());
 
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("REPORT_DATE", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-            vars.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
-            vars.put("SEDE", SedeResolver.getSedeName(user));
-            
-            String period = (desde != null ? desde.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Inicio")
-                          + " al " + 
-                          (hasta != null ? hasta.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Hoy");
-            vars.put("DATE_RANGE", period);
-            
-            vars.put("TOTAL_MOVEMENTS", String.valueOf(movements.size()));
-            vars.put("TOTAL_QUANTITY", String.valueOf(movements.stream().mapToInt(Movimiento::getCantidad).sum()));
-            vars.put("items", movements);
-
-            saveReport("reporte_movimientos", "movimientos", vars);
+            if (file != null) {
+                String sedeName = user.getSedeNombre() != null ? user.getSedeNombre() : "";
+                boolean generated = reportAdapter.generarReporteMovimientos(
+                    user.getSedeId(),
+                    user.getNombres() + " " + user.getApellidos(),
+                    sedeName,
+                    desde, hasta,
+                    file
+                );
+                
+                if (generated) {
+                    showAlert("Reporte Generado", "El documento se ha guardado en:\n" + file.getAbsolutePath());
+                } else {
+                    showAlert("Sin Datos", "No hay movimientos en el rango seleccionado.");
+                }
+            }
         } catch (Exception e) { showException(e); }
     }
 
@@ -170,54 +105,34 @@ public class ReportsController {
     public void onGenerateDispensations() {
         try {
             Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            
             LocalDate desde = dpDispFrom.getValue();
             LocalDate hasta = dpDispTo.getValue();
 
-            List<DispensacionReportItem> items = atencionService.listarDispensacionesReporte(user.getSedeId(), desde, hasta);
-            if (items.isEmpty()) { showAlert("Sin Datos", "No hay dispensaciones en el rango seleccionado."); return; }
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Guardar Reporte de Dispensaciones");
+            fileChooser.setInitialFileName("reporte_dispensaciones_" + LocalDate.now() + ".pdf");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(rootPane.getScene().getWindow());
 
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("REPORT_DATE", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-            vars.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
-            
-            // Robust Sede Name Resolver
-            String sedeDisplay = (user.getSedeNombre() != null && !user.getSedeNombre().isEmpty()) ? user.getSedeNombre() : "Sede Central";
-            if (sedeDisplay.startsWith("SED-")) {
-                // Fallback to fetch actual name if only ID is available
-                try (Connection conn = DatabaseConfig.getInstance().getConnection();
-                     PreparedStatement ps = conn.prepareStatement("SELECT nombre FROM sedes WHERE id = ?")) {
-                    ps.setString(1, user.getSedeId());
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) sedeDisplay = rs.getString("nombre");
-                    }
-                } catch (java.sql.SQLException e) { e.printStackTrace(); }
+            if (file != null) {
+                String sedeName = user.getSedeNombre() != null ? user.getSedeNombre() : "";
+                boolean generated = reportAdapter.generarReporteDispensaciones(
+                    user.getSedeId(),
+                    user.getNombres() + " " + user.getApellidos(),
+                    sedeName,
+                    desde, hasta,
+                    file
+                );
+                
+                if (generated) {
+                    showAlert("Reporte Generado", "El documento se ha guardado en:\n" + file.getAbsolutePath());
+                } else {
+                    showAlert("Sin Datos", "No hay dispensaciones en el rango seleccionado.");
+                }
             }
-            vars.put("SEDE", sedeDisplay);
-
-            String period = (desde != null ? desde.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Inicio")
-                          + " al " + 
-                          (hasta != null ? hasta.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Hoy");
-            vars.put("DATE_RANGE", period);
-
-            vars.put("TOTAL_ATTENTIONS", String.valueOf(items.stream().map(DispensacionReportItem::getNumeroReceta).distinct().count()));
-            vars.put("TOTAL_MEDICINES", String.valueOf(items.stream().mapToInt(DispensacionReportItem::getCantidad).sum()));
-            vars.put("items", items);
-
-            saveReport("reporte_dispensaciones", "dispensaciones", vars);
         } catch (Exception e) { showException(e); }
-    }
-
-    private void saveReport(String prefix, String template, Map<String, Object> vars) throws Exception {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Guardar Reporte PDF");
-        fileChooser.setInitialFileName(prefix + "_" + LocalDate.now() + ".pdf");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
-        File file = fileChooser.showSaveDialog(rootPane.getScene().getWindow());
-
-        if (file != null) {
-            reportService.generatePdf(template, vars, file);
-            showAlert("Reporte Generado", "El documento se ha guardado en:\n" + file.getAbsolutePath());
-        }
     }
 
     private void showAlert(String title, String msg) {

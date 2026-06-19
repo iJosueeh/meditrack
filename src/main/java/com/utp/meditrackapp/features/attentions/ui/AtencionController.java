@@ -1,10 +1,13 @@
 package com.utp.meditrackapp.features.attentions.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
-import com.utp.meditrackapp.core.models.entity.*;
-import com.utp.meditrackapp.features.attentions.service.AtencionService;
-import com.utp.meditrackapp.features.inventory.service.InventarioService;
-import com.utp.meditrackapp.features.patients.service.PacienteService;
+import com.utp.meditrackapp.domain.entities.Atencion;
+import com.utp.meditrackapp.domain.entities.AtencionDetalle;
+import com.utp.meditrackapp.domain.entities.Lote;
+import com.utp.meditrackapp.domain.entities.Paciente;
+import com.utp.meditrackapp.domain.entities.Producto;
+import com.utp.meditrackapp.domain.entities.Usuario;
+import com.utp.meditrackapp.infrastructure.adapters.AtencionAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -17,21 +20,16 @@ import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import javafx.stage.FileChooser;
-import com.utp.meditrackapp.features.dashboard.service.HtmlReportService;
-import com.utp.meditrackapp.core.models.dto.DispensacionReportItem;
+import com.utp.meditrackapp.infrastructure.adapters.ReportAdapter;
 
 public class AtencionController {
 
-    private final AtencionService atencionService = new AtencionService();
-    private final InventarioService inventarioService = new InventarioService();
-    private final PacienteService pacienteService = new PacienteService();
+    private final AtencionAdapter atencionAdapter = new AtencionAdapter();
     private final SessionManager sessionManager = SessionManager.getInstance();
-    private final HtmlReportService reportService = new HtmlReportService();
 
     // Patient & Prescription
     @FXML private TextField txtPacienteDni, txtReceta, txtMedico, txtSearchReceta;
@@ -69,12 +67,7 @@ public class AtencionController {
             java.time.LocalDate desde = dpFromDate.getValue();
             java.time.LocalDate hasta = dpToDate.getValue();
 
-            List<DispensacionReportItem> items = atencionService.listarDispensacionesReporte(user.getSedeId(), desde, hasta);
-
-            if (items.isEmpty()) {
-                showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay dispensaciones registradas en el periodo seleccionado.");
-                return;
-            }
+            com.utp.meditrackapp.infrastructure.adapters.            ReportAdapter reportAdapter = new ReportAdapter();
 
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Guardar Reporte de Dispensaciones");
@@ -83,25 +76,20 @@ public class AtencionController {
             File file = fileChooser.showSaveDialog(txtPacienteDni.getScene().getWindow());
 
             if (file != null) {
-                Map<String, Object> params = new HashMap<>();
-                params.put("REPORT_DATE", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-                params.put("GENERATED_BY", user.getNombres() + " " + user.getApellidos());
-                params.put("SEDE", com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user));
+                String sedeName = com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user);
+                boolean generated = reportAdapter.generarReporteDispensaciones(
+                    user.getSedeId(),
+                    user.getNombres() + " " + user.getApellidos(),
+                    sedeName,
+                    desde, hasta,
+                    file
+                );
                 
-                String period = (desde != null ? desde.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Inicio") 
-                              + " al " + 
-                              (hasta != null ? hasta.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "Hoy");
-                params.put("DATE_RANGE", period);
-                
-                long totalAttentions = items.stream().map(DispensacionReportItem::getNumeroReceta).distinct().count();
-                int totalMeds = items.stream().mapToInt(DispensacionReportItem::getCantidad).sum();
-                
-                params.put("TOTAL_ATTENTIONS", String.valueOf(totalAttentions));
-                params.put("TOTAL_MEDICINES", String.valueOf(totalMeds));
-                params.put("items", items);
-
-                reportService.generatePdf("dispensaciones", params, file);
-                showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente.");
+                if (generated) {
+                    showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente.");
+                } else {
+                    showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay dispensaciones registradas en el periodo seleccionado.");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -149,9 +137,9 @@ public class AtencionController {
 
     private void loadInitialData() {
         try {
-            List<Producto> productos = inventarioService.listarProductosActivos();
+            List<Producto> productos = atencionAdapter.listarProductosActivos();
             cmbProducto.setItems(FXCollections.observableArrayList(productos));
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -164,7 +152,7 @@ public class AtencionController {
             return;
         }
 
-        List<Paciente> results = pacienteService.buscarPacientes(dni);
+        List<Paciente> results = atencionAdapter.buscarPacientes(dni);
         if (!results.isEmpty()) {
             currentPaciente = results.get(0);
             lblPatientName.setText(currentPaciente.getNombres() + " " + currentPaciente.getApellidos());
@@ -191,7 +179,7 @@ public class AtencionController {
         Usuario user = sessionManager.getCurrentUser();
         if (user == null) return;
 
-        List<Atencion> results = atencionService.buscarHistorialPorReceta(user.getSedeId(), receta);
+        List<Atencion> results = atencionAdapter.buscarHistorialPorReceta(user.getSedeId(), receta);
         ObservableList<String> historyStrings = FXCollections.observableArrayList();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -211,7 +199,7 @@ public class AtencionController {
     }
 
     private void loadPatientHistory(String pacienteId) {
-        List<Atencion> history = atencionService.buscarHistorialPorPaciente(pacienteId);
+        List<Atencion> history = atencionAdapter.buscarHistorialPorPaciente(pacienteId);
         ObservableList<String> historyStrings = FXCollections.observableArrayList();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         
@@ -249,8 +237,8 @@ public class AtencionController {
             }
             String sedeId = user.getSedeId();
 
-            List<Lote> lotesDisponibles = inventarioService.listarLotesConProducto(sedeId);
-            List<AtencionDetalle> suggestions = atencionService.sugerirDispensacion(sedeId, p.getId(), qty);
+            List<Lote> lotesDisponibles = atencionAdapter.listarLotesConProducto(sedeId);
+            List<AtencionDetalle> suggestions = atencionAdapter.sugerirDispensacion(sedeId, p.getId(), qty);
             
             for (AtencionDetalle det : suggestions) {
                 Optional<Lote> loteOpt = lotesDisponibles.stream()
@@ -269,7 +257,7 @@ public class AtencionController {
 
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese una cantidad válida.");
-        } catch (SQLException e) {
+        } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Sin Stock", e.getMessage());
         }
     }
@@ -304,7 +292,7 @@ public class AtencionController {
         // Re-validar stock antes de confirmar (FEFO)
         try {
             String sedeId = sessionManager.getCurrentUser().getSedeId();
-            List<Lote> lotesActuales = inventarioService.listarLotesConProducto(sedeId);
+            List<Lote> lotesActuales = atencionAdapter.listarLotesConProducto(sedeId);
             for (AtencionDetalle det : basketItems) {
                 Optional<Lote> loteActual = lotesActuales.stream()
                     .filter(l -> l.getId().equals(det.getLoteId()))
@@ -315,12 +303,12 @@ public class AtencionController {
                     return;
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Error", "No se pudo validar el stock actual.");
             return;
         }
 
-        String result = atencionService.registrarAtencion(a, new ArrayList<>(basketItems));
+        String result = atencionAdapter.registrarAtencion(a, new ArrayList<>(basketItems));
         
         if (result.equals("OK")) {
             showAlert(Alert.AlertType.INFORMATION, "Atención Exitosa", "La atención se registró y el stock fue actualizado.");
