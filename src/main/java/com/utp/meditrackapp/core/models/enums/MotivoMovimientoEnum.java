@@ -1,10 +1,10 @@
 package com.utp.meditrackapp.core.models.enums;
 
 public enum MotivoMovimientoEnum {
-    COMPRA("MOV-M-01"),
-    TRANSFERENCIA("MOV-M-02"),
-    ATENCION("MOV-M-03"),
-    MERMA("MOV-M-04");
+    COMPRA("MOV-M-00-0000001"),
+    TRANSFERENCIA("MOV-M-00-0000002"),
+    ATENCION("MOV-M-00-0000003"),
+    MERMA("MOV-M-00-0000004");
 
     private final String id;
 

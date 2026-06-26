@@ -6,6 +6,7 @@ import java.util.Optional;
 
 public interface TipoMovimientoRepository {
     Optional<TipoMovimiento> findById(String id);
+    Optional<TipoMovimiento> findByNombre(String nombre);
     List<TipoMovimiento> findAll();
     TipoMovimiento save(TipoMovimiento tipo);
     void update(TipoMovimiento tipo);

@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.domain.services.inventario;
 
 import com.utp.meditrackapp.application.config.TransactionManager;
+import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.domain.entities.Lote;
 import com.utp.meditrackapp.domain.entities.Movimiento;
 import com.utp.meditrackapp.domain.ports.out.LoteRepository;
@@ -27,15 +28,15 @@ public class RegistrarMovimientoUseCase {
 
     public void registrarMovimiento(Lote lote, String usuarioId, String tipoId, String motivoId,
                                     int cantidad, String observacion) {
-        boolean isEntrada = isTipoEntrada(tipoId);
+        boolean isEntrada = TipoMovimientoEnum.ENTRADA.getId().equals(tipoId);
         if (isEntrada) {
-            registrarEntrada(lote, usuarioId, motivoId, cantidad, observacion);
+            registrarEntrada(lote, usuarioId, tipoId, motivoId, cantidad, observacion);
         } else {
-            registrarSalida(lote.getId(), usuarioId, motivoId, cantidad, observacion, lote.getSedeId());
+            registrarSalida(lote.getId(), usuarioId, tipoId, motivoId, cantidad, observacion, lote.getSedeId());
         }
     }
 
-    public void registrarEntrada(Lote lote, String usuarioId, String motivoId, int cantidad, String observacion) {
+    public void registrarEntrada(Lote lote, String usuarioId, String tipoId, String motivoId, int cantidad, String observacion) {
         String validation = validateEntrada(lote, cantidad);
         if (validation != null) {
             throw new IllegalArgumentException(validation);
@@ -49,7 +50,7 @@ public class RegistrarMovimientoUseCase {
                     loteRepository.aumentarStock(conn, lote.getId(), cantidad);
                 }
 
-                Movimiento mov = buildMovimiento(lote, usuarioId, motivoId, cantidad, observacion);
+                Movimiento mov = buildMovimiento(lote, usuarioId, tipoId, motivoId, cantidad, observacion);
                 movimientoRepository.save(conn, mov);
             });
         } catch (SQLException e) {
@@ -57,7 +58,7 @@ public class RegistrarMovimientoUseCase {
         }
     }
 
-    public void registrarSalida(String loteId, String usuarioId, String motivoId,
+    public void registrarSalida(String loteId, String usuarioId, String tipoId, String motivoId,
                                 int cantidad, String observacion, String sedeId) {
         if (loteId == null || loteId.isEmpty()) {
             throw new IllegalArgumentException("El lote es obligatorio.");
@@ -74,7 +75,7 @@ public class RegistrarMovimientoUseCase {
                 mov.setLoteId(loteId);
                 mov.setSedeId(sedeId);
                 mov.setUsuarioId(usuarioId);
-                mov.setTipoId("SALIDA");
+                mov.setTipoId(tipoId);
                 mov.setMotivoId(motivoId);
                 mov.setCantidad(cantidad);
                 mov.setObservacion(observacion);
@@ -85,20 +86,12 @@ public class RegistrarMovimientoUseCase {
         }
     }
 
-    private boolean isTipoEntrada(String tipoId) {
-        if (tipoId == null) return false;
-        String upper = tipoId.toUpperCase();
-        if (upper.equals("ENTRADA")) return true;
-        if (upper.equals("SALIDA")) return false;
-        return upper.contains("ENTRADA");
-    }
-
-    private Movimiento buildMovimiento(Lote lote, String usuarioId, String motivoId,
+    private Movimiento buildMovimiento(Lote lote, String usuarioId, String tipoId, String motivoId,
                                        int cantidad, String observacion) {
         Movimiento mov = new Movimiento();
         mov.setSedeId(lote.getSedeId());
         mov.setUsuarioId(usuarioId);
-        mov.setTipoId("ENTRADA");
+        mov.setTipoId(tipoId);
         mov.setMotivoId(motivoId);
         mov.setLoteId(lote.getId());
         mov.setCantidad(cantidad);

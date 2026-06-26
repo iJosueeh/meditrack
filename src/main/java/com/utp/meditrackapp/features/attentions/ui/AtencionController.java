@@ -42,6 +42,9 @@ public class AtencionController {
     @FXML private ComboBox<Producto> cmbProducto;
     @FXML private TextField txtCantidad;
     
+    // Doctor selection
+    @FXML private ComboBox<Usuario> cmbMedico;
+    
     // Basket Table
     @FXML private TableView<AtencionDetalle> tableBasket;
     @FXML private TableColumn<AtencionDetalle, String> colBasketProduct, colBasketLote, colBasketAction;
@@ -139,6 +142,14 @@ public class AtencionController {
         try {
             List<Producto> productos = atencionAdapter.listarProductosActivos();
             cmbProducto.setItems(FXCollections.observableArrayList(productos));
+
+            // Load doctors (users with "Medico" role)
+            List<Usuario> medicos = atencionAdapter.listarMedicos();
+            cmbMedico.setItems(FXCollections.observableArrayList(medicos));
+            cmbMedico.setConverter(new StringConverter<>() {
+                @Override public String toString(Usuario u) { return u != null ? u.getNombreCompleto() : ""; }
+                @Override public Usuario fromString(String s) { return null; }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -287,11 +298,19 @@ public class AtencionController {
         Atencion a = new Atencion();
         a.setPacienteId(currentPaciente.getId());
         a.setNumeroReceta(txtReceta.getText().trim());
-        a.setMedico(txtMedico.getText().trim());
+        a.setMedico(cmbMedico.getValue() != null ? cmbMedico.getValue().getNombreCompleto() : "");
+
+        Usuario user = sessionManager.getCurrentUser();
+        if (user == null) {
+            showAlert(Alert.AlertType.ERROR, "Sesión", "No hay una sesión activa.");
+            return;
+        }
+        a.setSedeId(user.getSedeId());
+        a.setUsuarioId(user.getId());
 
         // Re-validar stock antes de confirmar (FEFO)
         try {
-            String sedeId = sessionManager.getCurrentUser().getSedeId();
+            String sedeId = user.getSedeId();
             List<Lote> lotesActuales = atencionAdapter.listarLotesConProducto(sedeId);
             for (AtencionDetalle det : basketItems) {
                 Optional<Lote> loteActual = lotesActuales.stream()

@@ -1,8 +1,8 @@
 package com.utp.meditrackapp.core.models.enums;
 
 public enum TipoMovimientoEnum {
-    ENTRADA("MOV-T-01"),
-    SALIDA("MOV-T-02");
+    ENTRADA("MOV-T-00-0000001"),
+    SALIDA("MOV-T-00-0000002");
 
     private final String id;
 

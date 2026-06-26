@@ -7,6 +7,7 @@ import com.utp.meditrackapp.domain.entities.AtencionDetalle;
 import com.utp.meditrackapp.domain.entities.Lote;
 import com.utp.meditrackapp.domain.entities.Paciente;
 import com.utp.meditrackapp.domain.entities.Producto;
+import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.domain.ports.out.AtencionRepository;
 import com.utp.meditrackapp.domain.ports.out.DispensacionRepository;
 import com.utp.meditrackapp.domain.services.dispensacion.DispensarMedicamentoUseCase;
@@ -14,9 +15,13 @@ import com.utp.meditrackapp.domain.services.paciente.GestionarPacienteUseCase;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcAtencionRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcDispensacionRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcLoteRepository;
+import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcMotivoMovimientoRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcMovimientoRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcPacienteRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcProductoRepository;
+import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcRolRepository;
+import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcTipoMovimientoRepository;
+import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcUsuarioRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +37,8 @@ public class AtencionAdapter {
     private final JdbcDispensacionRepository dispensacionRepository;
     private final JdbcProductoRepository productoRepository;
     private final JdbcLoteRepository loteRepository;
+    private final JdbcRolRepository rolRepository;
+    private final JdbcUsuarioRepository usuarioRepository;
 
     public AtencionAdapter() {
         AtencionRepository atencionRepo = new JdbcAtencionRepository();
@@ -40,12 +47,16 @@ public class AtencionAdapter {
             atencionRepo,
             new JdbcLoteRepository(),
             new JdbcMovimientoRepository(),
+            new JdbcTipoMovimientoRepository(),
+            new JdbcMotivoMovimientoRepository(),
             new TransactionManager()
         );
         this.pacienteUseCase = new GestionarPacienteUseCase(pacienteRepo, atencionRepo);
         this.dispensacionRepository = new JdbcDispensacionRepository();
         this.productoRepository = new JdbcProductoRepository();
         this.loteRepository = new JdbcLoteRepository();
+        this.rolRepository = new JdbcRolRepository();
+        this.usuarioRepository = new JdbcUsuarioRepository();
     }
 
     public DispensacionReportDTO[] listarDispensacionesReporte(String sedeId, LocalDate desde, LocalDate hasta) {
@@ -79,6 +90,14 @@ public class AtencionAdapter {
 
     public List<Paciente> buscarPacientes(String query) {
         return pacienteUseCase.buscarPacientes(query);
+    }
+
+    public List<Usuario> listarMedicos() {
+        return rolRepository.findAll().stream()
+            .filter(r -> "Medico".equalsIgnoreCase(r.getNombre()))
+            .findFirst()
+            .map(r -> usuarioRepository.findByRolId(r.getId()))
+            .orElse(List.of());
     }
 
     private DispensacionReportDTO toDispensacionDTO(Object raw) {

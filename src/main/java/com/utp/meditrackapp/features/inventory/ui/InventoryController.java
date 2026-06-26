@@ -301,14 +301,14 @@ public class InventoryController {
             cmbExpirationThreshold.setItems(FXCollections.observableArrayList(30, 60, 90));
             cmbExpirationThreshold.getSelectionModel().selectFirst(); // Default: 30 days
 
+            refreshMovements();
+            refreshBatches();
+            populateAlerts();
+
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Error", "No se pudieron cargar los datos iniciales: " + e.getMessage());
-            return;
         }
-        refreshMovements();
-        refreshBatches();
-        populateAlerts();
     }
 
     private void refreshQuickBatchCombo() {
@@ -547,13 +547,31 @@ public class InventoryController {
     private void refreshBatches() {
         try {
             Usuario user = sessionManager.getCurrentUser();
-            if (user == null) return;
-            
-            List<Lote> batches = inventoryAdapter.listarLotesConProducto(user.getSedeId());
-            
+            if (user == null) {
+                System.err.println("[LOTES] No hay usuario en sesión");
+                return;
+            }
+
+            String sedeId = user.getSedeId();
+            System.out.println("[LOTES] Cargando lotes para sedeId='" + sedeId + "'");
+
+            if (sedeId == null || sedeId.isBlank()) {
+                System.err.println("[LOTES] El usuario no tiene sede asignada");
+                tableBatches.setItems(FXCollections.observableArrayList());
+                tableBatches.refresh();
+                return;
+            }
+
+            List<Lote> batches = inventoryAdapter.listarLotesConProducto(sedeId);
+            System.out.println("[LOTES] " + batches.size() + " lotes encontrados en BD");
+            for (Lote l : batches) {
+                System.out.println("[LOTES]   - " + l.getNumeroLote() + " | producto=" + l.getProductoNombre() + " | stock=" + l.getCantidad());
+            }
+
             // Apply Filter
             String query = (txtSearchBatch != null) ? txtSearchBatch.getText().toLowerCase().trim() : "";
             if (!query.isEmpty()) {
+                System.out.println("[LOTES] Aplicando filtro: \"" + query + "\"");
                 String[] terms = query.split("\\s+");
                 batches = batches.stream().filter(l -> {
                     String data = (l.getProductoNombre() + " " + l.getNumeroLote() + " " + (l.getCodigoDigemid() != null ? l.getCodigoDigemid() : "")).toLowerCase();
@@ -562,13 +580,17 @@ public class InventoryController {
                     }
                     return true;
                 }).collect(Collectors.toList());
+                System.out.println("[LOTES] Después del filtro: " + batches.size() + " lotes");
             }
 
             tableBatches.setItems(FXCollections.observableArrayList(batches));
             tableBatches.refresh();
             updateBatchSummary(user.getSedeId(), batches);
             populateAlerts();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            System.err.println("[LOTES] ERROR en refreshBatches: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML

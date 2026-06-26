@@ -87,7 +87,7 @@
                                     </VBox>
                                     <VBox spacing="8">
                                         <Label text="MÉDICO TRATANTE" styleClass="text-caption, text-muted" />
-                                        <TextField fx:id="txtMedico" promptText="Nombre del médico" />
+                                        <ComboBox fx:id="cmbMedico" maxWidth="Infinity" promptText="Seleccione médico..." />
                                     </VBox>
                                 </VBox>
                             </VBox>

@@ -61,7 +61,7 @@ Este proyecto utiliza SQL Server en un contenedor Docker para facilitar el desar
 # 2. Iniciar el contenedor de la base de datos
 docker-compose up -d
 ```
-*Nota: La primera vez, el contenedor ejecutará automáticamente `init.sql` y `seed_data.sql` para preparar las tablas y datos iniciales. Espere unos 45 segundos antes de ejecutar la aplicación.*
+*Nota: La primera vez, el contenedor ejecutara automaticamente `init.sql` (esquema + datos) para preparar la base de datos. Espere unos 45 segundos antes de ejecutar la aplicacion.*
 
 #### Instalación y Ejecución
 ```bash

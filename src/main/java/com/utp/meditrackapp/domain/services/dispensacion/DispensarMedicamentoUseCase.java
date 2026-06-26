@@ -4,10 +4,14 @@ import com.utp.meditrackapp.application.config.TransactionManager;
 import com.utp.meditrackapp.domain.entities.Atencion;
 import com.utp.meditrackapp.domain.entities.AtencionDetalle;
 import com.utp.meditrackapp.domain.entities.Lote;
+import com.utp.meditrackapp.domain.entities.MotivoMovimiento;
 import com.utp.meditrackapp.domain.entities.Movimiento;
+import com.utp.meditrackapp.domain.entities.TipoMovimiento;
 import com.utp.meditrackapp.domain.ports.out.AtencionRepository;
 import com.utp.meditrackapp.domain.ports.out.LoteRepository;
+import com.utp.meditrackapp.domain.ports.out.MotivoMovimientoRepository;
 import com.utp.meditrackapp.domain.ports.out.MovimientoRepository;
+import com.utp.meditrackapp.domain.ports.out.TipoMovimientoRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,15 +24,21 @@ public class DispensarMedicamentoUseCase {
     private final AtencionRepository atencionRepository;
     private final LoteRepository loteRepository;
     private final MovimientoRepository movimientoRepository;
+    private final TipoMovimientoRepository tipoMovimientoRepository;
+    private final MotivoMovimientoRepository motivoMovimientoRepository;
     private final TransactionManager transactionManager;
 
     public DispensarMedicamentoUseCase(AtencionRepository atencionRepository,
                                        LoteRepository loteRepository,
                                        MovimientoRepository movimientoRepository,
+                                       TipoMovimientoRepository tipoMovimientoRepository,
+                                       MotivoMovimientoRepository motivoMovimientoRepository,
                                        TransactionManager transactionManager) {
         this.atencionRepository = atencionRepository;
         this.loteRepository = loteRepository;
         this.movimientoRepository = movimientoRepository;
+        this.tipoMovimientoRepository = tipoMovimientoRepository;
+        this.motivoMovimientoRepository = motivoMovimientoRepository;
         this.transactionManager = transactionManager;
     }
 
@@ -45,6 +55,14 @@ public class DispensarMedicamentoUseCase {
             return "Ya existe una atención registrada con el número de receta " + atencion.getNumeroReceta().trim() + " en esta sede.";
         }
 
+        // Buscar IDs reales por nombre para evitar problemas con FK
+        String tipoSalidaId = tipoMovimientoRepository.findByNombre("salida")
+            .map(TipoMovimiento::getId)
+            .orElseThrow(() -> new RuntimeException("No se encontró el tipo de movimiento 'salida'"));
+        String motivoAtencionId = motivoMovimientoRepository.findByNombre("atencion")
+            .map(MotivoMovimiento::getId)
+            .orElseThrow(() -> new RuntimeException("No se encontró el motivo de movimiento 'atencion'"));
+
         try {
             transactionManager.execute(conn -> {
                 atencionRepository.save(conn, atencion);
@@ -56,8 +74,8 @@ public class DispensarMedicamentoUseCase {
                     loteRepository.reducirStock(conn, det.getLoteId(), det.getCantidadEntregada());
 
                     Movimiento mov = new Movimiento();
-                    mov.setTipoId("SALIDA");
-                    mov.setMotivoId("ATENCION");
+                    mov.setTipoId(tipoSalidaId);
+                    mov.setMotivoId(motivoAtencionId);
                     mov.setSedeId(atencion.getSedeId());
                     mov.setUsuarioId(atencion.getUsuarioId());
                     mov.setLoteId(det.getLoteId());

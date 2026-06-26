@@ -32,14 +32,14 @@ public class Movimiento {
      * Verifica si es un movimiento de entrada.
      */
     public boolean isEntrada() {
-        return tipoId != null && tipoId.contains("ENTRADA");
+        return tipoId != null && tipoId.equals("MOV-T-00-0000001");
     }
 
     /**
      * Verifica si es un movimiento de salida.
      */
     public boolean isSalida() {
-        return tipoId != null && tipoId.contains("SALIDA");
+        return tipoId != null && tipoId.equals("MOV-T-00-0000002");
     }
 
     /**

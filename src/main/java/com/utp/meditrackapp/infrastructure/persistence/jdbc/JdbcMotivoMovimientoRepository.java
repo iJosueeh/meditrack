@@ -34,6 +34,23 @@ public class JdbcMotivoMovimientoRepository implements MotivoMovimientoRepositor
     }
 
     @Override
+    public Optional<MotivoMovimiento> findByNombre(String nombre) {
+        String sql = "SELECT id, nombre, is_activo FROM motivos_movimiento WHERE LOWER(nombre) = LOWER(?)";
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToMotivoMovimiento(rs));
+                }
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public List<MotivoMovimiento> findAll() {
         String sql = "SELECT id, nombre, is_activo FROM motivos_movimiento ORDER BY nombre";
         try (Connection conn = DatabaseConfig.getInstance().getConnection();

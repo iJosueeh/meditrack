@@ -30,7 +30,7 @@ public class Usuario {
     }
 
     public boolean isAdmin() {
-        return rolId != null && rolId.equals("ROL-001");
+        return rolId != null && rolId.equals("ROL-00-0000001");
     }
 
     public boolean isJefeSede() {
@@ -38,7 +38,7 @@ public class Usuario {
     }
 
     public boolean isTecnico() {
-        return rolId != null && rolId.equals("ROL-003");
+        return rolId != null && rolId.equals("ROL-00-0000003");
     }
 
     /**

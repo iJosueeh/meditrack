@@ -94,6 +94,29 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
     }
 
     @Override
+    public List<Usuario> findByRolId(String rolId) {
+        String sql = "SELECT u.*, s.nombre as sede_nombre, r.nombre as rol_nombre " +
+                     "FROM usuarios u " +
+                     "LEFT JOIN sedes s ON u.sede_id = s.id " +
+                     "LEFT JOIN roles r ON u.rol_id = r.id " +
+                     "WHERE u.rol_id = ? AND u.is_activo = 1 " +
+                     "ORDER BY u.nombres ASC";
+        List<Usuario> list = new ArrayList<>();
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, rolId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapUsuario(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
     public List<Usuario> findAll() {
         String sql = "SELECT u.*, s.nombre as sede_nombre, r.nombre as rol_nombre " +
                      "FROM usuarios u " +
@@ -145,14 +168,16 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
 
     @Override
     public Usuario update(Usuario usuario) {
-        String sql = "UPDATE usuarios SET nombres = ?, apellidos = ?, tipo_documento = ?, numero_documento = ? WHERE id = ?";
+        String sql = "UPDATE usuarios SET nombres = ?, apellidos = ?, tipo_documento = ?, numero_documento = ?, sede_id = ?, rol_id = ? WHERE id = ?";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, usuario.getNombres());
             ps.setString(2, usuario.getApellidos());
             ps.setString(3, usuario.getTipoDocumento());
             ps.setString(4, usuario.getNumeroDocumento());
-            ps.setString(5, usuario.getId());
+            ps.setString(5, usuario.getSedeId());
+            ps.setString(6, usuario.getRolId());
+            ps.setString(7, usuario.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error al actualizar usuario: " + e.getMessage(), e);

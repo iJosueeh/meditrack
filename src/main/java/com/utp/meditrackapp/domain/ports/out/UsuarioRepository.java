@@ -20,6 +20,8 @@ public interface UsuarioRepository {
 
     List<Usuario> findAll();
 
+    List<Usuario> findByRolId(String rolId);
+
     Usuario save(Usuario usuario, String rawPassword);
 
     Usuario update(Usuario usuario);

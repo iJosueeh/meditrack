@@ -35,7 +35,7 @@ public class SessionManager {
      }
 
      public boolean isQuimico() {
-         return isLoggedIn() && "ROL-002".equals(currentUser.getRolId());
+         return isLoggedIn() && "ROL-00-0000002".equals(currentUser.getRolId());
      }
 
      public boolean isAdmin() {
