@@ -58,6 +58,7 @@ public class InventoryController {
     @FXML private TableColumn<Lote, String> colBatchDigemid, colBatchProduct, colBatchNum;
     @FXML private TableColumn<Lote, LocalDate> colBatchExp, colBatchFab;
     @FXML private Label lblActiveBatches, lblCriticalBatches;
+    @FXML private Label lblExpiringDetail, lblLowStockDetail;
     @FXML private Label lblTotalMovs, lblEntryQty, lblExitQty;
 
     // Quick Registration
@@ -696,7 +697,9 @@ public class InventoryController {
             long expiring = criticos.stream().filter(StockCriticoDTO::isVencePronto).count();
             long lowStock = criticos.stream().filter(StockCriticoDTO::isStockBajo).count();
             lblActiveBatches.setText(String.valueOf(active));
-            lblCriticalBatches.setText("Por vencer: " + expiring + " | Stock bajo: " + lowStock);
+            lblCriticalBatches.setText(String.valueOf(expiring + lowStock));
+            if (lblExpiringDetail != null) lblExpiringDetail.setText("Por vencer: " + expiring);
+            if (lblLowStockDetail != null) lblLowStockDetail.setText("Stock bajo: " + lowStock);
         } catch (Exception e) { e.printStackTrace(); }
     }
 }

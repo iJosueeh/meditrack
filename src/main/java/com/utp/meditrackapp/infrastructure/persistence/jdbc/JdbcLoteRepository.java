@@ -83,7 +83,7 @@ public class JdbcLoteRepository implements LoteRepository {
     @Override
     public List<Lote> findFefo(String sedeId, String productoId) {
         String sql = SELECT_BASE +
-                     "WHERE l.sede_id = ? AND l.producto_id = ? AND l.cantidad > 0 " +
+                     "WHERE l.sede_id = ? AND l.producto_id = ? AND l.cantidad > 0 AND l.fecha_vencimiento > CAST(GETDATE() AS DATE) " +
                      "ORDER BY l.fecha_vencimiento ASC, l.fecha_fabricacion ASC, l.numero_lote ASC";
         List<Lote> lotes = new ArrayList<>();
         try (Connection conn = dbConfig.getConnection();

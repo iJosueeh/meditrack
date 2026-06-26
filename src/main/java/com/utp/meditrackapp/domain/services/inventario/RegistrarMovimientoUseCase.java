@@ -69,6 +69,13 @@ public class RegistrarMovimientoUseCase {
 
         try {
             transactionManager.execute(conn -> {
+                // Validar que el lote no esté vencido antes de registrar salida
+                Lote loteActual = loteRepository.findById(loteId)
+                    .orElseThrow(() -> new RuntimeException("Lote no encontrado: " + loteId));
+                if (loteActual.isVencido()) {
+                    throw new RuntimeException("El lote " + loteActual.getNumeroLote() + " ya venció el " + loteActual.getFechaVencimiento() + ". No se puede registrar una salida.");
+                }
+
                 loteRepository.reducirStock(conn, loteId, cantidad);
 
                 Movimiento mov = new Movimiento();

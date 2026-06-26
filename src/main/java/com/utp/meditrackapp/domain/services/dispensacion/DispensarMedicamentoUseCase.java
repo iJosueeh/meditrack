@@ -71,6 +71,13 @@ public class DispensarMedicamentoUseCase {
                     det.setAtencionId(atencion.getId());
                     atencionRepository.saveDetalle(conn, det);
 
+                    // Validar que el lote no esté vencido antes de descontar
+                    Lote loteActual = loteRepository.findById(det.getLoteId())
+                        .orElseThrow(() -> new RuntimeException("Lote no encontrado: " + det.getLoteId()));
+                    if (loteActual.isVencido()) {
+                        throw new RuntimeException("El lote " + det.getLoteNumero() + " ya venció el " + loteActual.getFechaVencimiento() + ". No se puede dispensar.");
+                    }
+
                     loteRepository.reducirStock(conn, det.getLoteId(), det.getCantidadEntregada());
 
                     Movimiento mov = new Movimiento();
@@ -97,6 +104,7 @@ public class DispensarMedicamentoUseCase {
 
         for (Lote lote : lotesFefo) {
             if (restante <= 0) break;
+            if (lote.isVencido()) continue; // Saltar lotes vencidos
 
             int aTomar = Math.min(lote.getCantidad(), restante);
             AtencionDetalle det = new AtencionDetalle();

@@ -122,9 +122,11 @@
                                                     </VBox>
                                                     
                                                     <!-- Tarjeta Críticos -->
-                                                    <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="8" styleClass="bg-danger-subtle" style="-fx-padding: 15; -fx-background-radius: 8;">
+                                                    <VBox alignment="CENTER" HBox.hgrow="ALWAYS" spacing="4" styleClass="bg-danger-subtle" style="-fx-padding: 15; -fx-background-radius: 8;">
                                                         <Label text="CRÍTICOS" styleClass="text-caption, text-bold, text-on-danger" />
                                                         <Label fx:id="lblCriticalBatches" text="0" styleClass="title-3, text-on-danger" />
+                                                        <Label fx:id="lblExpiringDetail" text="Por vencer: 0" styleClass="text-caption, text-on-danger" />
+                                                        <Label fx:id="lblLowStockDetail" text="Stock bajo: 0" styleClass="text-caption, text-on-danger" />
                                                         <VBox prefHeight="4" maxWidth="Infinity" styleClass="bg-danger-emphasis" style="-fx-background-radius: 2;" />
                                                     </VBox>
                                                 </HBox>
