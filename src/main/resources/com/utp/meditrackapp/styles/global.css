@@ -17,8 +17,8 @@
 /* Navbar Overlay */
 .navbar {
     -fx-background-color: -color-bg-overlay;
-    -fx-padding: 0 40;
-    -fx-min-height: 70;
+    -fx-padding: 0 20;
+    -fx-min-height: 60;
     -fx-border-color: -color-border-default;
     -fx-border-width: 0 0 1 0;
 }
@@ -32,8 +32,8 @@
 /* Sidebar Styling using AtlantaFX tokens */
 .sidebar {
     -fx-background-color: -color-bg-subtle;
-    -fx-padding: 20 0;
-    -fx-pref-width: 260;
+    -fx-padding: 15 0;
+    -fx-pref-width: 230;
     -fx-border-color: -color-border-default;
     -fx-border-width: 0 1 0 0;
 }

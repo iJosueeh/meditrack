@@ -51,7 +51,11 @@ public class JdbcRolRepository implements RolRepository {
              ResultSet rs = ps.executeQuery()) {
             List<Rol> roles = new ArrayList<>();
             while (rs.next()) {
-                roles.add(mapResultSetToRol(rs));
+                Rol rol = mapResultSetToRol(rs);
+                // Cargar permisos del rol
+                List<Permiso> permisos = permisoRepository.findByRolId(rol.getId());
+                rol.setPermisos(permisos);
+                roles.add(rol);
             }
             return roles;
         } catch (SQLException e) {

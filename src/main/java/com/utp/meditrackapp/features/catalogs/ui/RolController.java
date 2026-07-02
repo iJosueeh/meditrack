@@ -192,13 +192,16 @@ public class RolController {
         // Configurar ComboBox de niveles con descripciones
         setupNivelCombo();
         
-        // Configurar niveles disponibles (solo niveles mayores al nivel actual)
+        // Configurar niveles disponibles (solo niveles mayores al nivel actual, hasta nivel 5)
         if (cmbNivel != null && rolActual != null) {
-            List<Integer> niveles = List.of(rolActual.getNivel() + 1, rolActual.getNivel() + 2, 5, 10, 99);
+            int nivelActual = rolActual.getNivel();
+            List<Integer> niveles = java.util.stream.IntStream.rangeClosed(nivelActual + 1, 5)
+                .boxed()
+                .collect(java.util.stream.Collectors.toList());
             cmbNivel.setItems(FXCollections.observableArrayList(niveles.stream()
                 .map(NivelInfo::new)
                 .collect(java.util.stream.Collectors.toList())));
-            cmbNivel.setValue(new NivelInfo(rolActual.getNivel() + 1));
+            cmbNivel.setValue(new NivelInfo(nivelActual + 1));
         }
         
         // Limpiar checkboxes de permisos
@@ -225,7 +228,7 @@ public class RolController {
         if (cmbNivel != null) {
             setupNivelCombo();
             cmbNivel.setItems(FXCollections.observableArrayList(
-                java.util.stream.IntStream.of(1, 2, 3, 4, 5, 10, 99)
+                java.util.stream.IntStream.rangeClosed(1, 5)
                     .mapToObj(NivelInfo::new)
                     .collect(java.util.stream.Collectors.toList())
             ));
@@ -293,6 +296,20 @@ public class RolController {
         if (selectedRol == null && rolActual != null) {
             if (nivelNuevo <= rolActual.getNivel()) {
                 showAlert("Validación", "No puede crear roles con nivel igual o menor al suyo.");
+                return;
+            }
+        }
+        
+        // Validación de jerarquía al editar
+        if (selectedRol != null && rolActual != null) {
+            // No puede cambiar un rol a nivel igual o menor al suyo
+            if (nivelNuevo <= rolActual.getNivel()) {
+                showAlert("Validación", "No puede asignar un nivel igual o menor al suyo.");
+                return;
+            }
+            // No puede editar un rol de nivel menor al suyo (rol más alto)
+            if (selectedRol.getNivel() < rolActual.getNivel()) {
+                showAlert("Validación", "No puede editar roles de mayor jerarquía.");
                 return;
             }
         }
@@ -483,13 +500,11 @@ public class RolController {
         private final int nivel;
 
         private static final String[][] DESCRIPCIONES = {
-            { "1", "Nivel 1 — Administrador del Sistema" },
-            { "2", "Nivel 2 — Director / Gerente" },
+            { "1", "Nivel 1 — Administrador Global" },
+            { "2", "Nivel 2 — Director Regional" },
             { "3", "Nivel 3 — Jefe de Sede" },
             { "4", "Nivel 4 — Técnico de Farmacia" },
-            { "5", "Nivel 5 — Supervisor" },
-            { "10", "Nivel 10 — Auxiliar / Operador" },
-            { "99", "Nivel 99 — Solo lectura" },
+            { "5", "Nivel 5 — Auxiliar de Farmacia" },
         };
 
         public NivelInfo(int nivel) {

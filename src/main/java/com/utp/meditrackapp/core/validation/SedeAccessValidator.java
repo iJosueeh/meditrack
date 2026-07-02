@@ -44,8 +44,7 @@ public class SedeAccessValidator {
      * Verifica si el usuario actual es Administrador (acceso global).
      */
     public static boolean isAdmin() {
-        Usuario user = SessionManager.getInstance().getCurrentUser();
-        return user != null && user.isAdmin();
+        return SessionManager.getInstance().tienePermiso("M2_SEDES");
     }
 
     /**

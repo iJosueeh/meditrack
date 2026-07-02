@@ -9,6 +9,7 @@ import com.utp.meditrackapp.domain.ports.out.LoteRepository;
 import com.utp.meditrackapp.domain.ports.out.MovimientoRepository;
 import com.utp.meditrackapp.domain.services.inventario.AnularMovimientoUseCase;
 import com.utp.meditrackapp.domain.services.inventario.CalcularStockUseCase;
+import com.utp.meditrackapp.domain.services.inventario.EditarMovimientoUseCase;
 import com.utp.meditrackapp.domain.services.inventario.RegistrarMovimientoUseCase;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcLoteRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcMotivoMovimientoRepository;
@@ -34,6 +35,7 @@ public class InventoryAdapter {
     private final CalcularStockUseCase calcularStockUseCase;
     private final RegistrarMovimientoUseCase registrarMovimientoUseCase;
     private final AnularMovimientoUseCase anularMovimientoUseCase;
+    private final EditarMovimientoUseCase editarMovimientoUseCase;
 
     public InventoryAdapter() {
         this.productoRepository = new JdbcProductoRepository();
@@ -48,6 +50,11 @@ public class InventoryAdapter {
             new TransactionManager()
         );
         this.anularMovimientoUseCase = new AnularMovimientoUseCase(
+            new JdbcLoteRepository(),
+            new JdbcMovimientoRepository(),
+            new TransactionManager()
+        );
+        this.editarMovimientoUseCase = new EditarMovimientoUseCase(
             new JdbcLoteRepository(),
             new JdbcMovimientoRepository(),
             new TransactionManager()
@@ -90,6 +97,11 @@ public class InventoryAdapter {
 
     public void anularMovimiento(Movimiento movimiento) {
         anularMovimientoUseCase.anular(movimiento);
+    }
+
+    public void editarMovimiento(Movimiento original, String nuevoTipoId, String nuevoMotivoId,
+                                  int nuevaCantidad, String nuevaObservacion) {
+        editarMovimientoUseCase.editar(original, nuevoTipoId, nuevoMotivoId, nuevaCantidad, nuevaObservacion);
     }
 
     public void actualizarObservacion(String movimientoId, String observacion) {

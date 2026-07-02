@@ -28,6 +28,10 @@ public class GestionarUsuarioUseCase {
         return usuarioRepository.findAll();
     }
 
+    public List<Usuario> listarUsuariosPorSede(String sedeId) {
+        return usuarioRepository.findAllBySedeId(sedeId);
+    }
+
     public Optional<Usuario> buscarPorId(String id) {
         return usuarioRepository.findById(id);
     }

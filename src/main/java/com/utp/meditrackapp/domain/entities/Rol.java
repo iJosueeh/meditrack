@@ -73,18 +73,4 @@ public class Rol {
 
     public List<Permiso> getPermisos() { return permisos; }
     public void setPermisos(List<Permiso> permisos) { this.permisos = permisos; }
-
-    // Métodos de compatibilidad con código existente (serán removidos gradualmente)
-
-    public boolean isAdmin() {
-        return id != null && id.equals("ROL-001");
-    }
-
-    public boolean isJefeSede() {
-        return nombre != null && nombre.toUpperCase().contains("JEFE");
-    }
-
-    public boolean isTecnico() {
-        return id != null && id.equals("ROL-003");
-    }
 }

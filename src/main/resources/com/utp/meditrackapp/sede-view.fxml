@@ -18,7 +18,7 @@
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
                 <VBox styleClass="content-area" spacing="30" maxWidth="1400">
-                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Modern Header -->
                     <HBox alignment="CENTER_LEFT" spacing="20">
@@ -31,35 +31,32 @@
                         </Button>
                     </HBox>
 
-                    <!-- Advanced Summary Cards -->
-                    <FlowPane hgap="25" vgap="25">
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                    <!-- Summary Cards -->
+                    <HBox spacing="15">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-hotel" iconSize="18" styleClass="icon-accent" />
-                                <Label text="TOTAL DE SEDES" styleClass="text-caption, text-bold, text-muted" />
+                                <Label text="SEDES" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblTotalSedes" text="0" styleClass="title-2" />
-                            <Label text="Locales registrados globalmente" styleClass="text-caption, text-muted" />
                         </VBox>
                         
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-users" iconSize="18" styleClass="icon-accent" />
-                                <Label text="TOTAL EMPLEADOS" styleClass="text-caption, text-bold, text-muted" />
+                                <Label text="EMPLEADOS" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblTotalEmpleados" text="0" styleClass="title-2" />
-                            <Label text="Personal activo en red" styleClass="text-caption, text-muted" />
                         </VBox>
 
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-exclamation-triangle" iconSize="18" styleClass="icon-danger" />
                                 <Label text="STOCK CRÍTICO" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblSedesCriticas" text="0" styleClass="title-2, text-danger" />
-                            <Label text="Sedes con alertas urgentes" styleClass="text-caption, text-muted" />
                         </VBox>
-                    </FlowPane>
+                    </HBox>
 
                     <!-- Main Table with Advanced Filters -->
                     <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
@@ -67,7 +64,7 @@
                             <HBox styleClass="icon-box-subtle" alignment="CENTER">
                                 <FontIcon iconLiteral="fas-search" />
                             </HBox>
-                            <TextField fx:id="txtSearchSede" promptText="Buscar por nombre, dirección o administrador..." prefWidth="450" />
+                            <TextField fx:id="txtSearchSede" promptText="Buscar por nombre, dirección o administrador..." HBox.hgrow="ALWAYS" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Pagination fx:id="pagination" maxPageIndicatorCount="5" pageCount="1" />
                             <Button text="Actualizar Datos" onAction="#initialize" styleClass="button, flat, sm">

@@ -30,4 +30,6 @@ public interface AtencionRepository {
     List<Atencion> findBySede(String sedeId);
 
     List<String> findMedicosDistinct();
+
+    int countBySedeAndYear(String sedeId, int year);
 }

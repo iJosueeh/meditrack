@@ -86,6 +86,16 @@ public class AtencionAdapter {
         return atencionRepository.findMedicosDistinct();
     }
 
+    public String generarNumeroReceta(String sedeId) {
+        int year = java.time.Year.now().getValue();
+        int count = atencionRepository.countBySedeAndYear(sedeId, year);
+        return String.format("REC-%d-%04d", year, count + 1);
+    }
+
+    public boolean existeReceta(String sedeId, String numeroReceta) {
+        return atencionRepository.existeReceta(sedeId, numeroReceta);
+    }
+
     public List<Paciente> buscarPacientes(String query) {
         return pacienteUseCase.buscarPacientes(query);
     }

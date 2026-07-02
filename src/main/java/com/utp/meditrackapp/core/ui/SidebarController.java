@@ -92,6 +92,7 @@ public class SidebarController {
         boolean hasReportes = session.tienePermiso("M10_REPORTES");
         
         if (!hasReportes) hideButton(btnReports);
+        if (!hasReportes) hideSection(lblSistema, null);
     }
 
     private void hideButton(Button btn) {

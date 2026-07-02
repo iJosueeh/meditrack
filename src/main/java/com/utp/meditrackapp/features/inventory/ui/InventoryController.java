@@ -119,7 +119,11 @@ public class InventoryController {
     }
 
     private void setupTables() {
-        colMovDate.setCellValueFactory(new PropertyValueFactory<>("fechaRegistro"));
+        java.time.format.DateTimeFormatter dateFmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
+        colMovDate.setCellValueFactory(data -> {
+            java.time.LocalDateTime dt = data.getValue().getFechaRegistro();
+            return new javafx.beans.property.SimpleStringProperty(dt != null ? dt.format(dateFmt) : "");
+        });
         colMovType.setCellValueFactory(new PropertyValueFactory<>("tipoNombre"));
         colMovProduct.setCellValueFactory(new PropertyValueFactory<>("productoNombre"));
         colMovBatch.setCellValueFactory(new PropertyValueFactory<>("numeroLote"));
@@ -129,6 +133,8 @@ public class InventoryController {
 
         setupMovementCellFactories();
         setupMovActionsCellFactory();
+        setupTooltipCellFactory(colMovProduct);
+        setupTooltipCellFactory(colMovObs);
 
         colBatchDigemid.setCellValueFactory(new PropertyValueFactory<>("codigoDigemid"));
         colBatchProduct.setCellValueFactory(new PropertyValueFactory<>("productoNombre"));
@@ -197,17 +203,27 @@ public class InventoryController {
     }
 
     private void setupMovActionsCellFactory() {
-        boolean canAnular = sessionManager.tienePermiso("M5_ENTRADAS") || sessionManager.tienePermiso("M6_SALIDAS") || sessionManager.tienePermiso("M10_REPORTES");
-
         colMovActions.setCellFactory(column -> new TableCell<>() {
-            private final Button btnAnular = new Button("Anular");
-            private final Button btnEditar = new Button("Editar Obs.");
-            private final HBox box = new HBox(6, btnAnular, btnEditar);
+            private final Button btnAnular = new Button();
+            private final Button btnEditar = new Button();
+            private final HBox box = new HBox(3, btnAnular, btnEditar);
 
             {
+                btnAnular.setGraphic(new FontIcon("fas-ban"));
                 btnAnular.getStyleClass().addAll("button", "sm", "danger");
+                btnAnular.setTooltip(new Tooltip("Anular"));
+                btnAnular.setMinWidth(30);
+                btnAnular.setMaxWidth(30);
+
+                btnEditar.setGraphic(new FontIcon("fas-edit"));
                 btnEditar.getStyleClass().addAll("button", "sm", "flat");
-                box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                btnEditar.setTooltip(new Tooltip("Editar"));
+                btnEditar.setMinWidth(30);
+                btnEditar.setMaxWidth(30);
+
+                box.setAlignment(javafx.geometry.Pos.CENTER);
+                box.setMinWidth(66);
+                box.setMaxWidth(66);
 
                 btnAnular.setOnAction(e -> {
                     Movimiento mov = getTableView().getItems().get(getIndex());
@@ -226,12 +242,33 @@ public class InventoryController {
                     setGraphic(null);
                 } else {
                     Movimiento mov = getTableView().getItems().get(getIndex());
-                    boolean visible = canAnular;
-                    btnAnular.setVisible(visible);
-                    btnAnular.setManaged(visible);
-                    btnEditar.setVisible(visible);
-                    btnEditar.setManaged(visible);
+                    boolean canModify;
+                    if (mov.isEntrada()) {
+                        canModify = sessionManager.tienePermiso("M5_ENTRADAS");
+                    } else {
+                        canModify = sessionManager.tienePermiso("M6_SALIDAS");
+                    }
+                    btnAnular.setVisible(canModify);
+                    btnAnular.setManaged(canModify);
+                    btnEditar.setVisible(canModify);
+                    btnEditar.setManaged(canModify);
                     setGraphic(box);
+                }
+            }
+        });
+    }
+
+    private void setupTooltipCellFactory(TableColumn<Movimiento, String> column) {
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item);
+                    setTooltip(new Tooltip(item));
                 }
             }
         });
@@ -247,6 +284,11 @@ public class InventoryController {
             "Tipo: " + mov.getTipoNombre() + "\n" +
             "Cantidad: " + mov.getCantidad() + "\n" +
             "Observación: " + (mov.getObservacion() != null ? mov.getObservacion() : ""));
+        confirm.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        confirm.initOwner(inventoryTabPane.getScene().getWindow());
+        DialogPane dp = confirm.getDialogPane();
+        dp.getStylesheets().add(getClass().getResource("/com/utp/meditrackapp/styles/global.css").toExternalForm());
+        dp.getStyleClass().add("modal-content");
 
         confirm.showAndWait().ifPresent(response -> {
             if (response == javafx.scene.control.ButtonType.OK) {
@@ -268,21 +310,103 @@ public class InventoryController {
     }
 
     private void onEditarObservacion(Movimiento mov) {
-        TextInputDialog dialog = new TextInputDialog(mov.getObservacion());
-        dialog.setTitle("Editar Observación");
-        dialog.setHeaderText("Modifique la observación del movimiento:");
-        dialog.setContentText("Observación:");
+        Dialog<String[]> dialog = new Dialog<>();
+        dialog.setTitle("Editar Movimiento");
+        dialog.setHeaderText("Modifique los campos del movimiento:");
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(inventoryTabPane.getScene().getWindow());
 
-        dialog.showAndWait().ifPresent(nuevaObs -> {
+        DialogPane dp = dialog.getDialogPane();
+        dp.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dp.getStyleClass().addAll("modal-content");
+        dp.getStylesheets().add(getClass().getResource("/com/utp/meditrackapp/styles/global.css").toExternalForm());
+        dp.setStyle("-fx-padding: 25;");
+
+        Label lblInfo = new Label("Producto: " + mov.getProductoNombre() + " | Lote: " + mov.getNumeroLote());
+        lblInfo.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+
+        ComboBox<TipoMovimiento> cmbTipo = new ComboBox<>();
+        cmbTipo.setPromptText("Tipo");
+        List<TipoMovimiento> tiposEditPermitidos = inventoryAdapter.listarTiposMovimiento().stream()
+            .filter(t -> {
+                if (t.getId().equals(TipoMovimientoEnum.ENTRADA.getId())) return sessionManager.tienePermiso("M5_ENTRADAS");
+                if (t.getId().equals(TipoMovimientoEnum.SALIDA.getId())) return sessionManager.tienePermiso("M6_SALIDAS");
+                return true;
+            })
+            .collect(Collectors.toList());
+        cmbTipo.getItems().addAll(tiposEditPermitidos);
+        cmbTipo.setConverter(new StringConverter<>() {
+            @Override public String toString(TipoMovimiento t) { return t != null ? t.getNombre() : ""; }
+            @Override public TipoMovimiento fromString(String s) { return null; }
+        });
+        for (TipoMovimiento t : cmbTipo.getItems()) {
+            if (t.getId().equals(mov.getTipoId())) { cmbTipo.getSelectionModel().select(t); break; }
+        }
+
+        ComboBox<MotivoMovimiento> cmbMotivo = new ComboBox<>();
+        cmbMotivo.setPromptText("Motivo");
+        cmbMotivo.getItems().addAll(inventoryAdapter.listarMotivosMovimiento());
+        cmbMotivo.setConverter(new StringConverter<>() {
+            @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
+            @Override public MotivoMovimiento fromString(String s) { return null; }
+        });
+        for (MotivoMovimiento m : cmbMotivo.getItems()) {
+            if (m.getId().equals(mov.getMotivoId())) { cmbMotivo.getSelectionModel().select(m); break; }
+        }
+
+        TextField txtCantidad = new TextField(String.valueOf(mov.getCantidad()));
+        txtCantidad.setPromptText("Cantidad");
+
+        TextArea txtObs = new TextArea(mov.getObservacion() != null ? mov.getObservacion() : "");
+        txtObs.setPromptText("Observaciones");
+        txtObs.setWrapText(true);
+        txtObs.setPrefHeight(60);
+
+        VBox content = new VBox(10,
+            lblInfo,
+            new Label("Tipo de Movimiento:"), cmbTipo,
+            new Label("Motivo:"), cmbMotivo,
+            new Label("Cantidad:"), txtCantidad,
+            new Label("Observación:"), txtObs
+        );
+        content.setStyle("-fx-padding: 15;");
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setMinWidth(420);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == ButtonType.OK) {
+                if (cmbTipo.getSelectionModel().getSelectedItem() == null || cmbMotivo.getSelectionModel().getSelectedItem() == null) {
+                    return null;
+                }
+                return new String[]{
+                    cmbTipo.getSelectionModel().getSelectedItem().getId(),
+                    cmbMotivo.getSelectionModel().getSelectedItem().getId(),
+                    txtCantidad.getText().trim(),
+                    txtObs.getText()
+                };
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(result -> {
             try {
-                inventoryAdapter.actualizarObservacion(mov.getId(), nuevaObs);
-                mov.setObservacion(nuevaObs);
-                tableMovements.refresh();
-                showAlert(Alert.AlertType.INFORMATION, "Observación Actualizada",
-                    "La observación se ha modificado correctamente.");
-            } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Error",
-                    "No se pudo actualizar la observación: " + e.getMessage());
+                String tipoId = result[0];
+                String motivoId = result[1];
+                int cantidad = Integer.parseInt(result[2]);
+                String obs = result[3];
+
+                inventoryAdapter.editarMovimiento(mov, tipoId, motivoId, cantidad, obs);
+                showAlert(Alert.AlertType.INFORMATION, "Movimiento Editado",
+                    "El movimiento se ha actualizado correctamente. El stock ha sido ajustado.");
+                refreshMovements();
+                refreshBatches();
+                populateAlerts();
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Error", "La cantidad debe ser un número válido.");
+            } catch (IllegalStateException ex) {
+                showAlert(Alert.AlertType.ERROR, "Error al Editar", ex.getMessage());
+            } catch (Exception ex) {
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo editar: " + ex.getMessage());
             }
         });
     }
@@ -340,7 +464,16 @@ public class InventoryController {
             cmbModalProduct.setItems(FXCollections.observableArrayList(productos));
             
             List<TipoMovimiento> tipos = inventoryAdapter.listarTiposMovimiento();
-            ObservableList<TipoMovimiento> obsTipos = FXCollections.observableArrayList(tipos);
+            boolean canEntrada = sessionManager.tienePermiso("M5_ENTRADAS");
+            boolean canSalida = sessionManager.tienePermiso("M6_SALIDAS");
+            List<TipoMovimiento> tiposPermitidos = tipos.stream()
+                .filter(t -> {
+                    if (t.getId().equals(TipoMovimientoEnum.ENTRADA.getId())) return canEntrada;
+                    if (t.getId().equals(TipoMovimientoEnum.SALIDA.getId())) return canSalida;
+                    return true;
+                })
+                .collect(Collectors.toList());
+            ObservableList<TipoMovimiento> obsTipos = FXCollections.observableArrayList(tiposPermitidos);
             
             cmbModalType.setItems(obsTipos);
             cmbQuickType.setItems(obsTipos);
@@ -604,6 +737,9 @@ public class InventoryController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(msg);
+        alert.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        alert.initOwner(inventoryTabPane.getScene().getWindow());
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/utp/meditrackapp/styles/global.css").toExternalForm());
         alert.showAndWait();
     }
 
@@ -729,6 +865,11 @@ public class InventoryController {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
             List<StockCriticoDTO> criticos = inventoryAdapter.obtenerStockCritico(user.getSedeId());
+
+            boolean hasAlerts = !criticos.isEmpty();
+            alertsContainer.setVisible(hasAlerts);
+            alertsContainer.setManaged(hasAlerts);
+
             for (StockCriticoDTO item : criticos) {
                 HBox alertCard = new HBox(10);
                 alertCard.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; -fx-alignment: center-left;");

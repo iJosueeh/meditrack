@@ -114,6 +114,29 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
     }
 
     @Override
+    public List<Usuario> findAllBySedeId(String sedeId) {
+        String sql = "SELECT u.*, s.nombre as sede_nombre, r.nombre as rol_nombre " +
+                     "FROM usuarios u " +
+                     "LEFT JOIN sedes s ON u.sede_id = s.id " +
+                     "LEFT JOIN roles r ON u.rol_id = r.id " +
+                     "WHERE u.sede_id = ? " +
+                     "ORDER BY u.nombres ASC";
+        List<Usuario> list = new ArrayList<>();
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapUsuario(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
     public Usuario save(Usuario usuario, String rawPassword) {
         try (Connection conn = dbConfig.getConnection()) {
             if (usuario.getId() == null || usuario.getId().isBlank()) {

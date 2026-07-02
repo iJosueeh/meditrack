@@ -88,6 +88,8 @@ public class PacienteController {
         colEstado.setCellValueFactory(new PropertyValueFactory<>("isActivo"));
 
         setupEstadoColumn();
+        setupTooltipColumn(colNombres);
+        setupTooltipColumn(colApellidos);
         addButtonToTable();
     }
 
@@ -112,6 +114,22 @@ public class PacienteController {
                     HBox box = new HBox(badge);
                     box.setAlignment(Pos.CENTER);
                     setGraphic(box);
+                }
+            }
+        });
+    }
+
+    private <T> void setupTooltipColumn(TableColumn<Paciente, T> column) {
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item.toString());
+                    setTooltip(new Tooltip(item.toString()));
                 }
             }
         });
@@ -147,8 +165,23 @@ public class PacienteController {
     @FXML
     protected void onSearch() {
         String query = searchField.getText();
-        List<Paciente> resultados = pacienteAdapter.buscarPacientes(query);
-        patientsTable.setItems(FXCollections.observableArrayList(resultados));
+        List<Paciente> basePacientes = pacienteAdapter.listarPacientes();
+
+        if (query == null || query.trim().isEmpty()) {
+            patientsTable.setItems(FXCollections.observableArrayList(basePacientes));
+        } else {
+            String[] terms = query.trim().toLowerCase().split("\\s+");
+            List<Paciente> filtered = basePacientes.stream()
+                .filter(p -> {
+                    String fullData = (p.getNumeroDocumento() + " " + p.getNombres() + " " + p.getApellidos()).toLowerCase();
+                    for (String term : terms) {
+                        if (!fullData.contains(term)) return false;
+                    }
+                    return true;
+                })
+                .toList();
+            patientsTable.setItems(FXCollections.observableArrayList(filtered));
+        }
         updateSummary();
     }
 
@@ -162,20 +195,42 @@ public class PacienteController {
 
     @FXML
     protected void onSavePatient() {
+        String tipoDoc = typeDocCombo.getValue();
+        String numDoc = numDocField.getText();
+        String nombres = firstNameField.getText();
+        String apellidos = lastNameField.getText();
+
+        if (tipoDoc == null || tipoDoc.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Seleccione el tipo de documento.");
+            return;
+        }
+        if (numDoc == null || numDoc.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese el número de documento.");
+            return;
+        }
+        if (nombres == null || nombres.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese el nombre del paciente.");
+            return;
+        }
+        if (apellidos == null || apellidos.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese los apellidos del paciente.");
+            return;
+        }
+
         if (currentPaciente == null) {
             currentPaciente = new Paciente();
         }
 
-        currentPaciente.setTipoDocumento(typeDocCombo.getValue());
-        currentPaciente.setNumeroDocumento(numDocField.getText());
-        currentPaciente.setNombres(firstNameField.getText());
-        currentPaciente.setApellidos(lastNameField.getText());
-        currentPaciente.setTelefono(phoneField.getText());
+        currentPaciente.setTipoDocumento(tipoDoc);
+        currentPaciente.setNumeroDocumento(numDoc.trim());
+        currentPaciente.setNombres(nombres.trim());
+        currentPaciente.setApellidos(apellidos.trim());
+        currentPaciente.setTelefono(phoneField.getText() != null ? phoneField.getText().trim() : "");
         currentPaciente.setIsActivo(chkActivo.isSelected() ? 1 : 0);
 
         String result = pacienteAdapter.guardarPaciente(currentPaciente);
 
-        if (result.equals("OK")) {
+        if ("OK".equals(result)) {
             showAlert(Alert.AlertType.INFORMATION, "Éxito", "Paciente guardado correctamente.");
             formOverlay.setVisible(false);
             loadPatients();
@@ -201,23 +256,30 @@ public class PacienteController {
 
     private void addButtonToTable() {
         colActions.setCellFactory(param -> new TableCell<>() {
-            private final Button btnEdit = new Button("Editar");
+            private final Button btnEdit = new Button();
             private final Button btnBlock = new Button();
-            private final Button btnDelete = new Button("Eliminar");
-            private final HBox pane = new HBox(10, btnEdit, btnBlock, btnDelete);
+            private final Button btnDelete = new Button();
+            private final HBox pane = new HBox(3, btnEdit, btnBlock, btnDelete);
 
             {
                 pane.setAlignment(Pos.CENTER);
+                pane.setMinWidth(84);
+                pane.setMaxWidth(84);
+
                 btnEdit.setGraphic(new FontIcon("fas-edit"));
                 btnEdit.getStyleClass().addAll("button", "flat", "sm");
-                btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
+                btnEdit.setTooltip(new Tooltip("Editar"));
+                btnEdit.setMinWidth(26);
+                btnEdit.setMaxWidth(26);
                 btnEdit.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     showEditForm(p);
                 });
 
-                btnBlock.setGraphic(new FontIcon("fas-ban"));
                 btnBlock.getStyleClass().addAll("button", "flat", "sm");
+                btnBlock.setTooltip(new Tooltip("Desactivar"));
+                btnBlock.setMinWidth(26);
+                btnBlock.setMaxWidth(26);
                 btnBlock.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     handleToggleBlock(p);
@@ -225,7 +287,9 @@ public class PacienteController {
 
                 btnDelete.setGraphic(new FontIcon("fas-trash"));
                 btnDelete.getStyleClass().addAll("button", "flat", "danger", "sm");
-                btnDelete.setTooltip(new Tooltip("Eliminar permanentemente"));
+                btnDelete.setTooltip(new Tooltip("Eliminar"));
+                btnDelete.setMinWidth(26);
+                btnDelete.setMaxWidth(26);
                 btnDelete.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     handleDelete(p);
@@ -240,19 +304,19 @@ public class PacienteController {
                 } else {
                     Paciente p = getTableView().getItems().get(getIndex());
                     if (p.getIsActivo() == 1) {
-                        btnBlock.setText("Bloquear");
+                        btnBlock.setGraphic(new FontIcon("fas-ban"));
                         btnBlock.getStyleClass().removeAll("success");
                         if (!btnBlock.getStyleClass().contains("danger")) {
                             btnBlock.getStyleClass().add("danger");
                         }
-                        btnBlock.setTooltip(new Tooltip("Desactivar paciente"));
+                        btnBlock.setTooltip(new Tooltip("Desactivar"));
                     } else {
-                        btnBlock.setText("Activar");
+                        btnBlock.setGraphic(new FontIcon("fas-unlock"));
                         btnBlock.getStyleClass().removeAll("danger");
                         if (!btnBlock.getStyleClass().contains("success")) {
                             btnBlock.getStyleClass().add("success");
                         }
-                        btnBlock.setTooltip(new Tooltip("Reactivar paciente"));
+                        btnBlock.setTooltip(new Tooltip("Reactivar"));
                     }
                     setGraphic(pane);
                 }

@@ -18,7 +18,7 @@
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
                 <VBox styleClass="content-area" spacing="30" maxWidth="1400">
-                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Modern Header -->
                     <HBox alignment="CENTER_LEFT" spacing="20">
@@ -32,34 +32,34 @@
                     </HBox>
 
                     <!-- Summary Cards -->
-                    <FlowPane hgap="25" vgap="25">
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                    <HBox spacing="15">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-users" iconSize="18" styleClass="icon-accent" />
                                 <Label text="TOTAL PACIENTES" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblTotalPatients" text="0" styleClass="title-2" />
-                            <Label text="Registros históricos en la sede" styleClass="text-caption, text-muted" />
+                            <Label text="Registros en la sede" styleClass="text-caption, text-muted" />
                         </VBox>
                         
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-calendar-check" iconSize="18" styleClass="icon-success" />
                                 <Label text="ATENDIDOS HOY" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblTodayAttentions" text="0" styleClass="title-2" />
-                            <Label text="Pacientes con atenciones hoy" styleClass="text-caption, text-muted" />
+                            <Label text="Con atenciones hoy" styleClass="text-caption, text-muted" />
                         </VBox>
 
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-user-clock" iconSize="18" styleClass="icon-info" />
-                                <Label text="PACIENTES NUEVOS" styleClass="text-caption, text-bold, text-muted" />
+                                <Label text="NUEVOS MES" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblNewPatientsMonth" text="0" styleClass="title-2" />
-                            <Label text="Registrados en el mes actual" styleClass="text-caption, text-muted" />
+                            <Label text="Mes actual" styleClass="text-caption, text-muted" />
                         </VBox>
-                    </FlowPane>
+                    </HBox>
 
                     <!-- Main Content Card -->
                     <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
@@ -68,7 +68,7 @@
                             <HBox styleClass="icon-box-subtle" alignment="CENTER">
                                 <FontIcon iconLiteral="fas-search" />
                             </HBox>
-                            <TextField fx:id="searchField" promptText="Buscar por nombre, apellido o DNI..." prefWidth="450" onKeyReleased="#onSearch" />
+                            <TextField fx:id="searchField" promptText="Buscar por nombre, apellido o DNI..." HBox.hgrow="ALWAYS" onKeyReleased="#onSearch" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Button text="Actualizar" onAction="#initialize" styleClass="button, flat, sm">
                                 <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
@@ -78,13 +78,13 @@
                         <!-- Patients Table -->
                         <TableView fx:id="patientsTable" VBox.vgrow="ALWAYS" fixedCellSize="55">
                             <columns>
-                                <TableColumn fx:id="colTipoDoc" text="TIPO DOC." prefWidth="100" />
-                                <TableColumn fx:id="colNumDoc" text="N° DOCUMENTO" prefWidth="150" />
-                                <TableColumn fx:id="colNombres" text="NOMBRES" prefWidth="250" />
-                                <TableColumn fx:id="colApellidos" text="APELLIDOS" prefWidth="250" />
-                                <TableColumn fx:id="colTelefono" text="TELÉFONO" prefWidth="150" />
-                                <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="120" />
-                                <TableColumn fx:id="colActions" text="ACCIONES" prefWidth="150" sortable="false" />
+                                <TableColumn fx:id="colTipoDoc" text="DOC." prefWidth="70" />
+                                <TableColumn fx:id="colNumDoc" text="N° DOCUMENTO" prefWidth="120" />
+                                <TableColumn fx:id="colNombres" text="NOMBRES" prefWidth="200" />
+                                <TableColumn fx:id="colApellidos" text="APELLIDOS" prefWidth="200" />
+                                <TableColumn fx:id="colTelefono" text="TEL." prefWidth="100" />
+                                <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="90" />
+                                <TableColumn fx:id="colActions" text="ACCIONES" prefWidth="90" sortable="false" />
                             </columns>
                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                             <placeholder>

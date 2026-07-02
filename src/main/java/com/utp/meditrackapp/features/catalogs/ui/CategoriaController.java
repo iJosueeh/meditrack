@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.features.catalogs.ui;
 
 import com.utp.meditrackapp.infrastructure.adapters.CatalogAdapter;
+import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.domain.entities.Categoria;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,6 +32,7 @@ public class CategoriaController {
     @FXML private TextField txtNombre;
 
     private final CatalogAdapter catalogAdapter = new CatalogAdapter();
+    private final SessionManager sessionManager = SessionManager.getInstance();
     private final ObservableList<Categoria> masterData = FXCollections.observableArrayList();
     private Categoria selectedCategoria;
 
@@ -66,6 +68,7 @@ public class CategoriaController {
             private final Button editBtn = new Button();
             private final Button toggleBtn = new Button();
             private final Button deleteBtn = new Button();
+            private final boolean canWrite = sessionManager.tienePermiso("M2_SEDES");
             {
                 editBtn.setGraphic(new FontIcon("fas-edit"));
                 editBtn.getStyleClass().addAll("button", "flat", "accent", "sm");
@@ -97,12 +100,16 @@ public class CategoriaController {
                 if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setGraphic(null);
                 } else {
-                    Categoria cat = getTableRow().getItem();
-                    toggleBtn.setGraphic(new FontIcon(
-                        cat.getIsActivo() == 1 ? "fas-toggle-on" : "fas-toggle-off"));
-                    HBox box = new HBox(8, editBtn, toggleBtn, deleteBtn);
-                    box.setStyle("-fx-alignment: center;");
-                    setGraphic(box);
+                    if (!canWrite) {
+                        setGraphic(null);
+                    } else {
+                        Categoria cat = getTableRow().getItem();
+                        toggleBtn.setGraphic(new FontIcon(
+                            cat.getIsActivo() == 1 ? "fas-toggle-on" : "fas-toggle-off"));
+                        HBox box = new HBox(8, editBtn, toggleBtn, deleteBtn);
+                        box.setStyle("-fx-alignment: center;");
+                        setGraphic(box);
+                    }
                 }
             }
         });
@@ -136,6 +143,10 @@ public class CategoriaController {
 
     @FXML
     protected void onOpenRegisterModal() {
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert("Sin permisos", "No tiene permisos para crear categorías.");
+            return;
+        }
         selectedCategoria = null;
         modalTitle.setText("Registrar Categoría");
         txtNombre.clear();
@@ -151,6 +162,10 @@ public class CategoriaController {
 
     @FXML
     protected void onSave() {
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert("Sin permisos", "No tiene permisos para modificar categorías.");
+            return;
+        }
         String nombre = txtNombre.getText();
         if (nombre == null || nombre.isBlank()) {
             showAlert("Validación", "El nombre es obligatorio.");
@@ -175,6 +190,10 @@ public class CategoriaController {
     }
 
     private void confirmToggle(Categoria cat) {
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert("Sin permisos", "No tiene permisos para modificar categorías.");
+            return;
+        }
         String accion = cat.getIsActivo() == 1 ? "desactivar" : "activar";
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmar Cambio de Estado");
@@ -194,6 +213,10 @@ public class CategoriaController {
     }
 
     private void confirmDelete(Categoria cat) {
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert("Sin permisos", "No tiene permisos para eliminar categorías.");
+            return;
+        }
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Confirmar Eliminación");
         dialog.setHeaderText("¿Está seguro de eliminar la categoría \"" + cat.getNombre() + "\"?");
