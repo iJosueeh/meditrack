@@ -84,10 +84,10 @@ public class GenerarReporteConsolidadoUseCase {
                 double pct = ((curr - prev) / prev) * 100;
                 crecimiento = String.format("%+.1f%% vs. mes anterior", pct);
             } else {
-                crecimiento = "N/A";
+                crecimiento = "Sin datos suficientes";
             }
         } else {
-            crecimiento = "N/A";
+            crecimiento = "Sin datos suficientes";
         }
 
         // 4. Construir variables de plantilla

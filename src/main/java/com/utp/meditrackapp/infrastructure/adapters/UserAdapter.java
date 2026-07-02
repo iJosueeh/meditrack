@@ -50,6 +50,10 @@ public class UserAdapter {
         return useCase.toggleEstado(id);
     }
 
+    public String eliminarUsuario(String id) {
+        return useCase.eliminarUsuario(id);
+    }
+
     public String actualizarPassword(String usuarioId, String hashedPassword) {
         return useCase.actualizarPassword(usuarioId, hashedPassword);
     }

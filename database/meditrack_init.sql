@@ -9,16 +9,16 @@
 -- =====================================================================
 -- CREDENCIALES DE ACCESO (contraseña: admin123 para todos)
 -- =====================================================================
--- ROL                     | DNI       | USUARIO   | CONTRASEÑA
--- ------------------------|-----------|-----------|------------
--- Administrador           | 12345678  | USR-001   | admin123
--- Químico Farmacéutico    | 22222222  | USR-002   | admin123
--- Técnico de Farmacia     | 33333333  | USR-003   | admin123
+-- ROL                     | DNI       | USUARIO         | CONTRASEÑA
+-- ------------------------|-----------|-----------------|------------
+-- Administrador global    | 12345678  | USR-001-0002    | admin123
+-- Jefe de Sede           | 22222222  | USR-002-0001    | admin123
+-- Técnico de Farmacia    | 33333333  | USR-001-0001    | admin123
 -- =====================================================================
 -- NOTAS:
--- - El Administrador tiene acceso global a todas las sedes
--- - El Químico Farmacéutico tiene acceso de gestión a su sede
--- - El Técnico de Farmacia solo tiene acceso operativo a su sede
+-- - El Administrador global tiene acceso total sin restricción de sede
+-- - El Jefe de Sede gestiona su posta: entradas, lotes, pacientes, reportes
+-- - El Técnico de Farmacia opera diariamente: atenciones, dispensación, salidas
 -- - Las sedes bloqueadas impiden a sus usuarios realizar operaciones
 -- =====================================================================
 
@@ -610,25 +610,23 @@ END
 GO
 
 -- Asignar permisos al Administrador Global: acceso total sin restricción de sede
-IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-001')
-BEGIN
-    INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
-    ('ROL-001', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-001', 'PERM-007'),  -- M2_SEDES (crear/editar sedes)
-    ('ROL-001', 'PERM-008'),  -- M3_PRODUCTOS (catálogo de productos)
-    ('ROL-001', 'PERM-002'),  -- M4_LOTES
-    ('ROL-001', 'PERM-003'),  -- M5_ENTRADAS
-    ('ROL-001', 'PERM-004'),  -- M6_SALIDAS
-    ('ROL-001', 'PERM-005'),  -- M8_ATENCIONES
-    ('ROL-001', 'PERM-006'),  -- M9_DISPENSACION
-    ('ROL-001', 'PERM-009'),  -- M7_PACIENTES
-    ('ROL-001', 'PERM-010'),  -- USUARIOS
-    ('ROL-001', 'PERM-011'),  -- CATEGORIAS
-    ('ROL-001', 'PERM-012'),  -- MOV_CATALOGOS
-    ('ROL-001', 'PERM-013'),  -- M10_REPORTES (reportes consolidados)
-    ('ROL-001', 'PERM-014');  -- ROLES
-    PRINT 'Permisos asignados al Administrador Global.';
-END
+DELETE FROM [rol_permisos] WHERE [rol_id] = 'ROL-001';
+INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
+('ROL-001', 'PERM-001'),
+('ROL-001', 'PERM-007'),
+('ROL-001', 'PERM-008'),
+('ROL-001', 'PERM-002'),
+('ROL-001', 'PERM-003'),
+('ROL-001', 'PERM-004'),
+('ROL-001', 'PERM-005'),
+('ROL-001', 'PERM-006'),
+('ROL-001', 'PERM-009'),
+('ROL-001', 'PERM-010'),
+('ROL-001', 'PERM-011'),
+('ROL-001', 'PERM-012'),
+('ROL-001', 'PERM-013'),
+('ROL-001', 'PERM-014');
+PRINT 'Permisos asignados al Administrador Global.';
 GO
 
 -- Asignar permisos al Jefe de Sede: supervisa inventario, registra entradas, gestiona usuarios, reportes de sede
@@ -678,7 +676,9 @@ PRINT 'Catálogos de movimiento verificados.';
 GO
 
 -- =====================================================================
--- FASE 5: DATOS DE PRUEBA (siempre reconstruir IDs consistentes)
+-- FASE 5: DATOS DE PRUEBA
+-- AVISO: Este fase ELIMINA y REINSERTA datos de prueba.
+-- Para producción, comentar o eliminar esta fase después del primer despliegue.
 -- =====================================================================
 
 -- Limpiar datos de prueba existentes para re-insertar con IDs correctos
@@ -726,30 +726,74 @@ UPDATE [sedes] SET [administrador_id] = 'USR-001-0002' WHERE [id] = 'SED-001';
 UPDATE [sedes] SET [administrador_id] = 'USR-002-0001' WHERE [id] = 'SED-002';
 
 -- Pacientes
+-- Formato real: PAC-[SEDE_NUM]-[SEQ 6 DIGITOS]
 INSERT INTO [pacientes] ([id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono]) VALUES
-('PAC-001-001', 'DNI', '44556677', 'Juan', 'Perez Garcia', '988777666'),
-('PAC-001-002', 'CE', '22334455', 'Maria', 'Lopez Sosa', '911222333'),
-('PAC-002-001', 'DNI', '55443322', 'Carlos', 'Mendez Ruiz', '987654321');
+('PAC-001-000001', 'DNI', '44556677', 'Juan', 'Perez Garcia', '988777666'),
+('PAC-001-000002', 'CE', '22334455', 'Maria', 'Lopez Sosa', '911222333'),
+('PAC-002-000001', 'DNI', '55443322', 'Carlos', 'Mendez Ruiz', '987654321');
 
 -- Lotes
+-- Formato real: LOT-[SEDE_NUM]-[SEQ 5 DIGITOS]
 INSERT INTO [lotes] ([id], [producto_id], [sede_id], [numero_lote], [fecha_fabricacion], [fecha_vencimiento], [cantidad]) VALUES
-('LT-001-001', 'PRD-001-001', 'SED-001', 'L2024-001', '2024-01-01', '2027-06-01', 150),
-('LT-001-002', 'PRD-001-004', 'SED-001', 'L2024-002', '2024-02-15', '2027-08-20', 80),
-('LT-001-003', 'PRD-001-002', 'SED-001', 'L2024-CRIT', '2024-01-10', '2027-05-15', 3),
-('LT-001-004', 'PRD-001-006', 'SED-001', 'L2024-LOW', '2024-03-01', '2027-04-10', 5),
-('LT-001-005', 'PRD-001-003', 'SED-001', 'L-VENC-1', '2024-05-01', '2026-07-15', 45),
-('LT-001-006', 'PRD-001-005', 'SED-001', 'L-VENC-2', '2024-06-01', '2026-06-25', 20);
+('LOT-001-00001', 'PRD-001-001', 'SED-001', 'L2024-001', '2024-01-01', '2027-06-01', 150),
+('LOT-001-00002', 'PRD-001-004', 'SED-001', 'L2024-002', '2024-02-15', '2027-08-20', 50),
+('LOT-001-00003', 'PRD-001-002', 'SED-001', 'L2024-CRIT', '2024-01-10', '2027-05-15', 3),
+('LOT-001-00004', 'PRD-001-006', 'SED-001', 'L2024-LOW', '2024-03-01', '2027-04-10', 5),
+('LOT-001-00005', 'PRD-001-003', 'SED-001', 'L-VENC-1', '2024-05-01', '2026-07-15', 45),
+('LOT-001-00006', 'PRD-001-005', 'SED-001', 'L-VENC-2', '2024-06-01', '2026-06-25', 20),
+('LOT-002-00001', 'PRD-001-004', 'SED-002', 'L2024-S2-001', '2024-02-01', '2027-09-01', 30);
 
 -- Atenciones
+-- Formato real: ATE-[SEDE_NUM]-[SEQ 6 DIGITOS]
 INSERT INTO [atenciones] ([id], [sede_id], [paciente_id], [usuario_id], [numero_receta], [medico], [fecha_atencion]) VALUES
-('ATN-001-001', 'SED-001', 'PAC-001-001', 'USR-001-0001', 'REC-001', 'Dr. Garcia', '2026-06-15 10:30:00'),
-('ATN-001-002', 'SED-001', 'PAC-001-002', 'USR-001-0001', 'REC-002', 'Dra. Lopez', '2026-06-16 14:00:00');
+('ATE-001-000001', 'SED-001', 'PAC-001-000001', 'USR-001-0001', 'REC-2026-0001', 'Dr. Garcia', '2026-06-15 10:30:00'),
+('ATE-001-000002', 'SED-001', 'PAC-001-000002', 'USR-001-0001', 'REC-2026-0002', 'Dra. Lopez', '2026-06-16 14:00:00');
 
 -- Detalles de atención
+-- Formato real: ATD-[SEDE_NUM]-[SEQ 8 DIGITOS]
 INSERT INTO [atencion_detalles] ([id], [atencion_id], [lote_id], [cantidad_entregada]) VALUES
-('ATN-D-001-001', 'ATN-001-001', 'LT-001-001', 2),
-('ATN-D-001-002', 'ATN-001-001', 'LT-001-002', 1),
-('ATN-D-001-003', 'ATN-001-002', 'LT-001-003', 3);
+('ATD-001-00000001', 'ATE-001-000001', 'LOT-001-00001', 2),
+('ATD-001-00000002', 'ATE-001-000001', 'LOT-001-00002', 1),
+('ATD-001-00000003', 'ATE-001-000002', 'LOT-001-00003', 3);
+
+-- Movimientos de inventario (historial para dashboard y reportes)
+-- Formato real: MOV-[SEDE_NUM]-[SEQ 6 DIGITOS]
+-- Incluye movimientos de hace 6 meses para que el dashboard tenga datos de tendencia
+INSERT INTO [movimientos] ([id], [tipo_id], [motivo_id], [sede_id], [usuario_id], [lote_id], [cantidad], [observacion], [fecha_registro]) VALUES
+-- Entradas mes actual
+('MOV-001-000001', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 100, 'Entrada inicial de paracetamol', '2026-06-01 09:00:00'),
+('MOV-001-000002', 'MOV-T-01', 'MOV-M-02', 'SED-001', 'USR-001-0001', 'LOT-001-00002', 50, 'Transferencia de almacén central', '2026-06-02 10:30:00'),
+('MOV-001-000003', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-002-0001', 'LOT-001-00005', 60, 'Compra directa ibuprofen', '2026-06-05 14:00:00'),
+-- Salidas mes actual
+('MOV-001-000004', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 2, 'Dispensación atención REC-2026-0001', '2026-06-15 10:35:00'),
+('MOV-001-000005', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00002', 1, 'Dispensación atención REC-2026-0001', '2026-06-15 10:40:00'),
+('MOV-001-000006', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00003', 3, 'Dispensación atención REC-2026-0002', '2026-06-16 14:05:00'),
+('MOV-001-000007', 'MOV-T-02', 'MOV-M-04', 'SED-001', 'USR-001-0001', 'LOT-001-00006', 5, 'Merma por deterioro', '2026-06-20 11:00:00'),
+-- Entradas mes anterior
+('MOV-001-000008', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 80, 'Rececpción de proveedor DIGEMID', '2026-05-10 09:00:00'),
+('MOV-001-000009', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-002-0001', 'LOT-001-00002', 40, 'Donación municipio', '2026-05-15 10:00:00'),
+('MOV-001-000010', 'MOV-T-01', 'MOV-M-02', 'SED-001', 'USR-001-0001', 'LOT-001-00004', 20, 'Transferencia entrante SED-002', '2026-05-20 14:00:00'),
+-- Salidas mes anterior
+('MOV-001-000011', 'MOV-T-02', 'MOV-M-04', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 10, 'Merma por expiración próxima', '2026-05-25 11:00:00'),
+('MOV-001-000012', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00002', 5, 'Dispensaciones varias', '2026-05-28 16:00:00'),
+-- Mes 2 meses atrás
+('MOV-001-000013', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-002-0001', 'LOT-001-00001', 120, 'Compra mayorista paracetamol', '2026-04-05 09:00:00'),
+('MOV-001-000014', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-001-0001', 'LOT-001-00005', 50, 'Compra ibuprofen proveedores', '2026-04-10 10:00:00'),
+('MOV-001-000015', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 8, 'Dispensaciones varias', '2026-04-20 15:00:00'),
+-- Mes 3 meses atrás
+('MOV-001-000016', 'MOV-T-01', 'MOV-M-02', 'SED-001', 'USR-001-0001', 'LOT-001-00002', 30, 'Transferencia central', '2026-03-08 09:00:00'),
+('MOV-001-000017', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-002-0001', 'LOT-001-00006', 25, 'Compra aspirina', '2026-03-12 11:00:00'),
+('MOV-001-000018', 'MOV-T-02', 'MOV-M-04', 'SED-001', 'USR-001-0001', 'LOT-001-00004', 3, 'Ajuste de inventario', '2026-03-25 14:00:00'),
+-- Mes 4 meses atrás
+('MOV-001-000019', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 90, 'Rececpción DIGEMID', '2026-02-10 09:00:00'),
+('MOV-001-000020', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00001', 12, 'Dispensaciones春节期间', '2026-02-15 10:00:00'),
+-- Mes 5 meses atrás
+('MOV-001-000021', 'MOV-T-01', 'MOV-M-02', 'SED-001', 'USR-002-0001', 'LOT-001-00002', 25, 'Transferencia almacén central', '2026-01-10 09:00:00'),
+('MOV-001-000022', 'MOV-T-01', 'MOV-M-01', 'SED-001', 'USR-001-0001', 'LOT-001-00006', 20, 'Compra aspirina inicial', '2026-01-15 11:00:00'),
+('MOV-001-000023', 'MOV-T-02', 'MOV-M-03', 'SED-001', 'USR-001-0001', 'LOT-001-00005', 5, 'Primeras dispensaciones', '2026-01-28 15:00:00'),
+-- SED-002 movimientos
+('MOV-002-000001', 'MOV-T-01', 'MOV-M-01', 'SED-002', 'USR-002-0001', 'LOT-002-00001', 30, 'Entrada inicial alcohol gel', '2026-06-01 09:00:00'),
+('MOV-002-000002', 'MOV-T-02', 'MOV-M-04', 'SED-002', 'USR-002-0001', 'LOT-002-00001', 5, 'Merma por evaporación', '2026-06-15 11:00:00');
 
 PRINT 'Datos de prueba reconstruidos con IDs consistentes.';
 GO

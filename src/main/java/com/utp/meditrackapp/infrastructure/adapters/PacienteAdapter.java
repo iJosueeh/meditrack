@@ -53,6 +53,10 @@ public class PacienteAdapter {
         return useCase.eliminarPaciente(id);
     }
 
+    public String desactivarPaciente(String id) {
+        return useCase.desactivarPaciente(id);
+    }
+
     public String reactivarPaciente(String id) {
         return useCase.reactivarPaciente(id);
     }

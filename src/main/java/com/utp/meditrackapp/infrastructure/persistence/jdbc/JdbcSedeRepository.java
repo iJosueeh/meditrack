@@ -258,6 +258,78 @@ public class JdbcSedeRepository implements SedeRepository {
         return 0;
     }
 
+    @Override
+    public int countUsuariosBySede(String sedeId) {
+        String sql = "SELECT COUNT(*) FROM usuarios WHERE sede_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public int countLotesBySede(String sedeId) {
+        String sql = "SELECT COUNT(*) FROM lotes WHERE sede_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public int countMovimientosBySede(String sedeId) {
+        String sql = "SELECT COUNT(*) FROM movimientos WHERE sede_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public int countAtencionesBySede(String sedeId) {
+        String sql = "SELECT COUNT(*) FROM atenciones WHERE sede_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public void delete(String id) {
+        String sql = "DELETE FROM sedes WHERE id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar sede: " + e.getMessage(), e);
+        }
+    }
+
     private Sede mapSede(ResultSet rs) throws SQLException {
         Sede s = new Sede();
         s.setId(rs.getString("id"));

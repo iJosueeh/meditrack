@@ -126,10 +126,13 @@ public class SedeController {
             private final Button editBtn = new Button();
             private final Button toggleBtn = new Button();
             private final Button blockBtn = new Button();
+            private final Button deleteBtn = new Button();
             {
                 editBtn.setGraphic(new FontIcon("fas-edit"));
                 editBtn.getStyleClass().addAll("button", "flat", "accent", "sm");
                 editBtn.setTooltip(new Tooltip("Editar Sede"));
+                editBtn.setMinWidth(26);
+                editBtn.setMaxWidth(26);
                 editBtn.setOnAction(event -> {
                     Sede sede = getTableRow().getItem();
                     if (sede != null) openEditModal(sede);
@@ -137,6 +140,8 @@ public class SedeController {
 
                 toggleBtn.getStyleClass().addAll("button", "flat", "sm");
                 toggleBtn.setTooltip(new Tooltip("Activar/Desactivar"));
+                toggleBtn.setMinWidth(26);
+                toggleBtn.setMaxWidth(26);
                 toggleBtn.setOnAction(event -> {
                     Sede sede = getTableRow().getItem();
                     if (sede != null) confirmToggle(sede);
@@ -144,9 +149,21 @@ public class SedeController {
 
                 blockBtn.getStyleClass().addAll("button", "flat", "sm");
                 blockBtn.setTooltip(new Tooltip("Bloquear/Desbloquear"));
+                blockBtn.setMinWidth(26);
+                blockBtn.setMaxWidth(26);
                 blockBtn.setOnAction(event -> {
                     Sede sede = getTableRow().getItem();
                     if (sede != null) confirmBlock(sede);
+                });
+
+                deleteBtn.setGraphic(new FontIcon("fas-trash"));
+                deleteBtn.getStyleClass().addAll("button", "flat", "sm", "danger");
+                deleteBtn.setTooltip(new Tooltip("Eliminar"));
+                deleteBtn.setMinWidth(26);
+                deleteBtn.setMaxWidth(26);
+                deleteBtn.setOnAction(event -> {
+                    Sede sede = getTableRow().getItem();
+                    if (sede != null) handleDeleteSede(sede);
                 });
             }
 
@@ -170,7 +187,7 @@ public class SedeController {
                         blockBtn.getStyleClass().add("accent");
                     }
                     
-                    HBox box = new HBox(10, editBtn, toggleBtn, blockBtn);
+                    HBox box = new HBox(3, editBtn, toggleBtn, blockBtn, deleteBtn);
                     box.setStyle("-fx-alignment: center;");
                     setGraphic(box);
                 }
@@ -397,6 +414,29 @@ public class SedeController {
                     }
                 }
             }
+        }
+    }
+
+    private void handleDeleteSede(Sede sede) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Eliminación");
+        confirm.setHeaderText("¿Está seguro de eliminar la sede \"" + sede.getNombre() + "\"?");
+        confirm.setContentText("Esta acción no se puede deshacer.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        String deleteResult = sedeAdapter.eliminarSede(sede.getId());
+        if ("NO_HISTORY".equals(deleteResult)) {
+            showAlert("Tiene historial",
+                "La sede \"" + sede.getNombre() + "\" tiene usuarios, lotes, movimientos o atenciones registrados.\nNo se puede eliminar sin borrar primero el historial asociado.");
+        } else if ("OK".equals(deleteResult)) {
+            showAlert("Eliminado", "Sede eliminada correctamente.");
+            loadData();
+        } else {
+            showAlert("Error", deleteResult);
         }
     }
 

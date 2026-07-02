@@ -270,6 +270,48 @@ public class JdbcUsuarioRepository implements UsuarioRepository {
         return sedes;
     }
 
+    @Override
+    public int countMovimientosByUsuario(String usuarioId) {
+        String sql = "SELECT COUNT(*) FROM movimientos WHERE usuario_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, usuarioId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public int countAtencionesByUsuario(String usuarioId) {
+        String sql = "SELECT COUNT(*) FROM atenciones WHERE usuario_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, usuarioId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public void delete(String id) {
+        String sql = "DELETE FROM usuarios WHERE id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar usuario: " + e.getMessage(), e);
+        }
+    }
+
     private Usuario mapUsuario(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();
         u.setId(rs.getString("id"));

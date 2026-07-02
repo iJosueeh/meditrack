@@ -76,6 +76,20 @@ public class GestionarUsuarioUseCase {
         }
     }
 
+    public String eliminarUsuario(String id) {
+        int movimientos = usuarioRepository.countMovimientosByUsuario(id);
+        int atenciones = usuarioRepository.countAtencionesByUsuario(id);
+        if (movimientos > 0 || atenciones > 0) {
+            return "NO_HISTORY";  // Signal: has history, use deactivate instead
+        }
+        try {
+            usuarioRepository.delete(id);
+            return "OK";
+        } catch (Exception e) {
+            return "Error al eliminar usuario: " + e.getMessage();
+        }
+    }
+
     public String actualizarPassword(String usuarioId, String hashedPassword) {
         try {
             boolean ok = usuarioRepository.updatePassword(usuarioId, hashedPassword);

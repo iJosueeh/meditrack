@@ -30,6 +30,12 @@ public interface UsuarioRepository {
 
     void toggleEstado(String id, int nuevoEstado);
 
+    int countMovimientosByUsuario(String usuarioId);
+
+    int countAtencionesByUsuario(String usuarioId);
+
+    void delete(String id);
+
     String getUltimaActividad(String usuarioId);
 
     List<Rol> findAllRoles();

@@ -150,4 +150,20 @@ public class GestionarSedeUseCase {
                 })
                 .toList();
     }
+
+    public String eliminarSede(String id) {
+        int usuarios = sedeRepository.countUsuariosBySede(id);
+        int lotes = sedeRepository.countLotesBySede(id);
+        int movimientos = sedeRepository.countMovimientosBySede(id);
+        int atenciones = sedeRepository.countAtencionesBySede(id);
+        if (usuarios > 0 || lotes > 0 || movimientos > 0 || atenciones > 0) {
+            return "NO_HISTORY";
+        }
+        try {
+            sedeRepository.delete(id);
+            return "OK";
+        } catch (Exception e) {
+            return "Error al eliminar sede: " + e.getMessage();
+        }
+    }
 }

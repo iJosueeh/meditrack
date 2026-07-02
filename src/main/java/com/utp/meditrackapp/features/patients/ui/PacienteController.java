@@ -332,7 +332,7 @@ public class PacienteController {
             alert.setContentText(p.getNombres() + " " + p.getApellidos() + " no podrá recibir nuevas atenciones.");
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
+                String resultMsg = pacienteAdapter.desactivarPaciente(p.getId());
                 if ("OK".equals(resultMsg)) {
                     loadPatients();
                 } else {
@@ -362,19 +362,25 @@ public class PacienteController {
     }
 
     private void handleDelete(Paciente p) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmar Baja");
-        alert.setHeaderText("¿Está seguro de dar de baja al paciente?");
-        alert.setContentText(p.getNombres() + " " + p.getApellidos());
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Eliminación");
+        confirm.setHeaderText("¿Está seguro de eliminar permanentemente al paciente?");
+        confirm.setContentText(p.getNombres() + " " + p.getApellidos() + "\nEsta acción no se puede deshacer.");
 
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
-            if ("OK".equals(resultMsg)) {
-                loadPatients();
-            } else {
-                showAlert(Alert.AlertType.WARNING, "No se pudo desactivar", resultMsg);
-            }
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
+        if ("NO_HISTORY".equals(resultMsg)) {
+            showAlert(Alert.AlertType.WARNING, "Tiene historial",
+                "El paciente \"" + p.getNombres() + " " + p.getApellidos() + "\" tiene movimientos de inventario o atenciones registradas.\nNo se puede eliminar sin borrar primero el historial asociado.");
+        } else if ("OK".equals(resultMsg)) {
+            showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Paciente eliminado correctamente.");
+            loadPatients();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", resultMsg);
         }
     }
 
