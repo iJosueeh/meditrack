@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
+import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.ports.out.DashboardRepository;
 
 import java.sql.*;
@@ -19,13 +20,28 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
     @Override
     public int getStockCriticoCount(int umbral) {
-        String sql = "SELECT COUNT(*) as total FROM (" +
-                     "  SELECT producto_id, SUM(cantidad) as stock_total " +
-                     "  FROM lotes GROUP BY producto_id " +
-                     ") as Resumen WHERE stock_total < ?";
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) as total FROM (" +
+            "  SELECT l.producto_id, SUM(l.cantidad) as stock_total " +
+            "  FROM lotes l "
+        );
+        
+        if (sedeId != null) {
+            sql.append("WHERE l.sede_id = ? ");
+        }
+        
+        sql.append("  GROUP BY l.producto_id " +
+                   ") as Resumen WHERE stock_total < ?");
+
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, umbral);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            if (sedeId != null) {
+                ps.setString(i++, sedeId);
+            }
+            ps.setInt(i++, umbral);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt("total");
             }
@@ -37,10 +53,23 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
     @Override
     public int getLotesPorVencerCount(int dias) {
-        String sql = "SELECT COUNT(*) as total FROM lotes WHERE fecha_vencimiento <= DATEADD(day, ?, GETDATE()) AND fecha_vencimiento >= GETDATE()";
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) as total FROM lotes WHERE fecha_vencimiento <= DATEADD(day, ?, GETDATE()) AND fecha_vencimiento >= GETDATE()"
+        );
+        
+        if (sedeId != null) {
+            sql.append(" AND sede_id = ?");
+        }
+
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, dias);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setInt(i++, dias);
+            if (sedeId != null) {
+                ps.setString(i++, sedeId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt("total");
             }
@@ -81,30 +110,50 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
     @Override
     public double getValorInventario() {
-        String sql = "SELECT SUM(ISNULL(p.precio_unitario,0) * l.cantidad) as valor " +
-                     "FROM productos p JOIN lotes l ON p.id = l.producto_id";
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT SUM(ISNULL(p.precio_unitario,0) * l.cantidad) as valor " +
+            "FROM productos p JOIN lotes l ON p.id = l.producto_id"
+        );
+        
+        if (sedeId != null) {
+            sql.append(" WHERE l.sede_id = ?");
+        }
+
         try (Connection conn = dbConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) return rs.getDouble("valor");
-        } catch (SQLException e) {
-            try (Connection conn = dbConfig.getConnection();
-                 Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT SUM(l.cantidad) as unidades FROM lotes l")) {
-                if (rs.next()) return rs.getDouble("unidades");
-            } catch (SQLException ex) {
-                ex.printStackTrace();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
             }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getDouble("valor");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return 0.0;
     }
 
     @Override
     public int getVolumenMovimientos(int dias) {
-        String sql = "SELECT COUNT(*) as total FROM movimientos WHERE fecha_registro >= DATEADD(day, -?, GETDATE())";
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) as total FROM movimientos WHERE fecha_registro >= DATEADD(day, -?, GETDATE())"
+        );
+        
+        if (sedeId != null) {
+            sql.append(" AND sede_id = ?");
+        }
+
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, dias);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setInt(i++, dias);
+            if (sedeId != null) {
+                ps.setString(i++, sedeId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt("total");
             }
@@ -116,16 +165,30 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
     @Override
     public List<Map<String, Object>> getTendenciaInventario(int meses) {
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
         List<Map<String, Object>> out = new ArrayList<>();
-        String sql = "SELECT FORMAT(m.fecha_registro,'yyyy-MM') as periodo, " +
-                     "  SUM(CASE WHEN m.tipo_id = 'MOV-T-01' THEN m.cantidad ELSE 0 END) - " +
-                     "  SUM(CASE WHEN m.tipo_id = 'MOV-T-02' THEN m.cantidad ELSE 0 END) as total " +
-                     "FROM movimientos m " +
-                     "WHERE m.fecha_registro >= DATEADD(month, -?, GETDATE()) " +
-                     "GROUP BY FORMAT(m.fecha_registro,'yyyy-MM') ORDER BY periodo";
+        StringBuilder sql = new StringBuilder(
+            "SELECT FORMAT(m.fecha_registro,'yyyy-MM') as periodo, " +
+            "  SUM(CASE WHEN m.tipo_id = 'MOV-T-01' THEN m.cantidad ELSE 0 END) - " +
+            "  SUM(CASE WHEN m.tipo_id = 'MOV-T-02' THEN m.cantidad ELSE 0 END) as total " +
+            "FROM movimientos m " +
+            "WHERE m.fecha_registro >= DATEADD(month, -?, GETDATE()) "
+        );
+        
+        if (sedeId != null) {
+            sql.append("AND m.sede_id = ? ");
+        }
+        
+        sql.append("GROUP BY FORMAT(m.fecha_registro,'yyyy-MM') ORDER BY periodo");
+
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, meses);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setInt(i++, meses);
+            if (sedeId != null) {
+                ps.setString(i++, sedeId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> m = new HashMap<>();
@@ -142,19 +205,33 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
     @Override
     public List<Map<String, Object>> getDistribucionPorCategoria() {
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
         List<Map<String, Object>> out = new ArrayList<>();
-        String sql = "SELECT c.nombre as category, SUM(l.cantidad) as total " +
-                     "FROM productos p JOIN categorias c ON p.categoria_id = c.id " +
-                     "JOIN lotes l ON p.id = l.producto_id " +
-                     "GROUP BY c.nombre";
+        StringBuilder sql = new StringBuilder(
+            "SELECT c.nombre as category, SUM(l.cantidad) as total " +
+            "FROM productos p JOIN categorias c ON p.categoria_id = c.id " +
+            "JOIN lotes l ON p.id = l.producto_id"
+        );
+        
+        if (sedeId != null) {
+            sql.append(" WHERE l.sede_id = ?");
+        }
+        
+        sql.append(" GROUP BY c.nombre");
+
         try (Connection conn = dbConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                Map<String, Object> m = new HashMap<>();
-                m.put("category", rs.getString("category"));
-                m.put("total", rs.getInt("total"));
-                out.add(m);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("category", rs.getString("category"));
+                    m.put("total", rs.getInt("total"));
+                    out.add(m);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -164,27 +241,40 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
     @Override
     public List<Map<String, Object>> getProductosBajoStock(int topN) {
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
         List<Map<String, Object>> lista = new ArrayList<>();
-        String sql = "SELECT TOP " + topN + " p.codigo_digemid as codigo, p.nombre, c.nombre as categoria, " +
-                     "SUM(l.cantidad) as stock_total, " +
-                     "MAX(ISNULL(p.precio_unitario, 0)) as precio " +
-                     "FROM productos p " +
-                     "JOIN categorias c ON p.categoria_id = c.id " +
-                     "JOIN lotes l ON p.id = l.producto_id " +
-                     "GROUP BY p.codigo_digemid, p.nombre, c.nombre " +
-                     "ORDER BY stock_total ASC";
+        StringBuilder sql = new StringBuilder(
+            "SELECT TOP " + topN + " p.codigo_digemid as codigo, p.nombre, c.nombre as categoria, " +
+            "SUM(l.cantidad) as stock_total, " +
+            "MAX(ISNULL(p.precio_unitario, 0)) as precio " +
+            "FROM productos p " +
+            "JOIN categorias c ON p.categoria_id = c.id " +
+            "JOIN lotes l ON p.id = l.producto_id"
+        );
+        
+        if (sedeId != null) {
+            sql.append(" WHERE l.sede_id = ?");
+        }
+        
+        sql.append(" GROUP BY p.codigo_digemid, p.nombre, c.nombre " +
+                   "ORDER BY stock_total ASC");
 
         try (Connection conn = dbConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                Map<String, Object> m = new HashMap<>();
-                m.put("codigo", rs.getString("codigo"));
-                m.put("nombre", rs.getString("nombre"));
-                m.put("categoria", rs.getString("categoria"));
-                m.put("stock_total", rs.getInt("stock_total"));
-                m.put("precio", rs.getDouble("precio"));
-                lista.add(m);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("codigo", rs.getString("codigo"));
+                    m.put("nombre", rs.getString("nombre"));
+                    m.put("categoria", rs.getString("categoria"));
+                    m.put("stock_total", rs.getInt("stock_total"));
+                    m.put("precio", rs.getDouble("precio"));
+                    lista.add(m);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

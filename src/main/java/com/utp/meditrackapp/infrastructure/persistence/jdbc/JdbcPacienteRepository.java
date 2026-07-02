@@ -189,6 +189,18 @@ public class JdbcPacienteRepository implements PacienteRepository {
     }
 
     @Override
+    public boolean reactivar(String id) {
+        String sql = "UPDATE pacientes SET is_activo = 1 WHERE id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al reactivar paciente: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public boolean hardDelete(String id) {
         String sql = "DELETE FROM pacientes WHERE id = ?";
         try (Connection conn = dbConfig.getConnection();

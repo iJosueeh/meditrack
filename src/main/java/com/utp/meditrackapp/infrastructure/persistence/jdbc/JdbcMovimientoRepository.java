@@ -3,6 +3,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
 import com.utp.meditrackapp.core.util.IdGenerator;
+import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.entities.Movimiento;
 import com.utp.meditrackapp.domain.ports.out.MovimientoRepository;
 
@@ -106,21 +107,62 @@ public class JdbcMovimientoRepository implements MovimientoRepository {
     }
 
     @Override
+    public void deleteById(Connection conn, String id) {
+        String sql = "DELETE FROM movimientos WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new RuntimeException("No se encontró el movimiento con ID: " + id);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar movimiento: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void updateObservacion(Connection conn, String id, String observacion) {
+        String sql = "UPDATE movimientos SET observacion = ? WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, observacion);
+            ps.setString(2, id);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new RuntimeException("No se encontró el movimiento con ID: " + id);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar observación: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public List<Movimiento> findAll() {
-        String sql = "SELECT m.*, tm.nombre as tipo_nombre, mm.nombre as motivo_nombre, p.nombre as producto_nombre, l.numero_lote " +
-                     "FROM movimientos m " +
-                     "JOIN tipos_movimiento tm ON m.tipo_id = tm.id " +
-                     "JOIN motivos_movimiento mm ON m.motivo_id = mm.id " +
-                     "JOIN lotes l ON m.lote_id = l.id " +
-                     "JOIN productos p ON l.producto_id = p.id " +
-                     "ORDER BY m.fecha_registro DESC";
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT m.*, tm.nombre as tipo_nombre, mm.nombre as motivo_nombre, p.nombre as producto_nombre, l.numero_lote " +
+            "FROM movimientos m " +
+            "JOIN tipos_movimiento tm ON m.tipo_id = tm.id " +
+            "JOIN motivos_movimiento mm ON m.motivo_id = mm.id " +
+            "JOIN lotes l ON m.lote_id = l.id " +
+            "JOIN productos p ON l.producto_id = p.id "
+        );
+        
+        if (sedeId != null) {
+            sql.append("WHERE m.sede_id = ? ");
+        }
+        sql.append("ORDER BY m.fecha_registro DESC");
 
         List<Movimiento> lista = new ArrayList<>();
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                lista.add(mapMovimiento(rs));
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapMovimiento(rs));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

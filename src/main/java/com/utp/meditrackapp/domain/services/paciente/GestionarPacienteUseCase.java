@@ -96,6 +96,18 @@ public class GestionarPacienteUseCase {
         return success ? "OK" : "Error técnico al eliminar el paciente.";
     }
 
+    public String reactivarPaciente(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return "ID de paciente no válido.";
+        }
+        try {
+            boolean success = pacienteRepository.reactivar(id);
+            return success ? "OK" : "Error técnico al reactivar el paciente.";
+        } catch (Exception e) {
+            return "Error al reactivar paciente: " + e.getMessage();
+        }
+    }
+
     /**
      * Obtiene un paciente por ID.
      */

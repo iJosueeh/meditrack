@@ -3,6 +3,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
 import com.utp.meditrackapp.core.util.IdGenerator;
+import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.entities.Atencion;
 import com.utp.meditrackapp.domain.entities.AtencionDetalle;
 import com.utp.meditrackapp.domain.ports.out.AtencionRepository;
@@ -85,13 +86,25 @@ public class JdbcAtencionRepository implements AtencionRepository {
 
     @Override
     public List<Atencion> findAll() {
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
         List<Atencion> lista = new ArrayList<>();
-        String sql = "SELECT * FROM atenciones ORDER BY fecha_atencion DESC";
+        StringBuilder sql = new StringBuilder("SELECT * FROM atenciones");
+        
+        if (sedeId != null) {
+            sql.append(" WHERE sede_id = ?");
+        }
+        sql.append(" ORDER BY fecha_atencion DESC");
+        
         try (Connection conn = dbConfig.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                lista.add(mapAtencion(rs));
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapAtencion(rs));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,9 +120,14 @@ public class JdbcAtencionRepository implements AtencionRepository {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapAtencion(rs));
+                    Atencion atencion = mapAtencion(rs);
+                    // Validar acceso por sede (Admin tiene acceso global)
+                    SedeAccessValidator.validarAcceso(atencion.getSedeId(), "Atención " + id);
+                    return Optional.of(atencion);
                 }
             }
+        } catch (SedeAccessValidator.AccesoSedeDenegadoException e) {
+            throw e;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -118,11 +136,23 @@ public class JdbcAtencionRepository implements AtencionRepository {
 
     @Override
     public List<Atencion> findByPaciente(String pacienteId) {
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
         List<Atencion> lista = new ArrayList<>();
-        String sql = "SELECT * FROM atenciones WHERE paciente_id = ? ORDER BY fecha_atencion DESC";
+        StringBuilder sql = new StringBuilder("SELECT * FROM atenciones WHERE paciente_id = ?");
+        
+        if (sedeId != null) {
+            sql.append(" AND sede_id = ?");
+        }
+        sql.append(" ORDER BY fecha_atencion DESC");
+        
         try (Connection conn = dbConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, pacienteId);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setString(i++, pacienteId);
+            if (sedeId != null) {
+                ps.setString(i++, sedeId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(mapAtencion(rs));
@@ -163,6 +193,31 @@ public class JdbcAtencionRepository implements AtencionRepository {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(mapAtencion(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    @Override
+    public List<String> findMedicosDistinct() {
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        List<String> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT medico FROM atenciones WHERE medico IS NOT NULL AND medico != ''");
+        if (sedeId != null) {
+            sql.append(" AND sede_id = ?");
+        }
+        sql.append(" ORDER BY medico");
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (sedeId != null) {
+                ps.setString(1, sedeId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(rs.getString("medico"));
                 }
             }
         } catch (SQLException e) {

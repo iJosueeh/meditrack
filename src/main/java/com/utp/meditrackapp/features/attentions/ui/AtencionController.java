@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.features.attentions.ui;
 
 import com.utp.meditrackapp.core.config.SessionManager;
+import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.entities.Atencion;
 import com.utp.meditrackapp.domain.entities.AtencionDetalle;
 import com.utp.meditrackapp.domain.entities.Lote;
@@ -22,6 +23,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javafx.stage.FileChooser;
 import com.utp.meditrackapp.infrastructure.adapters.ReportAdapter;
@@ -32,7 +34,9 @@ public class AtencionController {
     private final SessionManager sessionManager = SessionManager.getInstance();
 
     // Patient & Prescription
-    @FXML private TextField txtPacienteDni, txtReceta, txtMedico, txtSearchReceta;
+    @FXML private ComboBox<Paciente> cmbPaciente;
+    @FXML private TextField txtReceta, txtSearchReceta;
+    @FXML private ComboBox<String> cmbMedico;
     @FXML private DatePicker dpFromDate, dpToDate;
     @FXML private Label lblPatientName, lblPatientPhone;
     @FXML private VBox vboxPatientInfo;
@@ -44,16 +48,21 @@ public class AtencionController {
     
     // Basket Table
     @FXML private TableView<AtencionDetalle> tableBasket;
-    @FXML private TableColumn<AtencionDetalle, String> colBasketProduct, colBasketLote, colBasketAction;
+    @FXML private TableColumn<AtencionDetalle, String> colBasketProduct, colBasketLote, colBasketExp, colBasketAction;
     @FXML private TableColumn<AtencionDetalle, Integer> colBasketQty;
     @FXML private Label lblItemsCount, lblTotalDispensed;
+    @FXML private Label lblFefoSuggestion;
 
     private final ObservableList<AtencionDetalle> basketItems = FXCollections.observableArrayList();
+    private final ObservableList<Paciente> allPacientes = FXCollections.observableArrayList();
+    private final ObservableList<String> allMedicos = FXCollections.observableArrayList();
     private Paciente currentPaciente;
 
     @FXML
     public void initialize() {
         setupTables();
+        setupPacienteCombo();
+        setupMedicoCombo();
         setupProductCombo();
         loadInitialData();
     }
@@ -73,7 +82,7 @@ public class AtencionController {
             fileChooser.setTitle("Guardar Reporte de Dispensaciones");
             fileChooser.setInitialFileName("reporte_dispensaciones_" + java.time.LocalDate.now() + ".pdf");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
-            File file = fileChooser.showSaveDialog(txtPacienteDni.getScene().getWindow());
+            File file = fileChooser.showSaveDialog(cmbPaciente.getScene().getWindow());
 
             if (file != null) {
                 String sedeName = com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user);
@@ -101,6 +110,7 @@ public class AtencionController {
         // Basket Table
         colBasketProduct.setCellValueFactory(new PropertyValueFactory<>("productoNombre"));
         colBasketLote.setCellValueFactory(new PropertyValueFactory<>("loteNumero"));
+        colBasketExp.setCellValueFactory(new PropertyValueFactory<>("fechaVencimiento"));
         colBasketQty.setCellValueFactory(new PropertyValueFactory<>("cantidadEntregada"));
 
         colBasketAction.setCellFactory(param -> new TableCell<>() {
@@ -139,33 +149,78 @@ public class AtencionController {
         try {
             List<Producto> productos = atencionAdapter.listarProductosActivos();
             cmbProducto.setItems(FXCollections.observableArrayList(productos));
+
+            List<Paciente> pacientes = atencionAdapter.buscarPacientes("");
+            allPacientes.setAll(pacientes);
+
+            List<String> medicos = atencionAdapter.listarMedicosDistinct();
+            allMedicos.setAll(medicos);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @FXML
-    protected void onSearchPatient() {
-        String dni = txtPacienteDni.getText();
-        if (dni == null || dni.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un DNI para buscar.");
-            return;
-        }
+    private void setupPacienteCombo() {
+        cmbPaciente.setEditable(true);
+        cmbPaciente.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Paciente p) {
+                if (p == null) return "";
+                return p.getNumeroDocumento() + " — " + p.getNombreCompleto();
+            }
+            @Override
+            public Paciente fromString(String s) { return null; }
+        });
 
-        List<Paciente> results = atencionAdapter.buscarPacientes(dni);
-        if (!results.isEmpty()) {
-            currentPaciente = results.get(0);
-            lblPatientName.setText(currentPaciente.getNombres() + " " + currentPaciente.getApellidos());
-            lblPatientPhone.setText("Teléfono: " + (currentPaciente.getTelefono() != null ? currentPaciente.getTelefono() : "N/R"));
-            vboxPatientInfo.setVisible(true);
-            vboxPatientInfo.setManaged(true);
-            loadPatientHistory(currentPaciente.getId());
-        } else {
-            currentPaciente = null;
-            vboxPatientInfo.setVisible(false);
-            vboxPatientInfo.setManaged(false);
-            showAlert(Alert.AlertType.ERROR, "No Encontrado", "No se encontró un paciente con ese DNI.");
-        }
+        cmbPaciente.setItems(allPacientes);
+
+        cmbPaciente.getEditor().textProperty().addListener((obs, old, newValue) -> {
+            if (newValue == null) newValue = "";
+            String filter = newValue.toLowerCase();
+
+            // Don't filter if the text matches the currently selected patient (set by converter after selection)
+            if (cmbPaciente.getValue() != null) {
+                String expected = cmbPaciente.getConverter().toString(cmbPaciente.getValue());
+                if (filter.equals(expected != null ? expected.toLowerCase() : "")) {
+                    return;
+                }
+            }
+
+            List<Paciente> filtered = allPacientes.stream()
+                .filter(p -> filter.isEmpty()
+                    || (p.getNumeroDocumento() != null && p.getNumeroDocumento().toLowerCase().contains(filter))
+                    || (p.getNombres() != null && p.getNombres().toLowerCase().contains(filter))
+                    || (p.getApellidos() != null && p.getApellidos().toLowerCase().contains(filter)))
+                .collect(Collectors.toList());
+
+            cmbPaciente.hide();
+            cmbPaciente.setItems(FXCollections.observableArrayList(filtered));
+            if (!filtered.isEmpty()) {
+                cmbPaciente.show();
+            }
+        });
+
+        listHistory.itemsProperty().addListener((obs, old, items) -> {
+            listHistory.setMouseTransparent(items == null || items.isEmpty());
+        });
+    }
+
+    private void setupMedicoCombo() {
+        cmbMedico.setEditable(true);
+        cmbMedico.setItems(allMedicos);
+    }
+
+    @FXML
+    protected void onPacienteSelected() {
+        Paciente selected = cmbPaciente.getValue();
+        if (selected == null) return;
+
+        currentPaciente = selected;
+        lblPatientName.setText(currentPaciente.getNombres() + " " + currentPaciente.getApellidos());
+        lblPatientPhone.setText("Teléfono: " + (currentPaciente.getTelefono() != null ? currentPaciente.getTelefono() : "N/R"));
+        vboxPatientInfo.setVisible(true);
+        vboxPatientInfo.setManaged(true);
+        loadPatientHistory(currentPaciente.getId());
     }
 
     @FXML
@@ -213,7 +268,32 @@ public class AtencionController {
 
     @FXML
     protected void onProductoSelected() {
-        // No auto-logic here yet, just selection
+        Producto p = cmbProducto.getValue();
+        if (p == null) {
+            lblFefoSuggestion.setVisible(false);
+            lblFefoSuggestion.setManaged(false);
+            return;
+        }
+
+        Usuario user = sessionManager.getCurrentUser();
+        if (user == null) return;
+
+        List<Lote> lotesFefo = atencionAdapter.listarLotesFefo(user.getSedeId(), p.getId());
+        if (lotesFefo.isEmpty()) {
+            lblFefoSuggestion.setText("Sin stock disponible para este producto.");
+            lblFefoSuggestion.setVisible(true);
+            lblFefoSuggestion.setManaged(true);
+        } else {
+            Lote primero = lotesFefo.get(0);
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String vence = primero.getFechaVencimiento() != null ? primero.getFechaVencimiento().format(fmt) : "N/D";
+            lblFefoSuggestion.setText("FEFO sugerido: Lote " + primero.getNumeroLote()
+                + " — Vence: " + vence
+                + " — Stock: " + primero.getCantidad()
+                + (lotesFefo.size() > 1 ? " (+ " + (lotesFefo.size() - 1) + " lote(s) más)" : ""));
+            lblFefoSuggestion.setVisible(true);
+            lblFefoSuggestion.setManaged(true);
+        }
     }
 
     @FXML
@@ -246,7 +326,14 @@ public class AtencionController {
                     .findFirst();
                 
                 det.setProductoNombre(p.getNombre());
-                det.setLoteNumero(loteOpt.isPresent() ? loteOpt.get().getNumeroLote() : "LOTE-?");
+                if (loteOpt.isPresent()) {
+                    det.setLoteNumero(loteOpt.get().getNumeroLote());
+                    if (loteOpt.get().getFechaVencimiento() != null) {
+                        det.setFechaVencimiento(loteOpt.get().getFechaVencimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                    }
+                } else {
+                    det.setLoteNumero("LOTE-?");
+                }
                 
                 basketItems.add(det);
             }
@@ -271,6 +358,14 @@ public class AtencionController {
 
     @FXML
     protected void onConfirmarEntrega() {
+        // Validar que la sede no esté bloqueada
+        try {
+            SedeAccessValidator.validarSedeActiva();
+        } catch (SedeAccessValidator.SedeBloqueadaException e) {
+            showAlert(Alert.AlertType.WARNING, "Sede Bloqueada", e.getMessage());
+            return;
+        }
+        
         if (currentPaciente == null) {
             showAlert(Alert.AlertType.WARNING, "Falta Información", "Debe seleccionar un paciente.");
             return;
@@ -287,7 +382,9 @@ public class AtencionController {
         Atencion a = new Atencion();
         a.setPacienteId(currentPaciente.getId());
         a.setNumeroReceta(txtReceta.getText().trim());
-        a.setMedico(txtMedico.getText().trim());
+        a.setMedico(cmbMedico.getValue() != null ? cmbMedico.getValue().trim() : "");
+        a.setSedeId(sessionManager.getCurrentUser().getSedeId());
+        a.setUsuarioId(sessionManager.getCurrentUser().getId());
 
         // Re-validar stock antes de confirmar (FEFO)
         try {
@@ -323,11 +420,15 @@ public class AtencionController {
         currentPaciente = null;
         vboxPatientInfo.setVisible(false);
         vboxPatientInfo.setManaged(false);
-        txtPacienteDni.clear();
+        cmbPaciente.getSelectionModel().clearSelection();
+        cmbPaciente.getEditor().clear();
         txtReceta.clear();
-        txtMedico.clear();
+        cmbMedico.getSelectionModel().clearSelection();
+        cmbMedico.getEditor().clear();
         txtCantidad.clear();
         cmbProducto.getSelectionModel().clearSelection();
+        lblFefoSuggestion.setVisible(false);
+        lblFefoSuggestion.setManaged(false);
         basketItems.clear();
         updateBasketTotals();
     }

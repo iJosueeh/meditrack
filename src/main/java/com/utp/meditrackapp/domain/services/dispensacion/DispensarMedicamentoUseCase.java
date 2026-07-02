@@ -1,6 +1,8 @@
 package com.utp.meditrackapp.domain.services.dispensacion;
 
 import com.utp.meditrackapp.application.config.TransactionManager;
+import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
+import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.domain.entities.Atencion;
 import com.utp.meditrackapp.domain.entities.AtencionDetalle;
 import com.utp.meditrackapp.domain.entities.Lote;
@@ -56,8 +58,8 @@ public class DispensarMedicamentoUseCase {
                     loteRepository.reducirStock(conn, det.getLoteId(), det.getCantidadEntregada());
 
                     Movimiento mov = new Movimiento();
-                    mov.setTipoId("SALIDA");
-                    mov.setMotivoId("ATENCION");
+                    mov.setTipoId(TipoMovimientoEnum.SALIDA.getId());
+                    mov.setMotivoId(MotivoMovimientoEnum.ATENCION.getId());
                     mov.setSedeId(atencion.getSedeId());
                     mov.setUsuarioId(atencion.getUsuarioId());
                     mov.setLoteId(det.getLoteId());

@@ -28,4 +28,6 @@ public interface AtencionRepository {
     List<Atencion> findByReceta(String sedeId, String numeroReceta);
 
     List<Atencion> findBySede(String sedeId);
+
+    List<String> findMedicosDistinct();
 }

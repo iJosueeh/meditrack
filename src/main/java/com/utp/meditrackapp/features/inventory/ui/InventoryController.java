@@ -2,6 +2,7 @@ package com.utp.meditrackapp.features.inventory.ui;
 
 import com.utp.meditrackapp.core.config.NavigationService;
 import com.utp.meditrackapp.core.config.SessionManager;
+import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.application.dto.StockCriticoDTO;
 import com.utp.meditrackapp.domain.entities.Lote;
 import com.utp.meditrackapp.domain.entities.MotivoMovimiento;
@@ -53,8 +54,9 @@ public class InventoryController {
     @FXML private DatePicker dpFromDate, dpToDate;
 
     // Columns
-    @FXML private TableColumn<Movimiento, String> colMovDate, colMovType, colMovProduct, colMovBatch, colMovReason;
+    @FXML private TableColumn<Movimiento, String> colMovDate, colMovType, colMovProduct, colMovBatch, colMovReason, colMovObs;
     @FXML private TableColumn<Movimiento, Integer> colMovQty;
+    @FXML private TableColumn<Movimiento, Void> colMovActions;
     @FXML private TableColumn<Lote, String> colBatchDigemid, colBatchProduct, colBatchNum;
     @FXML private TableColumn<Lote, LocalDate> colBatchExp, colBatchFab;
     @FXML private Label lblActiveBatches, lblCriticalBatches;
@@ -90,10 +92,9 @@ public class InventoryController {
     }
 
     private void applyRolePermissions() {
-        // RF-05/RF-11: Solo Jefe de Sede (Químico) y Admin pueden registrar entradas
         var user = sessionManager.getCurrentUser();
         if (user != null) {
-            boolean canRegister = sessionManager.isAdmin() || sessionManager.isQuimico();
+            boolean canRegister = sessionManager.tienePermiso("M5_ENTRADAS") || sessionManager.tienePermiso("M6_SALIDAS");
             if (btnNewMovement != null) {
                 btnNewMovement.setVisible(canRegister);
                 btnNewMovement.setManaged(canRegister);
@@ -124,8 +125,10 @@ public class InventoryController {
         colMovBatch.setCellValueFactory(new PropertyValueFactory<>("numeroLote"));
         colMovQty.setCellValueFactory(new PropertyValueFactory<>("cantidad"));
         colMovReason.setCellValueFactory(new PropertyValueFactory<>("motivoNombre"));
+        colMovObs.setCellValueFactory(new PropertyValueFactory<>("observacion"));
 
         setupMovementCellFactories();
+        setupMovActionsCellFactory();
 
         colBatchDigemid.setCellValueFactory(new PropertyValueFactory<>("codigoDigemid"));
         colBatchProduct.setCellValueFactory(new PropertyValueFactory<>("productoNombre"));
@@ -189,6 +192,97 @@ public class InventoryController {
                     box.getChildren().addAll(icon, new Label(item));
                     setGraphic(box);
                 }
+            }
+        });
+    }
+
+    private void setupMovActionsCellFactory() {
+        boolean canAnular = sessionManager.tienePermiso("M5_ENTRADAS") || sessionManager.tienePermiso("M6_SALIDAS") || sessionManager.tienePermiso("M10_REPORTES");
+
+        colMovActions.setCellFactory(column -> new TableCell<>() {
+            private final Button btnAnular = new Button("Anular");
+            private final Button btnEditar = new Button("Editar Obs.");
+            private final HBox box = new HBox(6, btnAnular, btnEditar);
+
+            {
+                btnAnular.getStyleClass().addAll("button", "sm", "danger");
+                btnEditar.getStyleClass().addAll("button", "sm", "flat");
+                box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                btnAnular.setOnAction(e -> {
+                    Movimiento mov = getTableView().getItems().get(getIndex());
+                    onAnularMovimiento(mov);
+                });
+                btnEditar.setOnAction(e -> {
+                    Movimiento mov = getTableView().getItems().get(getIndex());
+                    onEditarObservacion(mov);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getIndex() < 0 || getTableView().getItems().size() <= getIndex()) {
+                    setGraphic(null);
+                } else {
+                    Movimiento mov = getTableView().getItems().get(getIndex());
+                    boolean visible = canAnular;
+                    btnAnular.setVisible(visible);
+                    btnAnular.setManaged(visible);
+                    btnEditar.setVisible(visible);
+                    btnEditar.setManaged(visible);
+                    setGraphic(box);
+                }
+            }
+        });
+    }
+
+    private void onAnularMovimiento(Movimiento mov) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Anular Movimiento");
+        confirm.setHeaderText("¿Está seguro de anular este movimiento?");
+        confirm.setContentText("El stock del lote se revertirá automáticamente.\n\n" +
+            "Producto: " + mov.getProductoNombre() + "\n" +
+            "Lote: " + mov.getNumeroLote() + "\n" +
+            "Tipo: " + mov.getTipoNombre() + "\n" +
+            "Cantidad: " + mov.getCantidad() + "\n" +
+            "Observación: " + (mov.getObservacion() != null ? mov.getObservacion() : ""));
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == javafx.scene.control.ButtonType.OK) {
+                try {
+                    inventoryAdapter.anularMovimiento(mov);
+                    showAlert(Alert.AlertType.INFORMATION, "Movimiento Anulado",
+                        "El movimiento se ha anulado y el stock ha sido revertido.");
+                    refreshMovements();
+                    refreshBatches();
+                    populateAlerts();
+                } catch (IllegalStateException e) {
+                    showAlert(Alert.AlertType.ERROR, "Error al Anular", e.getMessage());
+                } catch (Exception e) {
+                    showAlert(Alert.AlertType.ERROR, "Error Inesperado",
+                        "No se pudo anular el movimiento: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void onEditarObservacion(Movimiento mov) {
+        TextInputDialog dialog = new TextInputDialog(mov.getObservacion());
+        dialog.setTitle("Editar Observación");
+        dialog.setHeaderText("Modifique la observación del movimiento:");
+        dialog.setContentText("Observación:");
+
+        dialog.showAndWait().ifPresent(nuevaObs -> {
+            try {
+                inventoryAdapter.actualizarObservacion(mov.getId(), nuevaObs);
+                mov.setObservacion(nuevaObs);
+                tableMovements.refresh();
+                showAlert(Alert.AlertType.INFORMATION, "Observación Actualizada",
+                    "La observación se ha modificado correctamente.");
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error",
+                    "No se pudo actualizar la observación: " + e.getMessage());
             }
         });
     }
@@ -386,6 +480,9 @@ public class InventoryController {
     @FXML
     protected void onSaveMovement() {
         try {
+            // Validar que la sede no esté bloqueada
+            SedeAccessValidator.validarSedeActiva();
+            
             Producto producto = cmbModalProduct.getValue();
             TipoMovimiento selectedType = cmbModalType.getValue();
             MotivoMovimiento motivo = cmbModalMotivo.getValue();
@@ -461,6 +558,9 @@ public class InventoryController {
     @FXML
     protected void onQuickUpdate() {
         try {
+            // Validar que la sede no esté bloqueada
+            SedeAccessValidator.validarSedeActiva();
+            
             TipoMovimiento selectedType = cmbQuickType.getValue();
             Lote lote = cmbQuickBatch.getValue();
             String qtyStr = txtQuickQty.getText();

@@ -1,5 +1,7 @@
 package com.utp.meditrackapp.domain.entities;
 
+import java.time.LocalDateTime;
+
 /**
  * Entidad de dominio Sede con comportamiento de negocio.
  */
@@ -13,6 +15,9 @@ public class Sede {
     private String tipoSede;
     private int capacidadAlmacen;
     private int isActiva;
+    private int isBloqueada;
+    private String motivoBloqueo;
+    private LocalDateTime fechaBloqueo;
 
     private String administradorNombre;
     private int totalEmpleados;
@@ -33,6 +38,14 @@ public class Sede {
         return isActiva == 1;
     }
 
+    public boolean isBloqueada() {
+        return isBloqueada == 1;
+    }
+
+    public boolean isOperativa() {
+        return isActiva == 1 && isBloqueada == 0;
+    }
+
     public void activar() {
         this.isActiva = 1;
     }
@@ -43,6 +56,25 @@ public class Sede {
 
     public void toggleEstado() {
         this.isActiva = isActiva == 1 ? 0 : 1;
+    }
+
+    /**
+     * Bloquea la sede con un motivo específico.
+     * @param motivo razón del bloqueo
+     */
+    public void bloquear(String motivo) {
+        this.isBloqueada = 1;
+        this.motivoBloqueo = motivo;
+        this.fechaBloqueo = LocalDateTime.now();
+    }
+
+    /**
+     * Desbloquea la sede.
+     */
+    public void desbloquear() {
+        this.isBloqueada = 0;
+        this.motivoBloqueo = null;
+        this.fechaBloqueo = null;
     }
 
     /**
@@ -97,4 +129,13 @@ public class Sede {
 
     public int getIsActiva() { return isActiva; }
     public void setIsActiva(int isActiva) { this.isActiva = isActiva; }
+
+    public int getIsBloqueada() { return isBloqueada; }
+    public void setIsBloqueada(int isBloqueada) { this.isBloqueada = isBloqueada; }
+
+    public String getMotivoBloqueo() { return motivoBloqueo; }
+    public void setMotivoBloqueo(String motivoBloqueo) { this.motivoBloqueo = motivoBloqueo; }
+
+    public LocalDateTime getFechaBloqueo() { return fechaBloqueo; }
+    public void setFechaBloqueo(LocalDateTime fechaBloqueo) { this.fechaBloqueo = fechaBloqueo; }
 }

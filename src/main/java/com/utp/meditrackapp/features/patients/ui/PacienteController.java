@@ -10,10 +10,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.List;
@@ -23,6 +20,7 @@ public class PacienteController {
 
     @FXML private TextField searchField;
     @FXML private TableView<Paciente> patientsTable;
+    @FXML private Button btnNuevoPaciente;
     @FXML private TableColumn<Paciente, String> colTipoDoc;
     @FXML private TableColumn<Paciente, String> colNumDoc;
     @FXML private TableColumn<Paciente, String> colNombres;
@@ -74,9 +72,11 @@ public class PacienteController {
 
     private void applyRoleRestrictions() {
         SessionManager session = SessionManager.getInstance();
-        if (session.isTecnico()) {
-            System.out.println("[AUTH] El Técnico tiene acceso limitado a edición/borrado.");
-        }
+        System.out.println("[AUTH] Permisos: M7_PACIENTES=" + session.tienePermiso("M7_PACIENTES")
+            + " | USUARIOS=" + session.tienePermiso("USUARIOS"));
+
+        btnNuevoPaciente.setVisible(session.tienePermiso("M7_PACIENTES"));
+        btnNuevoPaciente.setManaged(session.tienePermiso("M7_PACIENTES"));
     }
 
     private void setupTable() {
@@ -200,62 +200,89 @@ public class PacienteController {
     }
 
     private void addButtonToTable() {
-        Callback<TableColumn<Paciente, Void>, TableCell<Paciente, Void>> cellFactory = new Callback<>() {
-            @Override
-            public TableCell<Paciente, Void> call(final TableColumn<Paciente, Void> param) {
-                return new TableCell<>() {
-                    private final Button btnEdit = new Button();
-                    private final Button btnDelete = new Button();
-                    private final HBox pane = new HBox(btnEdit, btnDelete);
+        colActions.setCellFactory(param -> new TableCell<>() {
+            private final Button btnEdit = new Button("Editar");
+            private final Button btnBlock = new Button();
+            private final Button btnDelete = new Button("Eliminar");
+            private final HBox pane = new HBox(10, btnEdit, btnBlock, btnDelete);
 
-                    {
-                        SessionManager session = SessionManager.getInstance();
-                        pane.setSpacing(10);
-                        pane.setAlignment(Pos.CENTER);
-                        
-                        btnEdit.setGraphic(new FontIcon("fas-edit"));
-                        btnEdit.getStyleClass().addAll("button", "flat");
-                        btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
-                        btnEdit.setOnAction(event -> {
-                            Paciente p = getTableView().getItems().get(getIndex());
-                            showEditForm(p);
-                        });
+            {
+                pane.setAlignment(Pos.CENTER);
+                btnEdit.setGraphic(new FontIcon("fas-edit"));
+                btnEdit.getStyleClass().addAll("button", "flat", "sm");
+                btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
+                btnEdit.setOnAction(e -> {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    showEditForm(p);
+                });
 
-                        btnDelete.setGraphic(new FontIcon("fas-trash"));
-                        btnDelete.getStyleClass().addAll("button", "flat", "danger");
-                        btnDelete.setTooltip(new Tooltip("Dar de baja paciente"));
-                        btnDelete.setOnAction(event -> {
-                            Paciente p = getTableView().getItems().get(getIndex());
-                            handleDelete(p);
-                        });
+                btnBlock.setGraphic(new FontIcon("fas-ban"));
+                btnBlock.getStyleClass().addAll("button", "flat", "sm");
+                btnBlock.setOnAction(e -> {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    handleToggleBlock(p);
+                });
 
-                        if (session.isTecnico()) {
-                            btnEdit.setVisible(false);
-                            btnEdit.setManaged(false);
-                            btnDelete.setVisible(false);
-                            btnDelete.setManaged(false);
-                        }
-                        
-                        if (session.isQuimico()) {
-                            btnDelete.setVisible(false);
-                            btnDelete.setManaged(false);
-                        }
-                    }
-
-                    @Override
-                    public void updateItem(Void item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setGraphic(null);
-                        } else {
-                            setGraphic(pane);
-                        }
-                    }
-                };
+                btnDelete.setGraphic(new FontIcon("fas-trash"));
+                btnDelete.getStyleClass().addAll("button", "flat", "danger", "sm");
+                btnDelete.setTooltip(new Tooltip("Eliminar permanentemente"));
+                btnDelete.setOnAction(e -> {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    handleDelete(p);
+                });
             }
-        };
 
-        colActions.setCellFactory(cellFactory);
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    if (p.getIsActivo() == 1) {
+                        btnBlock.setText("Bloquear");
+                        btnBlock.getStyleClass().removeAll("success");
+                        if (!btnBlock.getStyleClass().contains("danger")) {
+                            btnBlock.getStyleClass().add("danger");
+                        }
+                        btnBlock.setTooltip(new Tooltip("Desactivar paciente"));
+                    } else {
+                        btnBlock.setText("Activar");
+                        btnBlock.getStyleClass().removeAll("danger");
+                        if (!btnBlock.getStyleClass().contains("success")) {
+                            btnBlock.getStyleClass().add("success");
+                        }
+                        btnBlock.setTooltip(new Tooltip("Reactivar paciente"));
+                    }
+                    setGraphic(pane);
+                }
+            }
+        });
+    }
+
+    private void handleToggleBlock(Paciente p) {
+        if (p.getIsActivo() == 1) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmar Bloqueo");
+            alert.setHeaderText("¿Está seguro de bloquear al paciente?");
+            alert.setContentText(p.getNombres() + " " + p.getApellidos() + " no podrá recibir nuevas atenciones.");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
+                if ("OK".equals(resultMsg)) {
+                    loadPatients();
+                } else {
+                    showAlert(Alert.AlertType.WARNING, "No se pudo bloquear", resultMsg);
+                }
+            }
+        } else {
+            String resultMsg = pacienteAdapter.reactivarPaciente(p.getId());
+            if ("OK".equals(resultMsg)) {
+                loadPatients();
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No se pudo reactivar", resultMsg);
+            }
+        }
     }
 
     private void showEditForm(Paciente p) {

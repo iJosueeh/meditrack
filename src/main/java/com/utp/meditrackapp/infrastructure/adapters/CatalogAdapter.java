@@ -7,6 +7,7 @@ import com.utp.meditrackapp.domain.entities.TipoMovimiento;
 import com.utp.meditrackapp.domain.services.catalogo.GestionarCatalogoUseCase;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcCategoriaRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcMotivoMovimientoRepository;
+import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcPermisoRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcRolRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcTipoMovimientoRepository;
 
@@ -18,6 +19,7 @@ import java.util.List;
  */
 public class CatalogAdapter {
     private final GestionarCatalogoUseCase useCase;
+    private final JdbcPermisoRepository permisoRepository;
 
     public CatalogAdapter() {
         this.useCase = new GestionarCatalogoUseCase(
@@ -26,6 +28,7 @@ public class CatalogAdapter {
             new JdbcTipoMovimientoRepository(),
             new JdbcMotivoMovimientoRepository()
         );
+        this.permisoRepository = new JdbcPermisoRepository();
     }
 
     // === Roles ===
@@ -37,6 +40,11 @@ public class CatalogAdapter {
         return useCase.contarUsuariosPorRol(rolId);
     }
     public String eliminarRol(String id) { return useCase.eliminarRol(id); }
+    
+    // === Permisos de Roles ===
+    public void guardarPermisosRol(String rolId, List<String> permisoIds) {
+        permisoRepository.saveRolPermisos(rolId, permisoIds);
+    }
 
     // === Categorías ===
     public List<Categoria> listarCategorias() { return useCase.listarCategorias(); }

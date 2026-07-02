@@ -26,7 +26,7 @@
                             <Label text="Gestión de Pacientes" styleClass="title-2" />
                             <Label text="Administración centralizada de información personal y registros de atención." styleClass="text-muted" />
                         </VBox>
-                        <Button text="Registrar Nuevo Paciente" onAction="#onNewPatient" styleClass="button, accent">
+                        <Button fx:id="btnNuevoPaciente" text="Registrar Nuevo Paciente" onAction="#onNewPatient" styleClass="button, accent">
                             <graphic><FontIcon iconLiteral="fas-user-plus" iconColor="white" /></graphic>
                         </Button>
                     </HBox>

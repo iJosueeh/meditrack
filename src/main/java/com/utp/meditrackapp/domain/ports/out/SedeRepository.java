@@ -23,6 +23,12 @@ public interface SedeRepository {
 
     void toggleEstado(String id);
 
+    void bloquear(String id, String motivo);
+
+    void desbloquear(String id);
+
+    boolean isBloqueada(String id);
+
     List<Usuario> findStaffBySede(String sedeId);
 
     boolean assignUserToSede(String userId, String sedeId, String rolId);

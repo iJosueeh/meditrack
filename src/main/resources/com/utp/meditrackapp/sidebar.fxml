@@ -25,7 +25,7 @@
         <padding><Insets top="15" /></padding>
         
         <!-- OPERACIONES -->
-        <Label text="OPERACIONES" styleClass="text-caption, text-bold, text-muted">
+        <Label fx:id="lblOperaciones" text="OPERACIONES" styleClass="text-caption, text-bold, text-muted">
             <padding><Insets left="15" bottom="5" /></padding>
         </Label>
         
@@ -41,10 +41,10 @@
             <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
 
-        <Region prefHeight="15" />
+        <Region fx:id="sepOpRegion" prefHeight="15" />
 
         <!-- MANTENIMIENTO -->
-        <Label text="MANTENIMIENTO" styleClass="text-caption, text-bold, text-muted">
+        <Label fx:id="lblMantenimiento" text="MANTENIMIENTO" styleClass="text-caption, text-bold, text-muted">
             <padding><Insets left="15" bottom="5" /></padding>
         </Label>
         
@@ -76,10 +76,10 @@
             <graphic><FontIcon iconLiteral="fas-list-alt" iconSize="16" styleClass="nav-icon" /></graphic>
         </Button>
 
-        <Region prefHeight="15" />
+        <Region fx:id="sepManRegion" prefHeight="15" />
 
         <!-- REPORTES Y OTROS -->
-        <Label text="SISTEMA" styleClass="text-caption, text-bold, text-muted">
+        <Label fx:id="lblSistema" text="SISTEMA" styleClass="text-caption, text-bold, text-muted">
             <padding><Insets left="15" bottom="5" /></padding>
         </Label>
 
