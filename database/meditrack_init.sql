@@ -564,7 +564,7 @@ GO
 IF NOT EXISTS (SELECT 1 FROM [roles] WHERE [id] = 'ROL-001')
 BEGIN
     INSERT INTO [roles] ([id], [nombre], [descripcion], [nivel], [is_sistema]) 
-    VALUES ('ROL-001', 'Administrador', 'Acceso total al sistema', 1, 1);
+    VALUES ('ROL-001', 'Administrador global', 'Acceso total al sistema sin restricción de sede', 1, 1);
 END
 
 IF NOT EXISTS (SELECT 1 FROM [roles] WHERE [id] = 'ROL-002')
@@ -579,10 +579,10 @@ BEGIN
     VALUES ('ROL-003', 'Técnico de Farmacia', 'Atención al paciente, dispensación y salidas de inventario', 4, 1);
 END
 
--- Corregir datos de roles existentes (por si se insertaron con valores incorrectos)
-UPDATE [roles] SET [nivel] = 1, [is_sistema] = 1, [descripcion] = 'Acceso total al sistema sin restricción de sede' WHERE [id] = 'ROL-001' AND ([nivel] IS NULL OR [nivel] != 1);
-UPDATE [roles] SET [nivel] = 3, [is_sistema] = 1, [descripcion] = 'Supervisión de inventario y gestión de su posta' WHERE [id] = 'ROL-002' AND ([nivel] IS NULL OR [nivel] != 3);
-UPDATE [roles] SET [nivel] = 4, [is_sistema] = 1, [descripcion] = 'Atención al paciente, dispensación y salidas de inventario' WHERE [id] = 'ROL-003' AND ([nivel] IS NULL OR [nivel] != 4);
+-- Corregir datos de roles existentes
+UPDATE [roles] SET [nombre] = 'Administrador global', [nivel] = 1, [is_sistema] = 1, [descripcion] = 'Acceso total al sistema sin restricción de sede' WHERE [id] = 'ROL-001';
+UPDATE [roles] SET [nombre] = 'Jefe de Sede', [nivel] = 3, [is_sistema] = 1, [descripcion] = 'Supervisión de inventario y gestión de su posta' WHERE [id] = 'ROL-002';
+UPDATE [roles] SET [nombre] = 'Técnico de Farmacia', [nivel] = 4, [is_sistema] = 1, [descripcion] = 'Atención al paciente, dispensación y salidas de inventario' WHERE [id] = 'ROL-003';
 
 PRINT 'Roles base verificados.';
 GO
@@ -678,72 +678,80 @@ PRINT 'Catálogos de movimiento verificados.';
 GO
 
 -- =====================================================================
--- FASE 5: DATOS DE PRUEBA (solo si la base está vacía)
+-- FASE 5: DATOS DE PRUEBA (siempre reconstruir IDs consistentes)
 -- =====================================================================
 
--- Solo insertar datos de prueba si no hay usuarios (base vacía)
-IF NOT EXISTS (SELECT 1 FROM [usuarios])
-BEGIN
-    PRINT 'Insertando datos de prueba...';
+-- Limpiar datos de prueba existentes para re-insertar con IDs correctos
+DELETE FROM [atencion_detalles];
+DELETE FROM [atenciones];
+DELETE FROM [movimientos];
+DELETE FROM [lotes];
+DELETE FROM [usuarios];
+DELETE FROM [sedes];
+DELETE FROM [productos];
+DELETE FROM [categorias];
 
-    -- Categorías
-    INSERT INTO [categorias] ([id], [nombre]) VALUES
-    ('CAT-01', 'Analgésicos'),
-    ('CAT-02', 'Antibióticos'),
-    ('CAT-03', 'Antiinflamatorios'),
-    ('CAT-04', 'Suministros Médicos');
+PRINT 'Datos de prueba anteriores eliminados.';
 
-    -- Productos
-    INSERT INTO [productos] ([id], [categoria_id], [codigo_digemid], [nombre], [detalle], [unidad_medida], [stock_minimo], [precio_unitario]) VALUES
-    ('PRD-01', 'CAT-01', 'DIG-001', 'Paracetamol 500mg', 'Tabletas para el dolor', 'Caja x 100', 10, 3.50),
-    ('PRD-02', 'CAT-02', 'DIG-002', 'Amoxicilina 500mg', 'Cápsulas antibióticas', 'Frasco', 15, 12.00),
-    ('PRD-03', 'CAT-03', 'DIG-003', 'Ibuprofeno 400mg', 'Antiinflamatorio potente', 'Caja x 50', 10, 5.00),
-    ('PRD-04', 'CAT-04', 'DIG-004', 'Alcohol en Gel 70%', 'Desinfectante de manos', 'Botella 500ml', 20, 8.00),
-    ('PRD-05', 'CAT-01', 'DIG-005', 'Aspirina 100mg', 'Protector cardiovascular', 'Caja x 30', 10, 2.75),
-    ('PRD-06', 'CAT-02', 'DIG-006', 'Azitromicina 500mg', 'Tratamiento respiratorio', 'Caja x 3', 5, 15.00);
+-- Categorías
+INSERT INTO [categorias] ([id], [nombre]) VALUES
+('CAT-001-001', 'Analgésicos'),
+('CAT-001-002', 'Antibióticos'),
+('CAT-001-003', 'Antiinflamatorios'),
+('CAT-001-004', 'Suministros Médicos');
 
-    -- Sedes
-    INSERT INTO [sedes] ([id], [nombre], [direccion], [telefono], [ubigeo], [tipo_sede], [capacidad_almacen]) VALUES
-    ('SED-001', 'Sede Central Lima', 'Av. Principal 123', '012345678', '150101', 'Posta Médica', 1000),
-    ('SED-002', 'Posta San Juan', 'Av. Peru 456', '012345679', '150102', 'Centro de Salud', 500);
+-- Productos
+INSERT INTO [productos] ([id], [categoria_id], [codigo_digemid], [nombre], [detalle], [unidad_medida], [stock_minimo], [precio_unitario]) VALUES
+('PRD-001-001', 'CAT-001-001', 'DIG-001', 'Paracetamol 500mg', 'Tabletas para el dolor', 'Caja x 100', 10, 3.50),
+('PRD-001-002', 'CAT-001-002', 'DIG-002', 'Amoxicilina 500mg', 'Cápsulas antibióticas', 'Frasco', 15, 12.00),
+('PRD-001-003', 'CAT-001-003', 'DIG-003', 'Ibuprofeno 400mg', 'Antiinflamatorio potente', 'Caja x 50', 10, 5.00),
+('PRD-001-004', 'CAT-001-004', 'DIG-004', 'Alcohol en Gel 70%', 'Desinfectante de manos', 'Botella 500ml', 20, 8.00),
+('PRD-001-005', 'CAT-001-001', 'DIG-005', 'Aspirina 100mg', 'Protector cardiovascular', 'Caja x 30', 10, 2.75),
+('PRD-001-006', 'CAT-001-002', 'DIG-006', 'Azitromicina 500mg', 'Tratamiento respiratorio', 'Caja x 3', 5, 15.00);
 
-    -- Usuarios (contraseña: admin123)
-    INSERT INTO [usuarios] ([id], [sede_id], [rol_id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono], [ubigeo], [password]) VALUES
-    ('USR-001', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', '988111222', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU='),
-    ('USR-002', 'SED-001', 'ROL-002', 'DNI', '22222222', 'Jefe', 'Farmacia', '988222333', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU='),
-    ('USR-003', 'SED-001', 'ROL-003', 'DNI', '33333333', 'Tecnico', 'Operativo', '988333444', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=');
-    -- Pacientes
-    INSERT INTO [pacientes] ([id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono]) VALUES
-    ('PAC-01', 'DNI', '44556677', 'Juan', 'Perez Garcia', '988777666'),
-    ('PAC-02', 'CE', '22334455', 'Maria', 'Lopez Sosa', '911222333'),
-    ('PAC-03', 'DNI', '55443322', 'Carlos', 'Mendez Ruiz', '987654321');
+-- Sedes
+INSERT INTO [sedes] ([id], [nombre], [direccion], [telefono], [ubigeo], [tipo_sede], [capacidad_almacen]) VALUES
+('SED-001', 'Sede Central Lima', 'Av. Principal 123', '012345678', '150101', 'Posta Médica', 1000),
+('SED-002', 'Sede Lima Sur', 'Av. Peru 456', '012345679', '150102', 'Centro de Salud', 500);
 
-    -- Lotes
-    INSERT INTO [lotes] ([id], [producto_id], [sede_id], [numero_lote], [fecha_fabricacion], [fecha_vencimiento], [cantidad]) VALUES
-    ('LT-01', 'PRD-01', 'SED-001', 'L2024-001', '2024-01-01', '2027-06-01', 150),
-    ('LT-02', 'PRD-04', 'SED-001', 'L2024-002', '2024-02-15', '2027-08-20', 80),
-    ('LT-03', 'PRD-02', 'SED-001', 'L2024-CRIT', '2024-01-10', '2027-05-15', 3),
-    ('LT-04', 'PRD-06', 'SED-001', 'L2024-LOW', '2024-03-01', '2027-04-10', 5),
-    ('LT-05', 'PRD-03', 'SED-001', 'L-VENC-1', '2024-05-01', '2026-07-15', 45),
-    ('LT-06', 'PRD-05', 'SED-001', 'L-VENC-2', '2024-06-01', '2026-06-25', 20);
+-- Usuarios (contraseña: admin123 - mismo hash para todos)
+-- Formato: USR-[SEDE_NUM]-[SECUENCIA 4 DIGITOS]
+INSERT INTO [usuarios] ([id], [sede_id], [rol_id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono], [ubigeo], [password]) VALUES
+('USR-001-0001', 'SED-001', 'ROL-003', 'DNI', '33333333', 'Katherine Patricia', 'Salas Quiroz', '988333444', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU='),
+('USR-001-0002', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', '988111222', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU='),
+('USR-002-0001', 'SED-002', 'ROL-002', 'DNI', '22222222', 'Jefe', 'Farmacia', '988222333', '150102', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=');
 
-    -- Atenciones
-    INSERT INTO [atenciones] ([id], [sede_id], [paciente_id], [usuario_id], [numero_receta], [medico], [fecha_atencion]) VALUES
-    ('ATN-001', 'SED-001', 'PAC-01', 'USR-002', 'REC-001', 'Dr. Garcia', '2026-06-15 10:30:00'),
-    ('ATN-002', 'SED-001', 'PAC-02', 'USR-003', 'REC-002', 'Dra. Lopez', '2026-06-16 14:00:00');
+-- Actualizar administrador_id de sedes
+UPDATE [sedes] SET [administrador_id] = 'USR-001-0002' WHERE [id] = 'SED-001';
+UPDATE [sedes] SET [administrador_id] = 'USR-002-0001' WHERE [id] = 'SED-002';
 
-    -- Detalles de atención
-    INSERT INTO [atencion_detalles] ([id], [atencion_id], [lote_id], [cantidad_entregada]) VALUES
-    ('ATN-D-001', 'ATN-001', 'LT-01', 2),
-    ('ATN-D-002', 'ATN-001', 'LT-02', 1),
-    ('ATN-D-003', 'ATN-002', 'LT-03', 3);
+-- Pacientes
+INSERT INTO [pacientes] ([id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono]) VALUES
+('PAC-001-001', 'DNI', '44556677', 'Juan', 'Perez Garcia', '988777666'),
+('PAC-001-002', 'CE', '22334455', 'Maria', 'Lopez Sosa', '911222333'),
+('PAC-002-001', 'DNI', '55443322', 'Carlos', 'Mendez Ruiz', '987654321');
 
-    PRINT 'Datos de prueba insertados correctamente.';
-END
-ELSE
-BEGIN
-    PRINT 'Base de datos ya contiene datos. Saltando datos de prueba.';
-END
+-- Lotes
+INSERT INTO [lotes] ([id], [producto_id], [sede_id], [numero_lote], [fecha_fabricacion], [fecha_vencimiento], [cantidad]) VALUES
+('LT-001-001', 'PRD-001-001', 'SED-001', 'L2024-001', '2024-01-01', '2027-06-01', 150),
+('LT-001-002', 'PRD-001-004', 'SED-001', 'L2024-002', '2024-02-15', '2027-08-20', 80),
+('LT-001-003', 'PRD-001-002', 'SED-001', 'L2024-CRIT', '2024-01-10', '2027-05-15', 3),
+('LT-001-004', 'PRD-001-006', 'SED-001', 'L2024-LOW', '2024-03-01', '2027-04-10', 5),
+('LT-001-005', 'PRD-001-003', 'SED-001', 'L-VENC-1', '2024-05-01', '2026-07-15', 45),
+('LT-001-006', 'PRD-001-005', 'SED-001', 'L-VENC-2', '2024-06-01', '2026-06-25', 20);
+
+-- Atenciones
+INSERT INTO [atenciones] ([id], [sede_id], [paciente_id], [usuario_id], [numero_receta], [medico], [fecha_atencion]) VALUES
+('ATN-001-001', 'SED-001', 'PAC-001-001', 'USR-001-0001', 'REC-001', 'Dr. Garcia', '2026-06-15 10:30:00'),
+('ATN-001-002', 'SED-001', 'PAC-001-002', 'USR-001-0001', 'REC-002', 'Dra. Lopez', '2026-06-16 14:00:00');
+
+-- Detalles de atención
+INSERT INTO [atencion_detalles] ([id], [atencion_id], [lote_id], [cantidad_entregada]) VALUES
+('ATN-D-001-001', 'ATN-001-001', 'LT-001-001', 2),
+('ATN-D-001-002', 'ATN-001-001', 'LT-001-002', 1),
+('ATN-D-001-003', 'ATN-001-002', 'LT-001-003', 3);
+
+PRINT 'Datos de prueba reconstruidos con IDs consistentes.';
 GO
 
 PRINT '=====================================================================';
