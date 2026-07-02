@@ -9,16 +9,16 @@
 -- =====================================================================
 -- CREDENCIALES DE ACCESO (contraseña: admin123 para todos)
 -- =====================================================================
--- ROL                     | DNI       | USUARIO   | CONTRASEÑA
--- ------------------------|-----------|-----------|------------
--- Administrador           | 12345678  | USR-001   | admin123
--- Químico Farmacéutico    | 22222222  | USR-002   | admin123
--- Técnico de Farmacia     | 33333333  | USR-003   | admin123
+-- ROL                     | DNI       | USUARIO         | CONTRASEÑA
+-- ------------------------|-----------|-----------------|------------
+-- Administrador global    | 12345678  | USR-001-0002    | admin123
+-- Jefe de Sede           | 22222222  | USR-002-0001    | admin123
+-- Técnico de Farmacia    | 33333333  | USR-001-0001    | admin123
 -- =====================================================================
 -- NOTAS:
--- - El Administrador tiene acceso global a todas las sedes
--- - El Químico Farmacéutico tiene acceso de gestión a su sede
--- - El Técnico de Farmacia solo tiene acceso operativo a su sede
+-- - El Administrador global tiene acceso total sin restricción de sede
+-- - El Jefe de Sede gestiona su posta: entradas, lotes, pacientes, reportes
+-- - El Técnico de Farmacia opera diariamente: atenciones, dispensación, salidas
 -- - Las sedes bloqueadas impiden a sus usuarios realizar operaciones
 -- =====================================================================
 
@@ -610,25 +610,23 @@ END
 GO
 
 -- Asignar permisos al Administrador Global: acceso total sin restricción de sede
-IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-001')
-BEGIN
-    INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
-    ('ROL-001', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-001', 'PERM-007'),  -- M2_SEDES (crear/editar sedes)
-    ('ROL-001', 'PERM-008'),  -- M3_PRODUCTOS (catálogo de productos)
-    ('ROL-001', 'PERM-002'),  -- M4_LOTES
-    ('ROL-001', 'PERM-003'),  -- M5_ENTRADAS
-    ('ROL-001', 'PERM-004'),  -- M6_SALIDAS
-    ('ROL-001', 'PERM-005'),  -- M8_ATENCIONES
-    ('ROL-001', 'PERM-006'),  -- M9_DISPENSACION
-    ('ROL-001', 'PERM-009'),  -- M7_PACIENTES
-    ('ROL-001', 'PERM-010'),  -- USUARIOS
-    ('ROL-001', 'PERM-011'),  -- CATEGORIAS
-    ('ROL-001', 'PERM-012'),  -- MOV_CATALOGOS
-    ('ROL-001', 'PERM-013'),  -- M10_REPORTES (reportes consolidados)
-    ('ROL-001', 'PERM-014');  -- ROLES
-    PRINT 'Permisos asignados al Administrador Global.';
-END
+DELETE FROM [rol_permisos] WHERE [rol_id] = 'ROL-001';
+INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
+('ROL-001', 'PERM-001'),
+('ROL-001', 'PERM-007'),
+('ROL-001', 'PERM-008'),
+('ROL-001', 'PERM-002'),
+('ROL-001', 'PERM-003'),
+('ROL-001', 'PERM-004'),
+('ROL-001', 'PERM-005'),
+('ROL-001', 'PERM-006'),
+('ROL-001', 'PERM-009'),
+('ROL-001', 'PERM-010'),
+('ROL-001', 'PERM-011'),
+('ROL-001', 'PERM-012'),
+('ROL-001', 'PERM-013'),
+('ROL-001', 'PERM-014');
+PRINT 'Permisos asignados al Administrador Global.';
 GO
 
 -- Asignar permisos al Jefe de Sede: supervisa inventario, registra entradas, gestiona usuarios, reportes de sede
@@ -678,7 +676,9 @@ PRINT 'Catálogos de movimiento verificados.';
 GO
 
 -- =====================================================================
--- FASE 5: DATOS DE PRUEBA (siempre reconstruir IDs consistentes)
+-- FASE 5: DATOS DE PRUEBA
+-- AVISO: Este fase ELIMINA y REINSERTA datos de prueba.
+-- Para producción, comentar o eliminar esta fase después del primer despliegue.
 -- =====================================================================
 
 -- Limpiar datos de prueba existentes para re-insertar con IDs correctos
