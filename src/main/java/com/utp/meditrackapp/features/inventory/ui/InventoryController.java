@@ -375,6 +375,9 @@ public class InventoryController {
 
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
+                if (cmbTipo.getSelectionModel().getSelectedItem() == null || cmbMotivo.getSelectionModel().getSelectedItem() == null) {
+                    return null;
+                }
                 return new String[]{
                     cmbTipo.getSelectionModel().getSelectedItem().getId(),
                     cmbMotivo.getSelectionModel().getSelectedItem().getId(),

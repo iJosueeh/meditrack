@@ -195,20 +195,42 @@ public class PacienteController {
 
     @FXML
     protected void onSavePatient() {
+        String tipoDoc = typeDocCombo.getValue();
+        String numDoc = numDocField.getText();
+        String nombres = firstNameField.getText();
+        String apellidos = lastNameField.getText();
+
+        if (tipoDoc == null || tipoDoc.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Seleccione el tipo de documento.");
+            return;
+        }
+        if (numDoc == null || numDoc.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese el número de documento.");
+            return;
+        }
+        if (nombres == null || nombres.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese el nombre del paciente.");
+            return;
+        }
+        if (apellidos == null || apellidos.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese los apellidos del paciente.");
+            return;
+        }
+
         if (currentPaciente == null) {
             currentPaciente = new Paciente();
         }
 
-        currentPaciente.setTipoDocumento(typeDocCombo.getValue());
-        currentPaciente.setNumeroDocumento(numDocField.getText());
-        currentPaciente.setNombres(firstNameField.getText());
-        currentPaciente.setApellidos(lastNameField.getText());
-        currentPaciente.setTelefono(phoneField.getText());
+        currentPaciente.setTipoDocumento(tipoDoc);
+        currentPaciente.setNumeroDocumento(numDoc.trim());
+        currentPaciente.setNombres(nombres.trim());
+        currentPaciente.setApellidos(apellidos.trim());
+        currentPaciente.setTelefono(phoneField.getText() != null ? phoneField.getText().trim() : "");
         currentPaciente.setIsActivo(chkActivo.isSelected() ? 1 : 0);
 
         String result = pacienteAdapter.guardarPaciente(currentPaciente);
 
-        if (result.equals("OK")) {
+        if ("OK".equals(result)) {
             showAlert(Alert.AlertType.INFORMATION, "Éxito", "Paciente guardado correctamente.");
             formOverlay.setVisible(false);
             loadPatients();

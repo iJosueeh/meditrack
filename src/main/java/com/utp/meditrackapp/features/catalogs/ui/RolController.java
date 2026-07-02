@@ -300,6 +300,20 @@ public class RolController {
             }
         }
         
+        // Validación de jerarquía al editar
+        if (selectedRol != null && rolActual != null) {
+            // No puede cambiar un rol a nivel igual o menor al suyo
+            if (nivelNuevo <= rolActual.getNivel()) {
+                showAlert("Validación", "No puede asignar un nivel igual o menor al suyo.");
+                return;
+            }
+            // No puede editar un rol de nivel menor al suyo (rol más alto)
+            if (selectedRol.getNivel() < rolActual.getNivel()) {
+                showAlert("Validación", "No puede editar roles de mayor jerarquía.");
+                return;
+            }
+        }
+        
         // Obtener permisos seleccionados
         List<String> permisosSeleccionados = getSelectedPermisoIds();
 
