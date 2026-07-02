@@ -199,11 +199,13 @@ Responsable de las operaciones diarias. Registra atenciones (M8), dispensaciones
 |---------|---------|---------|
 | Sede | `SED-XXX` | `SED-001`, `SED-002` |
 | Usuario | `USR-XXX-XXXX` | `USR-001-0001`, `USR-002-0001` |
-| Paciente | `PAC-XXX-XXX` | `PAC-001-001` |
+| Paciente | `PAC-XXX-XXXXXX` | `PAC-001-000001`, `PAC-002-000001` |
 | Producto | `PRD-XXX-XXX` | `PRD-001-001` |
 | Categoría | `CAT-XXX-XXX` | `CAT-001-001` |
-| Lote | `LT-XXX-XXX` | `LT-001-001` |
-| Atención | `ATN-XXX-XXX` | `ATN-001-001` |
+| Lote | `LOT-XXX-XXXXX` | `LOT-001-00001`, `LOT-002-00001` |
+| Movimiento | `MOV-XXX-XXXXXX` | `MOV-001-000001` |
+| Atención | `ATE-XXX-XXXXXX` | `ATE-001-000001` |
+| Detalle de Atención | `ATD-XXX-XXXXXXXX` | `ATD-001-00000001` |
 | Receta | `REC-AAAA-XXXX` | `REC-2026-0001` |
 
 ---

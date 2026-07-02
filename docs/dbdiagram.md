@@ -8,7 +8,7 @@
 
 Table roles {
   id varchar(50) [pk]
-  nombre varchar(100] [unique, not null]
+  nombre varchar(100) [unique, not null]
   descripcion varchar(255)
   nivel int [default: 99]
   is_sistema int [default: 0]
