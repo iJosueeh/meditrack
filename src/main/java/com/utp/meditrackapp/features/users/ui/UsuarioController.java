@@ -391,15 +391,25 @@ public class UsuarioController {
     }
 
     private void handleDeleteUser(Usuario u) {
-        String result = userAdapter.eliminarUsuario(u.getId());
-        if ("NO_HISTORY".equals(result)) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Eliminación");
+        confirm.setHeaderText("¿Está seguro de eliminar permanentemente al usuario?");
+        confirm.setContentText(u.getNombreCompleto() + "\nEsta acción no se puede deshacer.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        String deleteResult = userAdapter.eliminarUsuario(u.getId());
+        if ("NO_HISTORY".equals(deleteResult)) {
             showAlert(Alert.AlertType.WARNING, "Tiene historial",
-                "Este usuario tiene movimientos o atenciones registradas.\nUse Desactivar para bloquearlo sin perder historial.");
-        } else if ("OK".equals(result)) {
+                "El usuario \"" + u.getNombreCompleto() + "\" tiene movimientos o atenciones registradas.\nUse Desactivar para bloquearlo sin perder historial.");
+        } else if ("OK".equals(deleteResult)) {
             showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Usuario eliminado correctamente.");
             loadData();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Error", result);
+            showAlert(Alert.AlertType.ERROR, "Error", deleteResult);
         }
     }
 

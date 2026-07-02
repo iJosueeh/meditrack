@@ -72,4 +72,8 @@ public class SedeAdapter {
     public List<Usuario> obtenerAdministradoresDisponibles() {
         return useCase.obtenerAdministradoresDisponibles();
     }
+
+    public String eliminarSede(String id) {
+        return useCase.eliminarSede(id);
+    }
 }

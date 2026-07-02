@@ -36,4 +36,14 @@ public interface SedeRepository {
     int countTotalEmployees();
 
     int countEmployeesBySede(String sedeId);
+
+    int countUsuariosBySede(String sedeId);
+
+    int countLotesBySede(String sedeId);
+
+    int countMovimientosBySede(String sedeId);
+
+    int countAtencionesBySede(String sedeId);
+
+    void delete(String id);
 }
