@@ -192,13 +192,16 @@ public class RolController {
         // Configurar ComboBox de niveles con descripciones
         setupNivelCombo();
         
-        // Configurar niveles disponibles (solo niveles mayores al nivel actual)
+        // Configurar niveles disponibles (solo niveles mayores al nivel actual, hasta nivel 5)
         if (cmbNivel != null && rolActual != null) {
-            List<Integer> niveles = List.of(rolActual.getNivel() + 1, rolActual.getNivel() + 2, 5, 10, 99);
+            int nivelActual = rolActual.getNivel();
+            List<Integer> niveles = java.util.stream.IntStream.rangeClosed(nivelActual + 1, 5)
+                .boxed()
+                .collect(java.util.stream.Collectors.toList());
             cmbNivel.setItems(FXCollections.observableArrayList(niveles.stream()
                 .map(NivelInfo::new)
                 .collect(java.util.stream.Collectors.toList())));
-            cmbNivel.setValue(new NivelInfo(rolActual.getNivel() + 1));
+            cmbNivel.setValue(new NivelInfo(nivelActual + 1));
         }
         
         // Limpiar checkboxes de permisos
@@ -225,7 +228,7 @@ public class RolController {
         if (cmbNivel != null) {
             setupNivelCombo();
             cmbNivel.setItems(FXCollections.observableArrayList(
-                java.util.stream.IntStream.of(1, 2, 3, 4, 5, 10, 99)
+                java.util.stream.IntStream.rangeClosed(1, 5)
                     .mapToObj(NivelInfo::new)
                     .collect(java.util.stream.Collectors.toList())
             ));
@@ -242,8 +245,6 @@ public class RolController {
         if (rol.getPermisos() == null) return;
         
         clearPermisoCheckboxes();
-        
-        System.out.println("[DEBUG] Cargando permisos para rol '" + rol.getNombre() + "': " + rol.getPermisos().stream().map(p -> p.getCodigo()).toList());
         
         for (Permiso permiso : rol.getPermisos()) {
             switch (permiso.getCodigo()) {
@@ -301,8 +302,6 @@ public class RolController {
         
         // Obtener permisos seleccionados
         List<String> permisosSeleccionados = getSelectedPermisoIds();
-        
-        System.out.println("[DEBUG] Permisos a guardar para rol '" + nombre + "': " + permisosSeleccionados);
 
         if (selectedRol == null) {
             Rol nuevo = new Rol(null, nombre);
@@ -487,13 +486,11 @@ public class RolController {
         private final int nivel;
 
         private static final String[][] DESCRIPCIONES = {
-            { "1", "Nivel 1 — Administrador del Sistema" },
-            { "2", "Nivel 2 — Director / Gerente" },
+            { "1", "Nivel 1 — Administrador Global" },
+            { "2", "Nivel 2 — Director Regional" },
             { "3", "Nivel 3 — Jefe de Sede" },
             { "4", "Nivel 4 — Técnico de Farmacia" },
-            { "5", "Nivel 5 — Supervisor" },
-            { "10", "Nivel 10 — Auxiliar / Operador" },
-            { "99", "Nivel 99 — Solo lectura" },
+            { "5", "Nivel 5 — Auxiliar de Farmacia" },
         };
 
         public NivelInfo(int nivel) {
