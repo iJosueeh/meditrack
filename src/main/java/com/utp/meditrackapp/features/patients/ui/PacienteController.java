@@ -142,18 +142,7 @@ public class PacienteController {
 
     private void loadPatients() {
         try {
-            SessionManager session = SessionManager.getInstance();
-            List<Paciente> pacientes;
-            if (session.tienePermiso("M2_SEDES")) {
-                pacientes = pacienteAdapter.listarPacientes();
-            } else {
-                var user = session.getCurrentUser();
-                if (user != null && user.getSedeId() != null) {
-                    pacientes = pacienteAdapter.listarPacientesPorSede(user.getSedeId());
-                } else {
-                    pacientes = pacienteAdapter.listarPacientes();
-                }
-            }
+            List<Paciente> pacientes = pacienteAdapter.listarPacientes();
             patientsTable.setItems(FXCollections.observableArrayList(pacientes));
             updateSummary();
         } catch (Exception e) {
@@ -176,18 +165,7 @@ public class PacienteController {
     @FXML
     protected void onSearch() {
         String query = searchField.getText();
-        SessionManager session = SessionManager.getInstance();
-        List<Paciente> basePacientes;
-        if (session.tienePermiso("M2_SEDES")) {
-            basePacientes = pacienteAdapter.listarPacientes();
-        } else {
-            var user = session.getCurrentUser();
-            if (user != null && user.getSedeId() != null) {
-                basePacientes = pacienteAdapter.listarPacientesPorSede(user.getSedeId());
-            } else {
-                basePacientes = pacienteAdapter.listarPacientes();
-            }
-        }
+        List<Paciente> basePacientes = pacienteAdapter.listarPacientes();
 
         if (query == null || query.trim().isEmpty()) {
             patientsTable.setItems(FXCollections.observableArrayList(basePacientes));
