@@ -27,9 +27,10 @@ public class GestionarPacienteUseCase {
         return pacienteRepository.findAll();
     }
 
-    /**
-     * Busca pacientes por query (documento, nombre, apellido).
-     */
+    public List<Paciente> listarPacientesPorSede(String sedeId) {
+        return pacienteRepository.findBySede(sedeId);
+    }
+
     public List<Paciente> buscarPacientes(String query) {
         if (query == null || query.trim().isEmpty()) {
             return listarPacientes();

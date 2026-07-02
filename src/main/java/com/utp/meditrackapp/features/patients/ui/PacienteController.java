@@ -142,7 +142,18 @@ public class PacienteController {
 
     private void loadPatients() {
         try {
-            List<Paciente> pacientes = pacienteAdapter.listarPacientes();
+            SessionManager session = SessionManager.getInstance();
+            List<Paciente> pacientes;
+            if (session.tienePermiso("M2_SEDES")) {
+                pacientes = pacienteAdapter.listarPacientes();
+            } else {
+                var user = session.getCurrentUser();
+                if (user != null && user.getSedeId() != null) {
+                    pacientes = pacienteAdapter.listarPacientesPorSede(user.getSedeId());
+                } else {
+                    pacientes = pacienteAdapter.listarPacientes();
+                }
+            }
             patientsTable.setItems(FXCollections.observableArrayList(pacientes));
             updateSummary();
         } catch (Exception e) {
@@ -165,8 +176,34 @@ public class PacienteController {
     @FXML
     protected void onSearch() {
         String query = searchField.getText();
-        List<Paciente> resultados = pacienteAdapter.buscarPacientes(query);
-        patientsTable.setItems(FXCollections.observableArrayList(resultados));
+        SessionManager session = SessionManager.getInstance();
+        List<Paciente> basePacientes;
+        if (session.tienePermiso("M2_SEDES")) {
+            basePacientes = pacienteAdapter.listarPacientes();
+        } else {
+            var user = session.getCurrentUser();
+            if (user != null && user.getSedeId() != null) {
+                basePacientes = pacienteAdapter.listarPacientesPorSede(user.getSedeId());
+            } else {
+                basePacientes = pacienteAdapter.listarPacientes();
+            }
+        }
+
+        if (query == null || query.trim().isEmpty()) {
+            patientsTable.setItems(FXCollections.observableArrayList(basePacientes));
+        } else {
+            String[] terms = query.trim().toLowerCase().split("\\s+");
+            List<Paciente> filtered = basePacientes.stream()
+                .filter(p -> {
+                    String fullData = (p.getNumeroDocumento() + " " + p.getNombres() + " " + p.getApellidos()).toLowerCase();
+                    for (String term : terms) {
+                        if (!fullData.contains(term)) return false;
+                    }
+                    return true;
+                })
+                .toList();
+            patientsTable.setItems(FXCollections.observableArrayList(filtered));
+        }
         updateSummary();
     }
 
