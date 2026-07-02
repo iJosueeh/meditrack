@@ -58,6 +58,14 @@ public class ProductoController {
         setupForm();
         loadData();
         handleInitialSearch();
+        applyWritePermissions();
+    }
+
+    private void applyWritePermissions() {
+        boolean canWrite = sessionManager.tienePermiso("M2_SEDES");
+        if (!canWrite) {
+            // Hide the "Nuevo" button if it exists in FXML
+        }
     }
 
     private void handleInitialSearch() {
@@ -119,6 +127,7 @@ public class ProductoController {
         colAcciones.setCellFactory(column -> new TableCell<>() {
             private final Button editBtn = new Button();
             private final Button deleteBtn = new Button();
+            private final boolean canWrite = sessionManager.tienePermiso("M2_SEDES");
             {
                 editBtn.setGraphic(new FontIcon("fas-edit"));
                 editBtn.getStyleClass().addAll("button", "flat", "accent", "sm");
@@ -133,9 +142,13 @@ public class ProductoController {
                 super.updateItem(item, empty);
                 if (empty) setGraphic(null);
                 else {
-                    HBox box = new HBox(10, editBtn, deleteBtn);
-                    box.setAlignment(Pos.CENTER);
-                    setGraphic(box);
+                    if (!canWrite) {
+                        setGraphic(null);
+                    } else {
+                        HBox box = new HBox(10, editBtn, deleteBtn);
+                        box.setAlignment(Pos.CENTER);
+                        setGraphic(box);
+                    }
                 }
             }
         });
@@ -194,6 +207,10 @@ public class ProductoController {
 
     @FXML
     protected void onOpenRegisterModal() {
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert(Alert.AlertType.WARNING, "Sin permisos", "No tiene permisos para crear productos.");
+            return;
+        }
         selectedProducto = null;
         modalTitle.setText("Registrar Producto");
         clearForm();
@@ -221,6 +238,10 @@ public class ProductoController {
 
     @FXML
     protected void onSave() {
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert(Alert.AlertType.WARNING, "Sin permisos", "No tiene permisos para modificar productos.");
+            return;
+        }
         if (!validateForm()) return;
 
         try {
@@ -275,6 +296,10 @@ public class ProductoController {
 
     private void confirmDelete(Producto p) {
         if (p == null) return;
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert(Alert.AlertType.WARNING, "Sin permisos", "No tiene permisos para eliminar productos.");
+            return;
+        }
 
         // Verificar si tiene stock activo antes de desactivar
         try {
