@@ -166,11 +166,8 @@ public class AtencionController {
             allPacientes.setAll(pacientes);
 
             List<String> medicos = atencionAdapter.listarMedicosDistinct();
-            // Agregar doctores de atenciones existentes que no estén ya en la lista
-            for (String medico : medicos) {
-                if (!allMedicos.contains(medico)) {
-                    allMedicos.add(medico);
-                }
+            for (String m : medicos) {
+                if (!allMedicos.contains(m)) allMedicos.add(m);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -224,21 +221,6 @@ public class AtencionController {
 
     private void setupMedicoCombo() {
         cmbMedico.setEditable(true);
-        
-        // Pre-cargar médicos comunes del sistema de salud peruano
-        allMedicos.addAll(
-            "Dr. Juan Pérez García",
-            "Dra. María López Sosa",
-            "Dr. Carlos Mendoza Ruiz",
-            "Dra. Ana Ramírez Castro",
-            "Dr. Pedro Sánchez Torres",
-            "Dra. Lucía Fernández Díaz",
-            "Dr. Miguel Ángel Rojas",
-            "Dra. Carmen Teresa Quispe",
-            "Dr. Jorge Luis Vargas",
-            "Dra. Beatriz del Pilar Muñoz"
-        );
-        
         cmbMedico.setItems(allMedicos);
     }
 
