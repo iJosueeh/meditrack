@@ -2,6 +2,8 @@ package com.utp.meditrackapp.domain.entities;
 
 import java.time.LocalDateTime;
 
+import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
+
 /**
  * Entidad de dominio Movimiento con comportamiento de negocio.
  * Refactorizada desde core.models.entity.Movimiento
@@ -32,14 +34,14 @@ public class Movimiento {
      * Verifica si es un movimiento de entrada.
      */
     public boolean isEntrada() {
-        return tipoId != null && tipoId.contains("ENTRADA");
+        return TipoMovimientoEnum.ENTRADA.getId().equals(tipoId);
     }
 
     /**
      * Verifica si es un movimiento de salida.
      */
     public boolean isSalida() {
-        return tipoId != null && tipoId.contains("SALIDA");
+        return TipoMovimientoEnum.SALIDA.getId().equals(tipoId);
     }
 
     /**

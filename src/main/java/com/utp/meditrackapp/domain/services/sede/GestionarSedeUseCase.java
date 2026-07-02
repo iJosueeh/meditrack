@@ -4,6 +4,7 @@ import com.utp.meditrackapp.domain.entities.Sede;
 import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.domain.ports.out.SedeRepository;
 import com.utp.meditrackapp.domain.ports.out.UsuarioRepository;
+import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcRolRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -136,10 +137,33 @@ public class GestionarSedeUseCase {
 
     /**
      * Obtiene usuarios admin/jefe disponibles para asignar como administradores de sede.
+     * Verifica permisos M2_SEDES (admin) o M5_ENTRADAS (jefe de sede) en el rol del usuario.
      */
     public List<Usuario> obtenerAdministradoresDisponibles() {
+        var rolRepo = new JdbcRolRepository();
         return usuarioRepository.findAll().stream()
-                .filter(u -> u.isActivo() && (u.isAdmin() || u.isJefeSede()))
+                .filter(u -> {
+                    if (!u.isActivo()) return false;
+                    var rol = rolRepo.findById(u.getRolId()).orElse(null);
+                    if (rol == null) return false;
+                    return rol.tienePermiso("M2_SEDES") || rol.tienePermiso("M5_ENTRADAS");
+                })
                 .toList();
+    }
+
+    public String eliminarSede(String id) {
+        int usuarios = sedeRepository.countUsuariosBySede(id);
+        int lotes = sedeRepository.countLotesBySede(id);
+        int movimientos = sedeRepository.countMovimientosBySede(id);
+        int atenciones = sedeRepository.countAtencionesBySede(id);
+        if (usuarios > 0 || lotes > 0 || movimientos > 0 || atenciones > 0) {
+            return "NO_HISTORY";
+        }
+        try {
+            sedeRepository.delete(id);
+            return "OK";
+        } catch (Exception e) {
+            return "Error al eliminar sede: " + e.getMessage();
+        }
     }
 }

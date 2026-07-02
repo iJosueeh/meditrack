@@ -3,6 +3,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
 import com.utp.meditrackapp.core.util.IdGenerator;
+import com.utp.meditrackapp.domain.entities.Permiso;
 import com.utp.meditrackapp.domain.entities.Rol;
 import com.utp.meditrackapp.domain.ports.out.RolRepository;
 
@@ -15,16 +16,25 @@ import java.util.List;
 import java.util.Optional;
 
 public class JdbcRolRepository implements RolRepository {
+    private final JdbcPermisoRepository permisoRepository;
+
+    public JdbcRolRepository() {
+        this.permisoRepository = new JdbcPermisoRepository();
+    }
 
     @Override
     public Optional<Rol> findById(String id) {
-        String sql = "SELECT id, nombre, is_activo FROM roles WHERE id = ?";
+        String sql = "SELECT id, nombre, descripcion, nivel, is_sistema, is_activo FROM roles WHERE id = ?";
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToRol(rs));
+                    Rol rol = mapResultSetToRol(rs);
+                    // Cargar permisos del rol
+                    List<Permiso> permisos = permisoRepository.findByRolId(id);
+                    rol.setPermisos(permisos);
+                    return Optional.of(rol);
                 }
             }
             return Optional.empty();
@@ -35,13 +45,17 @@ public class JdbcRolRepository implements RolRepository {
 
     @Override
     public List<Rol> findAll() {
-        String sql = "SELECT id, nombre, is_activo FROM roles ORDER BY nombre";
+        String sql = "SELECT id, nombre, descripcion, nivel, is_sistema, is_activo FROM roles ORDER BY nivel, nombre";
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             List<Rol> roles = new ArrayList<>();
             while (rs.next()) {
-                roles.add(mapResultSetToRol(rs));
+                Rol rol = mapResultSetToRol(rs);
+                // Cargar permisos del rol
+                List<Permiso> permisos = permisoRepository.findByRolId(rol.getId());
+                rol.setPermisos(permisos);
+                roles.add(rol);
             }
             return roles;
         } catch (SQLException e) {
@@ -58,11 +72,14 @@ public class JdbcRolRepository implements RolRepository {
                 rol.setId(id);
             }
 
-            String sql = "INSERT INTO roles (id, nombre, is_activo) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO roles (id, nombre, descripcion, nivel, is_sistema, is_activo) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, id);
                 ps.setString(2, rol.getNombre());
-                ps.setInt(3, rol.getIsActivo());
+                ps.setString(3, rol.getDescripcion());
+                ps.setInt(4, rol.getNivel());
+                ps.setInt(5, rol.getIsSistema());
+                ps.setInt(6, rol.getIsActivo());
                 ps.executeUpdate();
             }
             return rol;
@@ -73,12 +90,14 @@ public class JdbcRolRepository implements RolRepository {
 
     @Override
     public void update(Rol rol) {
-        String sql = "UPDATE roles SET nombre = ?, is_activo = ? WHERE id = ?";
+        String sql = "UPDATE roles SET nombre = ?, descripcion = ?, nivel = ?, is_activo = ? WHERE id = ?";
         try (Connection conn = DatabaseConfig.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, rol.getNombre());
-            ps.setInt(2, rol.getIsActivo());
-            ps.setString(3, rol.getId());
+            ps.setString(2, rol.getDescripcion());
+            ps.setInt(3, rol.getNivel());
+            ps.setInt(4, rol.getIsActivo());
+            ps.setString(5, rol.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -130,6 +149,9 @@ public class JdbcRolRepository implements RolRepository {
         Rol r = new Rol();
         r.setId(rs.getString("id"));
         r.setNombre(rs.getString("nombre"));
+        r.setDescripcion(rs.getString("descripcion"));
+        r.setNivel(rs.getInt("nivel"));
+        r.setIsSistema(rs.getInt("is_sistema"));
         r.setIsActivo(rs.getInt("is_activo"));
         return r;
     }

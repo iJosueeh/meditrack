@@ -29,20 +29,21 @@ import java.util.stream.Collectors;
 public class AtencionAdapter {
     private final DispensarMedicamentoUseCase dispensarUseCase;
     private final GestionarPacienteUseCase pacienteUseCase;
+    private final JdbcAtencionRepository atencionRepository;
     private final JdbcDispensacionRepository dispensacionRepository;
     private final JdbcProductoRepository productoRepository;
     private final JdbcLoteRepository loteRepository;
 
     public AtencionAdapter() {
-        AtencionRepository atencionRepo = new JdbcAtencionRepository();
+        this.atencionRepository = new JdbcAtencionRepository();
         JdbcPacienteRepository pacienteRepo = new JdbcPacienteRepository();
         this.dispensarUseCase = new DispensarMedicamentoUseCase(
-            atencionRepo,
+            atencionRepository,
             new JdbcLoteRepository(),
             new JdbcMovimientoRepository(),
             new TransactionManager()
         );
-        this.pacienteUseCase = new GestionarPacienteUseCase(pacienteRepo, atencionRepo);
+        this.pacienteUseCase = new GestionarPacienteUseCase(pacienteRepo, atencionRepository);
         this.dispensacionRepository = new JdbcDispensacionRepository();
         this.productoRepository = new JdbcProductoRepository();
         this.loteRepository = new JdbcLoteRepository();
@@ -75,6 +76,24 @@ public class AtencionAdapter {
 
     public List<Lote> listarLotesConProducto(String sedeId) {
         return loteRepository.findBySede(sedeId);
+    }
+
+    public List<Lote> listarLotesFefo(String sedeId, String productoId) {
+        return loteRepository.findFefo(sedeId, productoId);
+    }
+
+    public List<String> listarMedicosDistinct() {
+        return atencionRepository.findMedicosDistinct();
+    }
+
+    public String generarNumeroReceta(String sedeId) {
+        int year = java.time.Year.now().getValue();
+        int count = atencionRepository.countBySedeAndYear(sedeId, year);
+        return String.format("REC-%d-%04d", year, count + 1);
+    }
+
+    public boolean existeReceta(String sedeId, String numeroReceta) {
+        return atencionRepository.existeReceta(sedeId, numeroReceta);
     }
 
     public List<Paciente> buscarPacientes(String query) {

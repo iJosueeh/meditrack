@@ -18,7 +18,7 @@
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
                 <VBox styleClass="content-area" spacing="30" maxWidth="1400">
-                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="20">
@@ -33,7 +33,7 @@
 
                     <!-- Filter Bar -->
                     <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
-                        <TextField fx:id="searchField" promptText="Buscar por nombre o DNI..." prefWidth="400" onKeyReleased="#onSearch" />
+                        <TextField fx:id="searchField" promptText="Buscar por nombre o DNI..." HBox.hgrow="ALWAYS" onKeyReleased="#onSearch" />
                         <Button text="Buscar" onAction="#onSearch" styleClass="button, sm">
                             <graphic><FontIcon iconLiteral="fas-search" /></graphic>
                         </Button>
@@ -47,7 +47,7 @@
                             <TableColumn fx:id="colRol" text="Rol" prefWidth="150" />
                             <TableColumn fx:id="colSede" text="Sede" prefWidth="200" />
                             <TableColumn fx:id="colEstado" text="Estado" prefWidth="120" />
-                            <TableColumn fx:id="colActions" text="Acciones" prefWidth="150" />
+                            <TableColumn fx:id="colActions" text="ACCIONES" prefWidth="120" sortable="false" />
                         </columns>
                         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                     </TableView>

@@ -27,9 +27,10 @@ public class GestionarPacienteUseCase {
         return pacienteRepository.findAll();
     }
 
-    /**
-     * Busca pacientes por query (documento, nombre, apellido).
-     */
+    public List<Paciente> listarPacientesPorSede(String sedeId) {
+        return pacienteRepository.findBySede(sedeId);
+    }
+
     public List<Paciente> buscarPacientes(String query) {
         if (query == null || query.trim().isEmpty()) {
             return listarPacientes();
@@ -79,21 +80,41 @@ public class GestionarPacienteUseCase {
             return "ID de paciente no válido.";
         }
 
-        // Verificar si tiene atenciones registradas
         try {
             var historial = atencionRepository.findByPaciente(id);
             if (historial != null && !historial.isEmpty()) {
-                // Tiene historial → borrado lógico
-                boolean success = pacienteRepository.softDelete(id);
-                return success ? "OK" : "Error técnico al desactivar el paciente.";
+                return "NO_HISTORY";
             }
         } catch (Exception e) {
             return "Error al verificar historial del paciente: " + e.getMessage();
         }
 
-        // No tiene historial → borrado físico
         boolean success = pacienteRepository.hardDelete(id);
         return success ? "OK" : "Error técnico al eliminar el paciente.";
+    }
+
+    public String desactivarPaciente(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return "ID de paciente no válido.";
+        }
+        try {
+            boolean success = pacienteRepository.softDelete(id);
+            return success ? "OK" : "Error técnico al desactivar el paciente.";
+        } catch (Exception e) {
+            return "Error al desactivar paciente: " + e.getMessage();
+        }
+    }
+
+    public String reactivarPaciente(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return "ID de paciente no válido.";
+        }
+        try {
+            boolean success = pacienteRepository.reactivar(id);
+            return success ? "OK" : "Error técnico al reactivar el paciente.";
+        } catch (Exception e) {
+            return "Error al reactivar paciente: " + e.getMessage();
+        }
     }
 
     /**

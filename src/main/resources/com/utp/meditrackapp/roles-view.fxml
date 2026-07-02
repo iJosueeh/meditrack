@@ -18,7 +18,7 @@
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
                 <VBox styleClass="content-area" spacing="30" maxWidth="1400">
-                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="20">
@@ -32,16 +32,15 @@
                     </HBox>
 
                     <!-- Summary Card -->
-                    <FlowPane hgap="25" vgap="25">
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                    <HBox spacing="15">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-user-shield" iconSize="18" styleClass="icon-accent" />
-                                <Label text="TOTAL DE ROLES" styleClass="text-caption, text-bold, text-muted" />
+                                <Label text="TOTAL ROLES" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblTotalRoles" text="0" styleClass="title-2" />
-                            <Label text="Perfiles de acceso definidos" styleClass="text-caption, text-muted" />
                         </VBox>
-                    </FlowPane>
+                    </HBox>
 
                     <!-- Main Table -->
                     <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
@@ -49,7 +48,7 @@
                             <HBox styleClass="icon-box-subtle" alignment="CENTER">
                                 <FontIcon iconLiteral="fas-search" />
                             </HBox>
-                            <TextField fx:id="txtSearch" promptText="Buscar rol..." prefWidth="450" />
+                            <TextField fx:id="txtSearch" promptText="Buscar rol..." HBox.hgrow="ALWAYS" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Button text="Actualizar" onAction="#loadData" styleClass="button, flat, sm">
                                 <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
@@ -59,7 +58,8 @@
                         <TableView fx:id="tableRoles" VBox.vgrow="ALWAYS" fixedCellSize="55">
                             <columns>
                                 <TableColumn fx:id="colId" text="CÓDIGO" prefWidth="120" />
-                                <TableColumn fx:id="colNombre" text="NOMBRE DEL ROL" prefWidth="300" />
+                                <TableColumn fx:id="colNombre" text="NOMBRE DEL ROL" prefWidth="220" />
+                                <TableColumn fx:id="colNivel" text="JERARQUÍA" prefWidth="180" />
                                 <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="120" sortable="false" />
                                 <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="180" sortable="false" />
                             </columns>
@@ -76,18 +76,89 @@
 
     <!-- Modal Form -->
     <StackPane fx:id="modalRol" visible="false" styleClass="modal-overlay">
-        <VBox maxWidth="500" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+        <VBox maxWidth="650" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
             <VBox styleClass="modal-header">
                 <Label fx:id="modalTitle" text="Registrar Rol" styleClass="title-4" />
-                <Label text="Ingrese el nombre del rol para definir permisos." styleClass="text-muted" />
+                <Label text="Configure el nombre, nivel y permisos del rol." styleClass="text-muted" />
             </VBox>
             
-            <VBox spacing="20" style="-fx-padding: 5;">
-                <VBox spacing="8">
-                    <Label text="NOMBRE DEL ROL" styleClass="text-caption, text-bold, text-muted" />
-                    <TextField fx:id="txtNombre" styleClass="large" promptText="Ej: Administrador, Farmacéutico..." />
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                <VBox spacing="20" style="-fx-padding: 5;">
+                    <!-- Nombre del Rol -->
+                    <VBox spacing="8">
+                        <Label text="NOMBRE DEL ROL" styleClass="text-caption, text-bold, text-muted" />
+                        <TextField fx:id="txtNombre" styleClass="large" promptText="Ej: Supervisor de Almacén" />
+                    </VBox>
+                    
+                    <!-- Nivel y Descripción -->
+                    <HBox spacing="20">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="NIVEL DE JERARQUÍA" styleClass="text-caption, text-bold, text-muted" />
+                            <ComboBox fx:id="cmbNivel" maxWidth="Infinity" promptText="Seleccionar nivel..." />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="DESCRIPCIÓN" styleClass="text-caption, text-bold, text-muted" />
+                            <TextField fx:id="txtDescripcion" promptText="Descripción del rol" />
+                        </VBox>
+                    </HBox>
+                    
+                    <!-- Guía visual de jerarquía -->
+                    <VBox spacing="5" style="-fx-padding: 12; -fx-background-color: -color-bg-subtle; -fx-background-radius: 8;">
+                        <Label text="CÓMO FUNCIONA LA JERARQUÍA" styleClass="text-caption, text-bold" />
+                        <Label wrapText="true" styleClass="text-caption, text-muted" 
+                            text="Un rol solo puede gestionar (crear, editar, eliminar) roles de NIVEL MAYOR. No puede modificar roles iguales o superiores." />
+                        <HBox spacing="15" style="-fx-padding: 5 0 0 0;">
+                            <Label text="▸ Nivel 1 — Administrador del Sistema" styleClass="text-caption" style="-fx-text-fill: #ef4444;" />
+                            <Label text="▸ Nivel 3 — Jefe de Sede" styleClass="text-caption" style="-fx-text-fill: #f59e0b;" />
+                            <Label text="▸ Nivel 4 — Técnico de Farmacia" styleClass="text-caption" style="-fx-text-fill: #22c55e;" />
+                        </HBox>
+                        <Label wrapText="true" styleClass="text-caption, text-muted" 
+                            text="Ejemplo: Un Jefe de Sede (nivel 3) puede crear roles de nivel 4 o superior, pero NO puede modificar al Administrador (nivel 1)." />
+                    </VBox>
+                    
+                    <Separator />
+                    
+                    <!-- Permisos del Rol -->
+                    <VBox spacing="10">
+                        <Label text="PERMISOS DEL ROL" styleClass="text-caption, text-bold" />
+                        <Label text="Seleccione los módulos a los que tendrá acceso este rol." styleClass="text-caption, text-muted" />
+                        
+                        <!-- Sección OPERACIONES -->
+                        <VBox spacing="5" style="-fx-padding: 10; -fx-background-color: -color-bg-subtle; -fx-background-radius: 8;">
+                            <Label text="OPERACIONES" styleClass="text-caption, text-bold" style="-fx-text-fill: #0284c7;" />
+                            <FlowPane hgap="20" vgap="10">
+                                <CheckBox fx:id="chkM4Lotes" text="Gestión de Lotes" />
+                                <CheckBox fx:id="chkM5Entradas" text="Entradas de Inventario" />
+                                <CheckBox fx:id="chkM6Salidas" text="Salidas y Ajustes" />
+                                <CheckBox fx:id="chkM8Atenciones" text="Registro de Atenciones" />
+                                <CheckBox fx:id="chkM9Dispensacion" text="Dispensación" />
+                            </FlowPane>
+                        </VBox>
+                        
+                        <!-- Sección MANTENIMIENTO -->
+                        <VBox spacing="5" style="-fx-padding: 10; -fx-background-color: -color-bg-subtle; -fx-background-radius: 8;">
+                            <Label text="MANTENIMIENTO" styleClass="text-caption, text-bold" style="-fx-text-fill: #10b981;" />
+                            <FlowPane hgap="20" vgap="10">
+                                <CheckBox fx:id="chkM2Sedes" text="Gestión de Sedes" />
+                                <CheckBox fx:id="chkM3Productos" text="Catálogo de Productos" />
+                                <CheckBox fx:id="chkM7Pacientes" text="Gestión de Pacientes" />
+                                <CheckBox fx:id="chkUsuarios" text="Gestión de Usuarios" />
+                                <CheckBox fx:id="chkCategorias" text="Catálogo de Categorías" />
+                                <CheckBox fx:id="chkMovCatalogos" text="Catálogos de Movimiento" />
+                            </FlowPane>
+                        </VBox>
+                        
+                        <!-- Sección SISTEMA -->
+                        <VBox spacing="5" style="-fx-padding: 10; -fx-background-color: -color-bg-subtle; -fx-background-radius: 8;">
+                            <Label text="SISTEMA" styleClass="text-caption, text-bold" style="-fx-text-fill: #f59e0b;" />
+                            <FlowPane hgap="20" vgap="10">
+                                <CheckBox fx:id="chkM10Reportes" text="Reportes y Dashboard" />
+                                <CheckBox fx:id="chkRoles" text="Gestión de Roles" />
+                            </FlowPane>
+                        </VBox>
+                    </VBox>
                 </VBox>
-            </VBox>
+            </ScrollPane>
 
             <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
                 <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />

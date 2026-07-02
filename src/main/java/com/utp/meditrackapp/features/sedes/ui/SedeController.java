@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class SedeController {
     @FXML private TableColumn<Sede, Integer> colEmp;
     @FXML private TableColumn<Sede, String> colStockStatus;
     @FXML private TableColumn<Sede, Integer> colEstado;
+    @FXML private TableColumn<Sede, String> colBloqueo;
     @FXML private TableColumn<Sede, String> colUbigeo;
     @FXML private TableColumn<Sede, Void> colAcciones;
 
@@ -99,13 +101,38 @@ public class SedeController {
             }
         });
 
+        colBloqueo.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    Sede s = getTableRow().getItem();
+                    if (s.isBloqueada()) {
+                        Label label = new Label("BLOQUEADA");
+                        label.getStyleClass().add("status-badge-base");
+                        label.getStyleClass().add("status-badge-critico");
+                        label.setTooltip(new Tooltip(s.getMotivoBloqueo() != null ? s.getMotivoBloqueo() : "Sin motivo"));
+                        setGraphic(label);
+                    } else {
+                        setGraphic(null);
+                    }
+                }
+            }
+        });
+
         colAcciones.setCellFactory(column -> new TableCell<>() {
             private final Button editBtn = new Button();
             private final Button toggleBtn = new Button();
+            private final Button blockBtn = new Button();
+            private final Button deleteBtn = new Button();
             {
                 editBtn.setGraphic(new FontIcon("fas-edit"));
                 editBtn.getStyleClass().addAll("button", "flat", "accent", "sm");
                 editBtn.setTooltip(new Tooltip("Editar Sede"));
+                editBtn.setMinWidth(26);
+                editBtn.setMaxWidth(26);
                 editBtn.setOnAction(event -> {
                     Sede sede = getTableRow().getItem();
                     if (sede != null) openEditModal(sede);
@@ -113,9 +140,30 @@ public class SedeController {
 
                 toggleBtn.getStyleClass().addAll("button", "flat", "sm");
                 toggleBtn.setTooltip(new Tooltip("Activar/Desactivar"));
+                toggleBtn.setMinWidth(26);
+                toggleBtn.setMaxWidth(26);
                 toggleBtn.setOnAction(event -> {
                     Sede sede = getTableRow().getItem();
                     if (sede != null) confirmToggle(sede);
+                });
+
+                blockBtn.getStyleClass().addAll("button", "flat", "sm");
+                blockBtn.setTooltip(new Tooltip("Bloquear/Desbloquear"));
+                blockBtn.setMinWidth(26);
+                blockBtn.setMaxWidth(26);
+                blockBtn.setOnAction(event -> {
+                    Sede sede = getTableRow().getItem();
+                    if (sede != null) confirmBlock(sede);
+                });
+
+                deleteBtn.setGraphic(new FontIcon("fas-trash"));
+                deleteBtn.getStyleClass().addAll("button", "flat", "sm", "danger");
+                deleteBtn.setTooltip(new Tooltip("Eliminar"));
+                deleteBtn.setMinWidth(26);
+                deleteBtn.setMaxWidth(26);
+                deleteBtn.setOnAction(event -> {
+                    Sede sede = getTableRow().getItem();
+                    if (sede != null) handleDeleteSede(sede);
                 });
             }
 
@@ -128,7 +176,18 @@ public class SedeController {
                     Sede sede = getTableRow().getItem();
                     toggleBtn.setGraphic(new FontIcon(
                         sede.getIsActiva() == 1 ? "fas-toggle-on" : "fas-toggle-off"));
-                    HBox box = new HBox(10, editBtn, toggleBtn);
+                    
+                    if (sede.isBloqueada()) {
+                        blockBtn.setGraphic(new FontIcon("fas-lock"));
+                        blockBtn.getStyleClass().removeAll("accent");
+                        blockBtn.getStyleClass().add("danger");
+                    } else {
+                        blockBtn.setGraphic(new FontIcon("fas-unlock"));
+                        blockBtn.getStyleClass().removeAll("danger");
+                        blockBtn.getStyleClass().add("accent");
+                    }
+                    
+                    HBox box = new HBox(3, editBtn, toggleBtn, blockBtn, deleteBtn);
                     box.setStyle("-fx-alignment: center;");
                     setGraphic(box);
                 }
@@ -309,6 +368,75 @@ public class SedeController {
             } catch (Exception e) {
                 showAlert("Error", "No se pudo cambiar el estado: " + e.getMessage());
             }
+        }
+    }
+
+    private void confirmBlock(Sede sede) {
+        if (sede.isBloqueada()) {
+            // Desbloquear
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmar Desbloqueo");
+            alert.setHeaderText("¿Está seguro de desbloquear la sede?");
+            alert.setContentText("La sede \"" + sede.getNombre() + "\" será desbloqueada y los usuarios podrán operar nuevamente.");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                try {
+                    sedeAdapter.desbloquear(sede.getId());
+                    loadData();
+                    showAlert("Éxito", "Sede desbloqueada correctamente.");
+                } catch (Exception e) {
+                    showAlert("Error", "No se pudo desbloquear la sede: " + e.getMessage());
+                }
+            }
+        } else {
+            // Bloquear - solicitar motivo
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Bloquear Sede");
+            dialog.setHeaderText("Ingrese el motivo del bloqueo");
+            dialog.setContentText("Motivo:");
+            
+            Optional<String> motivoResult = dialog.showAndWait();
+            if (motivoResult.isPresent() && !motivoResult.get().trim().isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Confirmar Bloqueo");
+                alert.setHeaderText("¿Está seguro de bloquear la sede?");
+                alert.setContentText("La sede \"" + sede.getNombre() + "\" será bloqueada. Los usuarios no podrán realizar operaciones.");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent() && result.get() == ButtonType.OK) {
+                    try {
+                        sedeAdapter.bloquear(sede.getId(), motivoResult.get().trim());
+                        loadData();
+                        showAlert("Éxito", "Sede bloqueada correctamente.");
+                    } catch (Exception e) {
+                        showAlert("Error", "No se pudo bloquear la sede: " + e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    private void handleDeleteSede(Sede sede) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Eliminación");
+        confirm.setHeaderText("¿Está seguro de eliminar la sede \"" + sede.getNombre() + "\"?");
+        confirm.setContentText("Esta acción no se puede deshacer.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        String deleteResult = sedeAdapter.eliminarSede(sede.getId());
+        if ("NO_HISTORY".equals(deleteResult)) {
+            showAlert("Tiene historial",
+                "La sede \"" + sede.getNombre() + "\" tiene usuarios, lotes, movimientos o atenciones registrados.\nNo se puede eliminar sin borrar primero el historial asociado.");
+        } else if ("OK".equals(deleteResult)) {
+            showAlert("Eliminado", "Sede eliminada correctamente.");
+            loadData();
+        } else {
+            showAlert("Error", deleteResult);
         }
     }
 

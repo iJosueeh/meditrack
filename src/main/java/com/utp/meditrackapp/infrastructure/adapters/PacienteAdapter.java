@@ -31,9 +31,10 @@ public class PacienteAdapter {
         return useCase.listarPacientes();
     }
 
-    /**
-     * Busca pacientes por query (retorna domain entity).
-     */
+    public List<Paciente> listarPacientesPorSede(String sedeId) {
+        return useCase.listarPacientesPorSede(sedeId);
+    }
+
     public List<Paciente> buscarPacientes(String query) {
         return useCase.buscarPacientes(query);
     }
@@ -50,6 +51,14 @@ public class PacienteAdapter {
      */
     public String eliminarPaciente(String id) {
         return useCase.eliminarPaciente(id);
+    }
+
+    public String desactivarPaciente(String id) {
+        return useCase.desactivarPaciente(id);
+    }
+
+    public String reactivarPaciente(String id) {
+        return useCase.reactivarPaciente(id);
     }
 
     /**

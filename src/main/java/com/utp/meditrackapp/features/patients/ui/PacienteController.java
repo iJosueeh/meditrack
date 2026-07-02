@@ -10,10 +10,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.List;
@@ -23,6 +20,7 @@ public class PacienteController {
 
     @FXML private TextField searchField;
     @FXML private TableView<Paciente> patientsTable;
+    @FXML private Button btnNuevoPaciente;
     @FXML private TableColumn<Paciente, String> colTipoDoc;
     @FXML private TableColumn<Paciente, String> colNumDoc;
     @FXML private TableColumn<Paciente, String> colNombres;
@@ -74,9 +72,11 @@ public class PacienteController {
 
     private void applyRoleRestrictions() {
         SessionManager session = SessionManager.getInstance();
-        if (session.isTecnico()) {
-            System.out.println("[AUTH] El Técnico tiene acceso limitado a edición/borrado.");
-        }
+        System.out.println("[AUTH] Permisos: M7_PACIENTES=" + session.tienePermiso("M7_PACIENTES")
+            + " | USUARIOS=" + session.tienePermiso("USUARIOS"));
+
+        btnNuevoPaciente.setVisible(session.tienePermiso("M7_PACIENTES"));
+        btnNuevoPaciente.setManaged(session.tienePermiso("M7_PACIENTES"));
     }
 
     private void setupTable() {
@@ -88,6 +88,8 @@ public class PacienteController {
         colEstado.setCellValueFactory(new PropertyValueFactory<>("isActivo"));
 
         setupEstadoColumn();
+        setupTooltipColumn(colNombres);
+        setupTooltipColumn(colApellidos);
         addButtonToTable();
     }
 
@@ -112,6 +114,22 @@ public class PacienteController {
                     HBox box = new HBox(badge);
                     box.setAlignment(Pos.CENTER);
                     setGraphic(box);
+                }
+            }
+        });
+    }
+
+    private <T> void setupTooltipColumn(TableColumn<Paciente, T> column) {
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item.toString());
+                    setTooltip(new Tooltip(item.toString()));
                 }
             }
         });
@@ -147,8 +165,23 @@ public class PacienteController {
     @FXML
     protected void onSearch() {
         String query = searchField.getText();
-        List<Paciente> resultados = pacienteAdapter.buscarPacientes(query);
-        patientsTable.setItems(FXCollections.observableArrayList(resultados));
+        List<Paciente> basePacientes = pacienteAdapter.listarPacientes();
+
+        if (query == null || query.trim().isEmpty()) {
+            patientsTable.setItems(FXCollections.observableArrayList(basePacientes));
+        } else {
+            String[] terms = query.trim().toLowerCase().split("\\s+");
+            List<Paciente> filtered = basePacientes.stream()
+                .filter(p -> {
+                    String fullData = (p.getNumeroDocumento() + " " + p.getNombres() + " " + p.getApellidos()).toLowerCase();
+                    for (String term : terms) {
+                        if (!fullData.contains(term)) return false;
+                    }
+                    return true;
+                })
+                .toList();
+            patientsTable.setItems(FXCollections.observableArrayList(filtered));
+        }
         updateSummary();
     }
 
@@ -162,20 +195,42 @@ public class PacienteController {
 
     @FXML
     protected void onSavePatient() {
+        String tipoDoc = typeDocCombo.getValue();
+        String numDoc = numDocField.getText();
+        String nombres = firstNameField.getText();
+        String apellidos = lastNameField.getText();
+
+        if (tipoDoc == null || tipoDoc.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Seleccione el tipo de documento.");
+            return;
+        }
+        if (numDoc == null || numDoc.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese el número de documento.");
+            return;
+        }
+        if (nombres == null || nombres.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese el nombre del paciente.");
+            return;
+        }
+        if (apellidos == null || apellidos.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Campo requerido", "Ingrese los apellidos del paciente.");
+            return;
+        }
+
         if (currentPaciente == null) {
             currentPaciente = new Paciente();
         }
 
-        currentPaciente.setTipoDocumento(typeDocCombo.getValue());
-        currentPaciente.setNumeroDocumento(numDocField.getText());
-        currentPaciente.setNombres(firstNameField.getText());
-        currentPaciente.setApellidos(lastNameField.getText());
-        currentPaciente.setTelefono(phoneField.getText());
+        currentPaciente.setTipoDocumento(tipoDoc);
+        currentPaciente.setNumeroDocumento(numDoc.trim());
+        currentPaciente.setNombres(nombres.trim());
+        currentPaciente.setApellidos(apellidos.trim());
+        currentPaciente.setTelefono(phoneField.getText() != null ? phoneField.getText().trim() : "");
         currentPaciente.setIsActivo(chkActivo.isSelected() ? 1 : 0);
 
         String result = pacienteAdapter.guardarPaciente(currentPaciente);
 
-        if (result.equals("OK")) {
+        if ("OK".equals(result)) {
             showAlert(Alert.AlertType.INFORMATION, "Éxito", "Paciente guardado correctamente.");
             formOverlay.setVisible(false);
             loadPatients();
@@ -200,62 +255,98 @@ public class PacienteController {
     }
 
     private void addButtonToTable() {
-        Callback<TableColumn<Paciente, Void>, TableCell<Paciente, Void>> cellFactory = new Callback<>() {
-            @Override
-            public TableCell<Paciente, Void> call(final TableColumn<Paciente, Void> param) {
-                return new TableCell<>() {
-                    private final Button btnEdit = new Button();
-                    private final Button btnDelete = new Button();
-                    private final HBox pane = new HBox(btnEdit, btnDelete);
+        colActions.setCellFactory(param -> new TableCell<>() {
+            private final Button btnEdit = new Button();
+            private final Button btnBlock = new Button();
+            private final Button btnDelete = new Button();
+            private final HBox pane = new HBox(3, btnEdit, btnBlock, btnDelete);
 
-                    {
-                        SessionManager session = SessionManager.getInstance();
-                        pane.setSpacing(10);
-                        pane.setAlignment(Pos.CENTER);
-                        
-                        btnEdit.setGraphic(new FontIcon("fas-edit"));
-                        btnEdit.getStyleClass().addAll("button", "flat");
-                        btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
-                        btnEdit.setOnAction(event -> {
-                            Paciente p = getTableView().getItems().get(getIndex());
-                            showEditForm(p);
-                        });
+            {
+                pane.setAlignment(Pos.CENTER);
+                pane.setMinWidth(84);
+                pane.setMaxWidth(84);
 
-                        btnDelete.setGraphic(new FontIcon("fas-trash"));
-                        btnDelete.getStyleClass().addAll("button", "flat", "danger");
-                        btnDelete.setTooltip(new Tooltip("Dar de baja paciente"));
-                        btnDelete.setOnAction(event -> {
-                            Paciente p = getTableView().getItems().get(getIndex());
-                            handleDelete(p);
-                        });
+                btnEdit.setGraphic(new FontIcon("fas-edit"));
+                btnEdit.getStyleClass().addAll("button", "flat", "sm");
+                btnEdit.setTooltip(new Tooltip("Editar"));
+                btnEdit.setMinWidth(26);
+                btnEdit.setMaxWidth(26);
+                btnEdit.setOnAction(e -> {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    showEditForm(p);
+                });
 
-                        if (session.isTecnico()) {
-                            btnEdit.setVisible(false);
-                            btnEdit.setManaged(false);
-                            btnDelete.setVisible(false);
-                            btnDelete.setManaged(false);
-                        }
-                        
-                        if (session.isQuimico()) {
-                            btnDelete.setVisible(false);
-                            btnDelete.setManaged(false);
-                        }
-                    }
+                btnBlock.getStyleClass().addAll("button", "flat", "sm");
+                btnBlock.setTooltip(new Tooltip("Desactivar"));
+                btnBlock.setMinWidth(26);
+                btnBlock.setMaxWidth(26);
+                btnBlock.setOnAction(e -> {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    handleToggleBlock(p);
+                });
 
-                    @Override
-                    public void updateItem(Void item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty) {
-                            setGraphic(null);
-                        } else {
-                            setGraphic(pane);
-                        }
-                    }
-                };
+                btnDelete.setGraphic(new FontIcon("fas-trash"));
+                btnDelete.getStyleClass().addAll("button", "flat", "danger", "sm");
+                btnDelete.setTooltip(new Tooltip("Eliminar"));
+                btnDelete.setMinWidth(26);
+                btnDelete.setMaxWidth(26);
+                btnDelete.setOnAction(e -> {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    handleDelete(p);
+                });
             }
-        };
 
-        colActions.setCellFactory(cellFactory);
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    if (p.getIsActivo() == 1) {
+                        btnBlock.setGraphic(new FontIcon("fas-ban"));
+                        btnBlock.getStyleClass().removeAll("success");
+                        if (!btnBlock.getStyleClass().contains("danger")) {
+                            btnBlock.getStyleClass().add("danger");
+                        }
+                        btnBlock.setTooltip(new Tooltip("Desactivar"));
+                    } else {
+                        btnBlock.setGraphic(new FontIcon("fas-unlock"));
+                        btnBlock.getStyleClass().removeAll("danger");
+                        if (!btnBlock.getStyleClass().contains("success")) {
+                            btnBlock.getStyleClass().add("success");
+                        }
+                        btnBlock.setTooltip(new Tooltip("Reactivar"));
+                    }
+                    setGraphic(pane);
+                }
+            }
+        });
+    }
+
+    private void handleToggleBlock(Paciente p) {
+        if (p.getIsActivo() == 1) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmar Bloqueo");
+            alert.setHeaderText("¿Está seguro de bloquear al paciente?");
+            alert.setContentText(p.getNombres() + " " + p.getApellidos() + " no podrá recibir nuevas atenciones.");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                String resultMsg = pacienteAdapter.desactivarPaciente(p.getId());
+                if ("OK".equals(resultMsg)) {
+                    loadPatients();
+                } else {
+                    showAlert(Alert.AlertType.WARNING, "No se pudo bloquear", resultMsg);
+                }
+            }
+        } else {
+            String resultMsg = pacienteAdapter.reactivarPaciente(p.getId());
+            if ("OK".equals(resultMsg)) {
+                loadPatients();
+            } else {
+                showAlert(Alert.AlertType.WARNING, "No se pudo reactivar", resultMsg);
+            }
+        }
     }
 
     private void showEditForm(Paciente p) {
@@ -271,19 +362,25 @@ public class PacienteController {
     }
 
     private void handleDelete(Paciente p) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmar Baja");
-        alert.setHeaderText("¿Está seguro de dar de baja al paciente?");
-        alert.setContentText(p.getNombres() + " " + p.getApellidos());
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Eliminación");
+        confirm.setHeaderText("¿Está seguro de eliminar permanentemente al paciente?");
+        confirm.setContentText(p.getNombres() + " " + p.getApellidos() + "\nEsta acción no se puede deshacer.");
 
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
-            if ("OK".equals(resultMsg)) {
-                loadPatients();
-            } else {
-                showAlert(Alert.AlertType.WARNING, "No se pudo desactivar", resultMsg);
-            }
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        String resultMsg = pacienteAdapter.eliminarPaciente(p.getId());
+        if ("NO_HISTORY".equals(resultMsg)) {
+            showAlert(Alert.AlertType.WARNING, "Tiene historial",
+                "El paciente \"" + p.getNombres() + " " + p.getApellidos() + "\" tiene movimientos de inventario o atenciones registradas.\nNo se puede eliminar sin borrar primero el historial asociado.");
+        } else if ("OK".equals(resultMsg)) {
+            showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Paciente eliminado correctamente.");
+            loadPatients();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", resultMsg);
         }
     }
 

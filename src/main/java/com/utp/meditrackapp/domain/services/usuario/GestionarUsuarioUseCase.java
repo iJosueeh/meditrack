@@ -28,6 +28,10 @@ public class GestionarUsuarioUseCase {
         return usuarioRepository.findAll();
     }
 
+    public List<Usuario> listarUsuariosPorSede(String sedeId) {
+        return usuarioRepository.findAllBySedeId(sedeId);
+    }
+
     public Optional<Usuario> buscarPorId(String id) {
         return usuarioRepository.findById(id);
     }
@@ -69,6 +73,20 @@ public class GestionarUsuarioUseCase {
             return "OK";
         } catch (Exception e) {
             return "Error al cambiar estado: " + e.getMessage();
+        }
+    }
+
+    public String eliminarUsuario(String id) {
+        int movimientos = usuarioRepository.countMovimientosByUsuario(id);
+        int atenciones = usuarioRepository.countAtencionesByUsuario(id);
+        if (movimientos > 0 || atenciones > 0) {
+            return "NO_HISTORY";  // Signal: has history, use deactivate instead
+        }
+        try {
+            usuarioRepository.delete(id);
+            return "OK";
+        } catch (Exception e) {
+            return "Error al eliminar usuario: " + e.getMessage();
         }
     }
 

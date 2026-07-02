@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
+import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.ports.out.SearchRepository;
 import com.utp.meditrackapp.features.search.models.SearchResult;
 import com.utp.meditrackapp.features.search.models.SearchResult.ResultType;
@@ -97,12 +98,24 @@ public class JdbcSearchRepository implements SearchRepository {
 
     private List<SearchResult> searchBatches(Connection conn, String query) throws SQLException {
         List<SearchResult> results = new ArrayList<>();
-        String sql = "SELECT TOP 5 l.id, l.numero_lote as title, p.nombre as subtitle FROM lotes l " +
-                     "JOIN productos p ON l.producto_id = p.id " +
-                     "WHERE l.numero_lote LIKE ?";
+        String sedeId = SedeAccessValidator.getSedeParaConsulta();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT TOP 5 l.id, l.numero_lote as title, p.nombre as subtitle FROM lotes l " +
+            "JOIN productos p ON l.producto_id = p.id " +
+            "WHERE l.numero_lote LIKE ?"
+        );
+        
+        if (sedeId != null) {
+            sql.append(" AND l.sede_id = ?");
+        }
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, "%" + query + "%");
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int i = 1;
+            ps.setString(i++, "%" + query + "%");
+            if (sedeId != null) {
+                ps.setString(i++, sedeId);
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     results.add(new SearchResult(

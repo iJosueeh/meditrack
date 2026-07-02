@@ -30,6 +30,10 @@ public class UserAdapter {
         return useCase.listarUsuarios();
     }
 
+    public List<Usuario> listarUsuariosPorSede(String sedeId) {
+        return useCase.listarUsuariosPorSede(sedeId);
+    }
+
     public Optional<Usuario> buscarPorId(String id) {
         return useCase.buscarPorId(id);
     }
@@ -44,6 +48,10 @@ public class UserAdapter {
 
     public String toggleEstado(String id) {
         return useCase.toggleEstado(id);
+    }
+
+    public String eliminarUsuario(String id) {
+        return useCase.eliminarUsuario(id);
     }
 
     public String actualizarPassword(String usuarioId, String hashedPassword) {

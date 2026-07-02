@@ -47,6 +47,16 @@ public class SedeAdapter {
         return useCase.toggleEstado(id);
     }
 
+    public String bloquear(String id, String motivo) {
+        sedeRepository.bloquear(id, motivo);
+        return "OK";
+    }
+
+    public String desbloquear(String id) {
+        sedeRepository.desbloquear(id);
+        return "OK";
+    }
+
     public String asignarUsuarioASede(String usuarioId, String sedeId, String rolId) {
         return useCase.asignarUsuarioASede(usuarioId, sedeId, rolId);
     }
@@ -61,5 +71,9 @@ public class SedeAdapter {
 
     public List<Usuario> obtenerAdministradoresDisponibles() {
         return useCase.obtenerAdministradoresDisponibles();
+    }
+
+    public String eliminarSede(String id) {
+        return useCase.eliminarSede(id);
     }
 }

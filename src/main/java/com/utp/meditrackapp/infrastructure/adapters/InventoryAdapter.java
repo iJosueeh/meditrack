@@ -7,7 +7,9 @@ import com.utp.meditrackapp.domain.entities.Movimiento;
 import com.utp.meditrackapp.domain.entities.Producto;
 import com.utp.meditrackapp.domain.ports.out.LoteRepository;
 import com.utp.meditrackapp.domain.ports.out.MovimientoRepository;
+import com.utp.meditrackapp.domain.services.inventario.AnularMovimientoUseCase;
 import com.utp.meditrackapp.domain.services.inventario.CalcularStockUseCase;
+import com.utp.meditrackapp.domain.services.inventario.EditarMovimientoUseCase;
 import com.utp.meditrackapp.domain.services.inventario.RegistrarMovimientoUseCase;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcLoteRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcMotivoMovimientoRepository;
@@ -32,6 +34,8 @@ public class InventoryAdapter {
     private final LoteRepository loteRepository;
     private final CalcularStockUseCase calcularStockUseCase;
     private final RegistrarMovimientoUseCase registrarMovimientoUseCase;
+    private final AnularMovimientoUseCase anularMovimientoUseCase;
+    private final EditarMovimientoUseCase editarMovimientoUseCase;
 
     public InventoryAdapter() {
         this.productoRepository = new JdbcProductoRepository();
@@ -41,6 +45,16 @@ public class InventoryAdapter {
         this.loteRepository = new JdbcLoteRepository();
         this.calcularStockUseCase = new CalcularStockUseCase(new JdbcLoteRepository());
         this.registrarMovimientoUseCase = new RegistrarMovimientoUseCase(
+            new JdbcLoteRepository(),
+            new JdbcMovimientoRepository(),
+            new TransactionManager()
+        );
+        this.anularMovimientoUseCase = new AnularMovimientoUseCase(
+            new JdbcLoteRepository(),
+            new JdbcMovimientoRepository(),
+            new TransactionManager()
+        );
+        this.editarMovimientoUseCase = new EditarMovimientoUseCase(
             new JdbcLoteRepository(),
             new JdbcMovimientoRepository(),
             new TransactionManager()
@@ -79,5 +93,23 @@ public class InventoryAdapter {
     public void registrarMovimiento(Lote lote, String usuarioId, String tipoId, String motivoId,
                                      int cantidad, String observacion) {
         registrarMovimientoUseCase.registrarMovimiento(lote, usuarioId, tipoId, motivoId, cantidad, observacion);
+    }
+
+    public void anularMovimiento(Movimiento movimiento) {
+        anularMovimientoUseCase.anular(movimiento);
+    }
+
+    public void editarMovimiento(Movimiento original, String nuevoTipoId, String nuevoMotivoId,
+                                  int nuevaCantidad, String nuevaObservacion) {
+        editarMovimientoUseCase.editar(original, nuevoTipoId, nuevoMotivoId, nuevaCantidad, nuevaObservacion);
+    }
+
+    public void actualizarObservacion(String movimientoId, String observacion) {
+        var tx = new TransactionManager();
+        try {
+            tx.execute(conn -> movimientoRepository.updateObservacion(conn, movimientoId, observacion));
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException("Error al actualizar observación: " + e.getMessage(), e);
+        }
     }
 }

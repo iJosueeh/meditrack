@@ -20,6 +20,8 @@ public interface UsuarioRepository {
 
     List<Usuario> findAll();
 
+    List<Usuario> findAllBySedeId(String sedeId);
+
     Usuario save(Usuario usuario, String rawPassword);
 
     Usuario update(Usuario usuario);
@@ -27,6 +29,12 @@ public interface UsuarioRepository {
     boolean updatePassword(String usuarioId, String hashedPassword);
 
     void toggleEstado(String id, int nuevoEstado);
+
+    int countMovimientosByUsuario(String usuarioId);
+
+    int countAtencionesByUsuario(String usuarioId);
+
+    void delete(String id);
 
     String getUltimaActividad(String usuarioId);
 

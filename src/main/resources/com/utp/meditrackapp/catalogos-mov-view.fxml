@@ -18,7 +18,7 @@
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
                 <VBox styleClass="content-area" spacing="30" maxWidth="1400">
-                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Header -->
                     <VBox spacing="4">
@@ -36,7 +36,7 @@
                                     <HBox styleClass="icon-box-subtle" alignment="CENTER">
                                         <FontIcon iconLiteral="fas-search" />
                                     </HBox>
-                                    <TextField fx:id="txtSearchTipo" promptText="Buscar tipo..." prefWidth="350" />
+                                    <TextField fx:id="txtSearchTipo" promptText="Buscar tipo..." HBox.hgrow="ALWAYS" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <Button text="Actualizar" onAction="#loadTipos" styleClass="button, flat, sm">
                                         <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>
@@ -68,7 +68,7 @@
                                     <HBox styleClass="icon-box-subtle" alignment="CENTER">
                                         <FontIcon iconLiteral="fas-search" />
                                     </HBox>
-                                    <TextField fx:id="txtSearchMotivo" promptText="Buscar motivo..." prefWidth="350" />
+                                    <TextField fx:id="txtSearchMotivo" promptText="Buscar motivo..." HBox.hgrow="ALWAYS" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <Button text="Actualizar" onAction="#loadMotivos" styleClass="button, flat, sm">
                                         <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>

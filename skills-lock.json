@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "accessibility": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "github",
+      "skillPath": "skills/accessibility/SKILL.md",
+      "computedHash": "ebfa09617a2ac4fd64afd73267726b787145a8d14294df3f8802b462c91594ab"
+    },
     "documentation-writer": {
       "source": "github/awesome-copilot",
       "sourceType": "github",

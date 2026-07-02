@@ -31,6 +31,8 @@ public interface LoteRepository {
 
     void reducirStock(Connection conn, String loteId, int cantidad);
 
+    int findStockByLote(Connection conn, String loteId);
+
     /**
      * Versión sin Connection para operaciones simples que manejan su propia conexión.
      */

@@ -94,12 +94,49 @@ public class UsuarioController {
             @Override public Sede fromString(String s) { return null; }
         });
 
-        rolCombo.setItems(FXCollections.observableArrayList(userAdapter.listarRoles()));
-        sedeCombo.setItems(FXCollections.observableArrayList(userAdapter.listarSedes()));
+        // Filtrar roles: solo mostrar roles de menor jerarquía (mayor nivel) que el usuario actual
+        var session = com.utp.meditrackapp.core.config.SessionManager.getInstance();
+        var rolActual = session.getRolUsuario();
+        
+        List<Rol> todosLosRoles = userAdapter.listarRoles();
+        List<Rol> rolesDisponibles;
+        
+        if (rolActual != null) {
+            rolesDisponibles = todosLosRoles.stream()
+                .filter(r -> r.getNivel() > rolActual.getNivel() || r.getId().equals(rolActual.getId()))
+                .filter(r -> r.getIsActivo() == 1)
+                .collect(Collectors.toList());
+        } else {
+            rolesDisponibles = todosLosRoles;
+        }
+        
+        rolCombo.setItems(FXCollections.observableArrayList(rolesDisponibles));
+
+        List<Sede> sedesDisponibles = userAdapter.listarSedes();
+        if (!session.tienePermiso("M2_SEDES")) {
+            Usuario currentUser = session.getCurrentUser();
+            if (currentUser != null && currentUser.getSedeId() != null) {
+                sedesDisponibles = sedesDisponibles.stream()
+                    .filter(s -> s.getId().equals(currentUser.getSedeId()))
+                    .collect(Collectors.toList());
+            }
+        }
+        sedeCombo.setItems(FXCollections.observableArrayList(sedesDisponibles));
     }
 
     private void loadData() {
-        List<Usuario> users = userAdapter.listarUsuarios();
+        SessionManager session = SessionManager.getInstance();
+        List<Usuario> users;
+        if (session.tienePermiso("M2_SEDES")) {
+            users = userAdapter.listarUsuarios();
+        } else {
+            Usuario currentUser = session.getCurrentUser();
+            if (currentUser != null && currentUser.getSedeId() != null) {
+                users = userAdapter.listarUsuariosPorSede(currentUser.getSedeId());
+            } else {
+                users = userAdapter.listarUsuarios();
+            }
+        }
         usersTable.setItems(FXCollections.observableArrayList(users));
     }
 
@@ -111,8 +148,21 @@ public class UsuarioController {
             return;
         }
 
+        SessionManager session = SessionManager.getInstance();
+        List<Usuario> baseUsers;
+        if (session.tienePermiso("M2_SEDES")) {
+            baseUsers = userAdapter.listarUsuarios();
+        } else {
+            Usuario currentUser = session.getCurrentUser();
+            if (currentUser != null && currentUser.getSedeId() != null) {
+                baseUsers = userAdapter.listarUsuariosPorSede(currentUser.getSedeId());
+            } else {
+                baseUsers = userAdapter.listarUsuarios();
+            }
+        }
+
         String[] terms = query.split("\\s+");
-        List<Usuario> filtered = userAdapter.listarUsuarios().stream()
+        List<Usuario> filtered = baseUsers.stream()
             .filter(u -> {
                 String fullData = (u.getNombreCompleto() + " " + u.getNumeroDocumento()).toLowerCase();
                 for (String term : terms) {
@@ -255,22 +305,35 @@ public class UsuarioController {
             private final Button btnEdit = new Button();
             private final Button btnResetPwd = new Button();
             private final Button btnToggle = new Button();
-            private final HBox box = new HBox(btnEdit, btnResetPwd, btnToggle);
+            private final Button btnDelete = new Button();
+            private final HBox box = new HBox(3, btnEdit, btnResetPwd, btnToggle, btnDelete);
 
             {
-                box.setSpacing(10);
                 btnEdit.setGraphic(new FontIcon("fas-edit"));
-                btnEdit.getStyleClass().addAll("button", "flat");
-                btnEdit.setTooltip(new Tooltip("Editar usuario"));
+                btnEdit.getStyleClass().addAll("button", "flat", "sm", "accent");
+                btnEdit.setTooltip(new Tooltip("Editar"));
+                btnEdit.setMinWidth(26);
+                btnEdit.setMaxWidth(26);
                 btnEdit.setOnAction(e -> showEditForm(getTableView().getItems().get(getIndex())));
 
                 btnResetPwd.setGraphic(new FontIcon("fas-key"));
-                btnResetPwd.getStyleClass().addAll("button", "flat");
-                btnResetPwd.setTooltip(new Tooltip("Restablecer contraseña"));
+                btnResetPwd.getStyleClass().addAll("button", "flat", "sm");
+                btnResetPwd.setTooltip(new Tooltip("Resetear pass"));
+                btnResetPwd.setMinWidth(26);
+                btnResetPwd.setMaxWidth(26);
                 btnResetPwd.setOnAction(e -> showResetPasswordForm(getTableView().getItems().get(getIndex())));
 
-                btnToggle.getStyleClass().addAll("button", "flat");
+                btnToggle.getStyleClass().addAll("button", "flat", "sm");
+                btnToggle.setMinWidth(26);
+                btnToggle.setMaxWidth(26);
                 btnToggle.setOnAction(e -> handleToggleStatus(getTableView().getItems().get(getIndex())));
+
+                btnDelete.setGraphic(new FontIcon("fas-trash"));
+                btnDelete.getStyleClass().addAll("button", "flat", "sm", "danger");
+                btnDelete.setTooltip(new Tooltip("Eliminar"));
+                btnDelete.setMinWidth(26);
+                btnDelete.setMaxWidth(26);
+                btnDelete.setOnAction(e -> handleDeleteUser(getTableView().getItems().get(getIndex())));
             }
 
             @Override
@@ -284,13 +347,14 @@ public class UsuarioController {
                         btnToggle.setGraphic(new FontIcon("fas-user-minus"));
                         btnToggle.getStyleClass().removeAll("success");
                         btnToggle.getStyleClass().add("danger");
-                        btnToggle.setTooltip(new Tooltip("Desactivar usuario"));
+                        btnToggle.setTooltip(new Tooltip("Desactivar"));
                     } else {
                         btnToggle.setGraphic(new FontIcon("fas-user-check"));
                         btnToggle.getStyleClass().removeAll("danger");
                         btnToggle.getStyleClass().add("success");
-                        btnToggle.setTooltip(new Tooltip("Activar usuario"));
+                        btnToggle.setTooltip(new Tooltip("Activar"));
                     }
+                    box.setAlignment(javafx.geometry.Pos.CENTER);
                     setGraphic(box);
                 }
             }
@@ -324,6 +388,29 @@ public class UsuarioController {
                 }
             }
         });
+    }
+
+    private void handleDeleteUser(Usuario u) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Eliminación");
+        confirm.setHeaderText("¿Está seguro de eliminar permanentemente al usuario?");
+        confirm.setContentText(u.getNombreCompleto() + "\nEsta acción no se puede deshacer.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        String deleteResult = userAdapter.eliminarUsuario(u.getId());
+        if ("NO_HISTORY".equals(deleteResult)) {
+            showAlert(Alert.AlertType.WARNING, "Tiene historial",
+                "El usuario \"" + u.getNombreCompleto() + "\" tiene movimientos o atenciones registradas.\nUse Desactivar para bloquearlo sin perder historial.");
+        } else if ("OK".equals(deleteResult)) {
+            showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Usuario eliminado correctamente.");
+            loadData();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", deleteResult);
+        }
     }
 
     private void clearForm() {
