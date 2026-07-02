@@ -305,21 +305,26 @@ public class UsuarioController {
             private final Button btnEdit = new Button();
             private final Button btnResetPwd = new Button();
             private final Button btnToggle = new Button();
-            private final HBox box = new HBox(btnEdit, btnResetPwd, btnToggle);
+            private final HBox box = new HBox(3, btnEdit, btnResetPwd, btnToggle);
 
             {
-                box.setSpacing(10);
                 btnEdit.setGraphic(new FontIcon("fas-edit"));
-                btnEdit.getStyleClass().addAll("button", "flat");
-                btnEdit.setTooltip(new Tooltip("Editar usuario"));
+                btnEdit.getStyleClass().addAll("button", "flat", "sm");
+                btnEdit.setTooltip(new Tooltip("Editar"));
+                btnEdit.setMinWidth(26);
+                btnEdit.setMaxWidth(26);
                 btnEdit.setOnAction(e -> showEditForm(getTableView().getItems().get(getIndex())));
 
                 btnResetPwd.setGraphic(new FontIcon("fas-key"));
-                btnResetPwd.getStyleClass().addAll("button", "flat");
-                btnResetPwd.setTooltip(new Tooltip("Restablecer contraseña"));
+                btnResetPwd.getStyleClass().addAll("button", "flat", "sm");
+                btnResetPwd.setTooltip(new Tooltip("Resetear pass"));
+                btnResetPwd.setMinWidth(26);
+                btnResetPwd.setMaxWidth(26);
                 btnResetPwd.setOnAction(e -> showResetPasswordForm(getTableView().getItems().get(getIndex())));
 
-                btnToggle.getStyleClass().addAll("button", "flat");
+                btnToggle.getStyleClass().addAll("button", "flat", "sm");
+                btnToggle.setMinWidth(26);
+                btnToggle.setMaxWidth(26);
                 btnToggle.setOnAction(e -> handleToggleStatus(getTableView().getItems().get(getIndex())));
             }
 
@@ -334,13 +339,14 @@ public class UsuarioController {
                         btnToggle.setGraphic(new FontIcon("fas-user-minus"));
                         btnToggle.getStyleClass().removeAll("success");
                         btnToggle.getStyleClass().add("danger");
-                        btnToggle.setTooltip(new Tooltip("Desactivar usuario"));
+                        btnToggle.setTooltip(new Tooltip("Desactivar"));
                     } else {
                         btnToggle.setGraphic(new FontIcon("fas-user-check"));
                         btnToggle.getStyleClass().removeAll("danger");
                         btnToggle.getStyleClass().add("success");
-                        btnToggle.setTooltip(new Tooltip("Activar usuario"));
+                        btnToggle.setTooltip(new Tooltip("Activar"));
                     }
+                    box.setAlignment(javafx.geometry.Pos.CENTER);
                     setGraphic(box);
                 }
             }
