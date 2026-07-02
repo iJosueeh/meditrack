@@ -141,18 +141,4 @@ public class SessionManager {
     public boolean puedeAsignarRol(String rolId) {
         return puedeGestionarRol(rolId);
     }
-
-    // === Métodos de compatibilidad (serán removidos gradualmente) ===
-
-    public boolean isTecnico() {
-        return currentUser != null && currentUser.isTecnico();
-    }
-
-    public boolean isQuimico() {
-        return isLoggedIn() && "ROL-002".equals(currentUser.getRolId());
-    }
-
-    public boolean isAdmin() {
-        return currentUser != null && currentUser.isAdmin();
-    }
 }

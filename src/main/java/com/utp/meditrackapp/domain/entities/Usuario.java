@@ -37,10 +37,6 @@ public class Usuario {
         return rolNombre != null && rolNombre.toUpperCase().contains("JEFE");
     }
 
-    public boolean isTecnico() {
-        return rolId != null && rolId.equals("ROL-003");
-    }
-
     /**
      * Valida que los campos obligatorios estén presentes.
      *

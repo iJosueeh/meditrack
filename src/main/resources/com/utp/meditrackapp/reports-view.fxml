@@ -17,8 +17,8 @@
         </left>
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
-                <VBox styleClass="content-area" spacing="40" maxWidth="1200">
-                    <padding><Insets top="40" right="50" bottom="40" left="50" /></padding>
+                <VBox styleClass="content-area" spacing="25" maxWidth="1400">
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Header -->
                     <VBox spacing="8">
@@ -64,7 +64,7 @@
                         </HBox>
                     </VBox>
 
-                    <FlowPane hgap="30" vgap="30" prefWrapLength="1100">
+                    <FlowPane hgap="20" vgap="20" prefWrapLength="900">
                         
                         <!-- Card 1: Consolidated Management -->
                         <VBox styleClass="card, elevated" prefWidth="340" spacing="20" style="-fx-padding: 25; -fx-background-color: white;">

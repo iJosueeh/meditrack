@@ -88,6 +88,8 @@ public class PacienteController {
         colEstado.setCellValueFactory(new PropertyValueFactory<>("isActivo"));
 
         setupEstadoColumn();
+        setupTooltipColumn(colNombres);
+        setupTooltipColumn(colApellidos);
         addButtonToTable();
     }
 
@@ -112,6 +114,22 @@ public class PacienteController {
                     HBox box = new HBox(badge);
                     box.setAlignment(Pos.CENTER);
                     setGraphic(box);
+                }
+            }
+        });
+    }
+
+    private <T> void setupTooltipColumn(TableColumn<Paciente, T> column) {
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item.toString());
+                    setTooltip(new Tooltip(item.toString()));
                 }
             }
         });
@@ -201,23 +219,30 @@ public class PacienteController {
 
     private void addButtonToTable() {
         colActions.setCellFactory(param -> new TableCell<>() {
-            private final Button btnEdit = new Button("Editar");
+            private final Button btnEdit = new Button();
             private final Button btnBlock = new Button();
-            private final Button btnDelete = new Button("Eliminar");
-            private final HBox pane = new HBox(10, btnEdit, btnBlock, btnDelete);
+            private final Button btnDelete = new Button();
+            private final HBox pane = new HBox(3, btnEdit, btnBlock, btnDelete);
 
             {
                 pane.setAlignment(Pos.CENTER);
+                pane.setMinWidth(84);
+                pane.setMaxWidth(84);
+
                 btnEdit.setGraphic(new FontIcon("fas-edit"));
                 btnEdit.getStyleClass().addAll("button", "flat", "sm");
-                btnEdit.setTooltip(new Tooltip("Editar datos del paciente"));
+                btnEdit.setTooltip(new Tooltip("Editar"));
+                btnEdit.setMinWidth(26);
+                btnEdit.setMaxWidth(26);
                 btnEdit.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     showEditForm(p);
                 });
 
-                btnBlock.setGraphic(new FontIcon("fas-ban"));
                 btnBlock.getStyleClass().addAll("button", "flat", "sm");
+                btnBlock.setTooltip(new Tooltip("Desactivar"));
+                btnBlock.setMinWidth(26);
+                btnBlock.setMaxWidth(26);
                 btnBlock.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     handleToggleBlock(p);
@@ -225,7 +250,9 @@ public class PacienteController {
 
                 btnDelete.setGraphic(new FontIcon("fas-trash"));
                 btnDelete.getStyleClass().addAll("button", "flat", "danger", "sm");
-                btnDelete.setTooltip(new Tooltip("Eliminar permanentemente"));
+                btnDelete.setTooltip(new Tooltip("Eliminar"));
+                btnDelete.setMinWidth(26);
+                btnDelete.setMaxWidth(26);
                 btnDelete.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     handleDelete(p);
@@ -240,19 +267,19 @@ public class PacienteController {
                 } else {
                     Paciente p = getTableView().getItems().get(getIndex());
                     if (p.getIsActivo() == 1) {
-                        btnBlock.setText("Bloquear");
+                        btnBlock.setGraphic(new FontIcon("fas-ban"));
                         btnBlock.getStyleClass().removeAll("success");
                         if (!btnBlock.getStyleClass().contains("danger")) {
                             btnBlock.getStyleClass().add("danger");
                         }
-                        btnBlock.setTooltip(new Tooltip("Desactivar paciente"));
+                        btnBlock.setTooltip(new Tooltip("Desactivar"));
                     } else {
-                        btnBlock.setText("Activar");
+                        btnBlock.setGraphic(new FontIcon("fas-unlock"));
                         btnBlock.getStyleClass().removeAll("danger");
                         if (!btnBlock.getStyleClass().contains("success")) {
                             btnBlock.getStyleClass().add("success");
                         }
-                        btnBlock.setTooltip(new Tooltip("Reactivar paciente"));
+                        btnBlock.setTooltip(new Tooltip("Reactivar"));
                     }
                     setGraphic(pane);
                 }

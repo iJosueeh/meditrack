@@ -21,7 +21,7 @@
     <center>
         <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
             <VBox alignment="TOP_CENTER">
-                <VBox styleClass="content-area" spacing="45" maxWidth="1400">
+                <VBox styleClass="content-area" spacing="30" maxWidth="1400">
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="20">
                         <VBox spacing="4" HBox.hgrow="ALWAYS">
@@ -71,7 +71,7 @@
                     <!-- Module Guide -->
                     <VBox spacing="25">
                         <Label text="Guía de Módulos Operativos" styleClass="title-3" />
-                        <FlowPane hgap="30" vgap="30" prefWrapLength="1200">
+                        <FlowPane hgap="25" vgap="25" prefWrapLength="900">
                             <!-- Inventario -->
                             <VBox styleClass="card, elevated, card-info-custom" spacing="15">
                                 <HBox spacing="15" alignment="CENTER_LEFT">

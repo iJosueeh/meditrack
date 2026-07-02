@@ -111,11 +111,32 @@ public class UsuarioController {
         }
         
         rolCombo.setItems(FXCollections.observableArrayList(rolesDisponibles));
-        sedeCombo.setItems(FXCollections.observableArrayList(userAdapter.listarSedes()));
+
+        List<Sede> sedesDisponibles = userAdapter.listarSedes();
+        if (!session.tienePermiso("M2_SEDES")) {
+            Usuario currentUser = session.getCurrentUser();
+            if (currentUser != null && currentUser.getSedeId() != null) {
+                sedesDisponibles = sedesDisponibles.stream()
+                    .filter(s -> s.getId().equals(currentUser.getSedeId()))
+                    .collect(Collectors.toList());
+            }
+        }
+        sedeCombo.setItems(FXCollections.observableArrayList(sedesDisponibles));
     }
 
     private void loadData() {
-        List<Usuario> users = userAdapter.listarUsuarios();
+        SessionManager session = SessionManager.getInstance();
+        List<Usuario> users;
+        if (session.tienePermiso("M2_SEDES")) {
+            users = userAdapter.listarUsuarios();
+        } else {
+            Usuario currentUser = session.getCurrentUser();
+            if (currentUser != null && currentUser.getSedeId() != null) {
+                users = userAdapter.listarUsuariosPorSede(currentUser.getSedeId());
+            } else {
+                users = userAdapter.listarUsuarios();
+            }
+        }
         usersTable.setItems(FXCollections.observableArrayList(users));
     }
 
@@ -127,8 +148,21 @@ public class UsuarioController {
             return;
         }
 
+        SessionManager session = SessionManager.getInstance();
+        List<Usuario> baseUsers;
+        if (session.tienePermiso("M2_SEDES")) {
+            baseUsers = userAdapter.listarUsuarios();
+        } else {
+            Usuario currentUser = session.getCurrentUser();
+            if (currentUser != null && currentUser.getSedeId() != null) {
+                baseUsers = userAdapter.listarUsuariosPorSede(currentUser.getSedeId());
+            } else {
+                baseUsers = userAdapter.listarUsuarios();
+            }
+        }
+
         String[] terms = query.split("\\s+");
-        List<Usuario> filtered = userAdapter.listarUsuarios().stream()
+        List<Usuario> filtered = baseUsers.stream()
             .filter(u -> {
                 String fullData = (u.getNombreCompleto() + " " + u.getNumeroDocumento()).toLowerCase();
                 for (String term : terms) {

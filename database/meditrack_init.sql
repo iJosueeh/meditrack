@@ -570,19 +570,19 @@ END
 IF NOT EXISTS (SELECT 1 FROM [roles] WHERE [id] = 'ROL-002')
 BEGIN
     INSERT INTO [roles] ([id], [nombre], [descripcion], [nivel], [is_sistema]) 
-    VALUES ('ROL-002', 'Químico Farmacéutico', 'Supervisión de sede y gestión de inventario', 3, 1);
+    VALUES ('ROL-002', 'Jefe de Sede', 'Supervisión de inventario y gestión de su posta', 3, 1);
 END
 
 IF NOT EXISTS (SELECT 1 FROM [roles] WHERE [id] = 'ROL-003')
 BEGIN
     INSERT INTO [roles] ([id], [nombre], [descripcion], [nivel], [is_sistema]) 
-    VALUES ('ROL-003', 'Técnico de Farmacia', 'Operaciones de atención y dispensación', 4, 1);
+    VALUES ('ROL-003', 'Técnico de Farmacia', 'Atención al paciente, dispensación y salidas de inventario', 4, 1);
 END
 
 -- Corregir datos de roles existentes (por si se insertaron con valores incorrectos)
-UPDATE [roles] SET [nivel] = 1, [is_sistema] = 1, [descripcion] = 'Acceso total al sistema' WHERE [id] = 'ROL-001' AND ([nivel] IS NULL OR [nivel] != 1);
-UPDATE [roles] SET [nivel] = 3, [is_sistema] = 1, [descripcion] = 'Supervisión de sede y gestión de inventario' WHERE [id] = 'ROL-002' AND ([nivel] IS NULL OR [nivel] != 3);
-UPDATE [roles] SET [nivel] = 4, [is_sistema] = 1, [descripcion] = 'Operaciones de atención y dispensación' WHERE [id] = 'ROL-003' AND ([nivel] IS NULL OR [nivel] != 4);
+UPDATE [roles] SET [nivel] = 1, [is_sistema] = 1, [descripcion] = 'Acceso total al sistema sin restricción de sede' WHERE [id] = 'ROL-001' AND ([nivel] IS NULL OR [nivel] != 1);
+UPDATE [roles] SET [nivel] = 3, [is_sistema] = 1, [descripcion] = 'Supervisión de inventario y gestión de su posta' WHERE [id] = 'ROL-002' AND ([nivel] IS NULL OR [nivel] != 3);
+UPDATE [roles] SET [nivel] = 4, [is_sistema] = 1, [descripcion] = 'Atención al paciente, dispensación y salidas de inventario' WHERE [id] = 'ROL-003' AND ([nivel] IS NULL OR [nivel] != 4);
 
 PRINT 'Roles base verificados.';
 GO
@@ -609,49 +609,51 @@ BEGIN
 END
 GO
 
--- Asignar permisos al Administrador (M1, M2, M3, M4, CATEGORIAS, USUARIOS, M10, ROLES, MOV_CATALOGOS)
+-- Asignar permisos al Administrador Global: acceso total sin restricción de sede
 IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-001')
 BEGIN
     INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
     ('ROL-001', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-001', 'PERM-007'),  -- M2_SEDES
-    ('ROL-001', 'PERM-008'),  -- M3_PRODUCTOS
+    ('ROL-001', 'PERM-007'),  -- M2_SEDES (crear/editar sedes)
+    ('ROL-001', 'PERM-008'),  -- M3_PRODUCTOS (catálogo de productos)
     ('ROL-001', 'PERM-002'),  -- M4_LOTES
-    ('ROL-001', 'PERM-011'),  -- CATEGORIAS
+    ('ROL-001', 'PERM-003'),  -- M5_ENTRADAS
+    ('ROL-001', 'PERM-004'),  -- M6_SALIDAS
+    ('ROL-001', 'PERM-005'),  -- M8_ATENCIONES
+    ('ROL-001', 'PERM-006'),  -- M9_DISPENSACION
+    ('ROL-001', 'PERM-009'),  -- M7_PACIENTES
     ('ROL-001', 'PERM-010'),  -- USUARIOS
+    ('ROL-001', 'PERM-011'),  -- CATEGORIAS
     ('ROL-001', 'PERM-012'),  -- MOV_CATALOGOS
-    ('ROL-001', 'PERM-013'),  -- M10_REPORTES
+    ('ROL-001', 'PERM-013'),  -- M10_REPORTES (reportes consolidados)
     ('ROL-001', 'PERM-014');  -- ROLES
-    PRINT 'Permisos asignados al Administrador.';
+    PRINT 'Permisos asignados al Administrador Global.';
 END
 GO
 
--- Asignar permisos al Químico Farmacéutico (Jefe de Sede): M1, M4, M5, M6, M7, USUARIOS(parcial), CATEGORIAS, M10
+-- Asignar permisos al Jefe de Sede: supervisa inventario, registra entradas, gestiona usuarios, reportes de sede
 IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-002')
 BEGIN
     INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
     ('ROL-002', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-002', 'PERM-002'),  -- M4_LOTES
-    ('ROL-002', 'PERM-003'),  -- M5_ENTRADAS
-    ('ROL-002', 'PERM-004'),  -- M6_SALIDAS
-    ('ROL-002', 'PERM-009'),  -- M7_PACIENTES
-    ('ROL-002', 'PERM-010'),  -- USUARIOS (parcial: solo su sede)
-    ('ROL-002', 'PERM-011'),  -- CATEGORIAS
-    ('ROL-002', 'PERM-013');  -- M10_REPORTES
-    PRINT 'Permisos asignados al Químico Farmacéutico.';
+    ('ROL-002', 'PERM-002'),  -- M4_LOTES (supervisa inventario)
+    ('ROL-002', 'PERM-003'),  -- M5_ENTRADAS (entradas de proveedor)
+    ('ROL-002', 'PERM-010'),  -- USUARIOS (gestiona usuarios de su sede)
+    ('ROL-002', 'PERM-013');  -- M10_REPORTES (reportes de su sede)
+    PRINT 'Permisos asignados al Jefe de Sede.';
 END
 GO
 
--- Asignar permisos al Técnico de Farmacia: M1, M4, M6, M7, M8, M9
+-- Asignar permisos al Técnico de Farmacia: atención al paciente, dispensación y salidas
 IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-003')
 BEGIN
     INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
     ('ROL-003', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-003', 'PERM-002'),  -- M4_LOTES
-    ('ROL-003', 'PERM-004'),  -- M6_SALIDAS
-    ('ROL-003', 'PERM-009'),  -- M7_PACIENTES
-    ('ROL-003', 'PERM-005'),  -- M8_ATENCIONES
-    ('ROL-003', 'PERM-006');  -- M9_DISPENSACION
+    ('ROL-003', 'PERM-002'),  -- M4_LOTES (ver inventario para dispensar)
+    ('ROL-003', 'PERM-004'),  -- M6_SALIDAS (salidas y ajustes)
+    ('ROL-003', 'PERM-009'),  -- M7_PACIENTES (atención al paciente)
+    ('ROL-003', 'PERM-005'),  -- M8_ATENCIONES (registro de atenciones)
+    ('ROL-003', 'PERM-006');  -- M9_DISPENSACION (dispensar medicamentos)
     PRINT 'Permisos asignados al Técnico de Farmacia.';
 END
 GO

@@ -18,7 +18,7 @@
         <center>
             <ScrollPane fitToWidth="true" styleClass="edge-to-edge">
                 <VBox styleClass="content-area" spacing="30" maxWidth="1400">
-                    <padding><Insets top="30" right="40" bottom="30" left="40" /></padding>
+                    <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="20">
@@ -32,16 +32,15 @@
                     </HBox>
 
                     <!-- Summary Card -->
-                    <FlowPane hgap="25" vgap="25">
-                        <VBox styleClass="card, elevated" prefWidth="280" spacing="12">
+                    <HBox spacing="15">
+                        <VBox styleClass="card, elevated" HBox.hgrow="ALWAYS" spacing="12">
                             <HBox spacing="10" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="fas-user-shield" iconSize="18" styleClass="icon-accent" />
-                                <Label text="TOTAL DE ROLES" styleClass="text-caption, text-bold, text-muted" />
+                                <Label text="TOTAL ROLES" styleClass="text-caption, text-bold, text-muted" />
                             </HBox>
                             <Label fx:id="lblTotalRoles" text="0" styleClass="title-2" />
-                            <Label text="Perfiles de acceso definidos" styleClass="text-caption, text-muted" />
                         </VBox>
-                    </FlowPane>
+                    </HBox>
 
                     <!-- Main Table -->
                     <VBox styleClass="card, elevated" spacing="20" VBox.vgrow="ALWAYS">
@@ -49,7 +48,7 @@
                             <HBox styleClass="icon-box-subtle" alignment="CENTER">
                                 <FontIcon iconLiteral="fas-search" />
                             </HBox>
-                            <TextField fx:id="txtSearch" promptText="Buscar rol..." prefWidth="450" />
+                            <TextField fx:id="txtSearch" promptText="Buscar rol..." HBox.hgrow="ALWAYS" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Button text="Actualizar" onAction="#loadData" styleClass="button, flat, sm">
                                 <graphic><FontIcon iconLiteral="fas-sync-alt" /></graphic>

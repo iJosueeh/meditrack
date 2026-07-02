@@ -35,7 +35,7 @@ public class AtencionController {
 
     // Patient & Prescription
     @FXML private ComboBox<Paciente> cmbPaciente;
-    @FXML private TextField txtReceta, txtSearchReceta;
+    @FXML private TextField txtReceta;
     @FXML private ComboBox<String> cmbMedico;
     @FXML private DatePicker dpFromDate, dpToDate;
     @FXML private Label lblPatientName, lblPatientPhone;
@@ -65,6 +65,18 @@ public class AtencionController {
         setupMedicoCombo();
         setupProductCombo();
         loadInitialData();
+        autoGenerarReceta();
+    }
+
+    private void autoGenerarReceta() {
+        try {
+            Usuario user = sessionManager.getCurrentUser();
+            if (user == null) return;
+            String receta = atencionAdapter.generarNumeroReceta(user.getSedeId());
+            txtReceta.setText(receta);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -225,7 +237,7 @@ public class AtencionController {
 
     @FXML
     protected void onSearchByReceta() {
-        String receta = txtSearchReceta.getText();
+        String receta = txtReceta.getText();
         if (receta == null || receta.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un número de receta para buscar.");
             return;
@@ -379,16 +391,23 @@ public class AtencionController {
             return;
         }
 
+        String numReceta = txtReceta.getText().trim();
+        String sedeId = sessionManager.getCurrentUser().getSedeId();
+        if (atencionAdapter.existeReceta(sedeId, numReceta)) {
+            showAlert(Alert.AlertType.WARNING, "Duplicado",
+                "Ya existe una atención con el número de receta " + numReceta + ". Modifíquelo e intente de nuevo.");
+            return;
+        }
+
         Atencion a = new Atencion();
         a.setPacienteId(currentPaciente.getId());
-        a.setNumeroReceta(txtReceta.getText().trim());
+        a.setNumeroReceta(numReceta);
         a.setMedico(cmbMedico.getValue() != null ? cmbMedico.getValue().trim() : "");
-        a.setSedeId(sessionManager.getCurrentUser().getSedeId());
+        a.setSedeId(sedeId);
         a.setUsuarioId(sessionManager.getCurrentUser().getId());
 
         // Re-validar stock antes de confirmar (FEFO)
         try {
-            String sedeId = sessionManager.getCurrentUser().getSedeId();
             List<Lote> lotesActuales = atencionAdapter.listarLotesConProducto(sedeId);
             for (AtencionDetalle det : basketItems) {
                 Optional<Lote> loteActual = lotesActuales.stream()
@@ -422,7 +441,6 @@ public class AtencionController {
         vboxPatientInfo.setManaged(false);
         cmbPaciente.getSelectionModel().clearSelection();
         cmbPaciente.getEditor().clear();
-        txtReceta.clear();
         cmbMedico.getSelectionModel().clearSelection();
         cmbMedico.getEditor().clear();
         txtCantidad.clear();
@@ -431,9 +449,17 @@ public class AtencionController {
         lblFefoSuggestion.setManaged(false);
         basketItems.clear();
         updateBasketTotals();
+        autoGenerarReceta();
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert alert = new Alert(type); alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(msg); alert.showAndWait();
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        alert.initOwner(cmbPaciente.getScene().getWindow());
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/utp/meditrackapp/styles/global.css").toExternalForm());
+        alert.showAndWait();
     }
 }

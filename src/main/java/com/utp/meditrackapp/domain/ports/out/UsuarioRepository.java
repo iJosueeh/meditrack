@@ -20,6 +20,8 @@ public interface UsuarioRepository {
 
     List<Usuario> findAll();
 
+    List<Usuario> findAllBySedeId(String sedeId);
+
     Usuario save(Usuario usuario, String rawPassword);
 
     Usuario update(Usuario usuario);

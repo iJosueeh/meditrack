@@ -30,6 +30,10 @@ public class UserAdapter {
         return useCase.listarUsuarios();
     }
 
+    public List<Usuario> listarUsuariosPorSede(String sedeId) {
+        return useCase.listarUsuariosPorSede(sedeId);
+    }
+
     public Optional<Usuario> buscarPorId(String id) {
         return useCase.buscarPorId(id);
     }
