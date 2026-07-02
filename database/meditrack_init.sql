@@ -632,34 +632,30 @@ END
 GO
 
 -- Asignar permisos al Jefe de Sede: supervisa inventario, registra entradas, gestiona usuarios, reportes de sede
-IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-002')
-BEGIN
-    INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
-    ('ROL-002', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-002', 'PERM-008'),  -- M3_PRODUCTOS (supervisa catálogo de productos)
-    ('ROL-002', 'PERM-002'),  -- M4_LOTES (supervisa inventario)
-    ('ROL-002', 'PERM-003'),  -- M5_ENTRADAS (entradas de proveedor)
-    ('ROL-002', 'PERM-009'),  -- M7_PACIENTES (supervisa pacientes de su sede)
-    ('ROL-002', 'PERM-011'),  -- CATEGORIAS (gestiona categorías de su sede)
-    ('ROL-002', 'PERM-010'),  -- USUARIOS (gestiona usuarios de su sede)
-    ('ROL-002', 'PERM-013');  -- M10_REPORTES (reportes de su sede)
-    PRINT 'Permisos asignados al Jefe de Sede.';
-END
+DELETE FROM [rol_permisos] WHERE [rol_id] = 'ROL-002';
+INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
+('ROL-002', 'PERM-001'),  -- M1_LOGIN
+('ROL-002', 'PERM-008'),  -- M3_PRODUCTOS (supervisa catálogo de productos)
+('ROL-002', 'PERM-002'),  -- M4_LOTES (supervisa inventario)
+('ROL-002', 'PERM-003'),  -- M5_ENTRADAS (entradas de proveedor)
+('ROL-002', 'PERM-009'),  -- M7_PACIENTES (supervisa pacientes de su sede)
+('ROL-002', 'PERM-011'),  -- CATEGORIAS (gestiona categorías de su sede)
+('ROL-002', 'PERM-010'),  -- USUARIOS (gestiona usuarios de su sede)
+('ROL-002', 'PERM-013');  -- M10_REPORTES (reportes de su sede)
+PRINT 'Permisos asignados al Jefe de Sede.';
 GO
 
 -- Asignar permisos al Técnico de Farmacia: atención al paciente, dispensación y salidas
-IF NOT EXISTS (SELECT 1 FROM [rol_permisos] WHERE [rol_id] = 'ROL-003')
-BEGIN
-    INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
-    ('ROL-003', 'PERM-001'),  -- M1_LOGIN
-    ('ROL-003', 'PERM-002'),  -- M4_LOTES (ver inventario para dispensar)
-    ('ROL-003', 'PERM-004'),  -- M6_SALIDAS (salidas y ajustes)
-    ('ROL-003', 'PERM-009'),  -- M7_PACIENTES (atención al paciente)
-    ('ROL-003', 'PERM-005'),  -- M8_ATENCIONES (registro de atenciones)
-    ('ROL-003', 'PERM-006'),  -- M9_DISPENSACION (dispensar medicamentos)
-    ('ROL-003', 'PERM-013');  -- M10_REPORTES (reportes de su sede)
-    PRINT 'Permisos asignados al Técnico de Farmacia.';
-END
+DELETE FROM [rol_permisos] WHERE [rol_id] = 'ROL-003';
+INSERT INTO [rol_permisos] ([rol_id], [permiso_id]) VALUES
+('ROL-003', 'PERM-001'),  -- M1_LOGIN
+('ROL-003', 'PERM-002'),  -- M4_LOTES (ver inventario para dispensar)
+('ROL-003', 'PERM-004'),  -- M6_SALIDAS (salidas y ajustes)
+('ROL-003', 'PERM-009'),  -- M7_PACIENTES (atención al paciente)
+('ROL-003', 'PERM-005'),  -- M8_ATENCIONES (registro de atenciones)
+('ROL-003', 'PERM-006'),  -- M9_DISPENSACION (dispensar medicamentos)
+('ROL-003', 'PERM-013');  -- M10_REPORTES (reportes de su sede)
+PRINT 'Permisos asignados al Técnico de Farmacia.';
 GO
 
 -- Catálogos de movimiento
