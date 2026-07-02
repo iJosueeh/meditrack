@@ -305,11 +305,12 @@ public class UsuarioController {
             private final Button btnEdit = new Button();
             private final Button btnResetPwd = new Button();
             private final Button btnToggle = new Button();
-            private final HBox box = new HBox(3, btnEdit, btnResetPwd, btnToggle);
+            private final Button btnDelete = new Button();
+            private final HBox box = new HBox(3, btnEdit, btnResetPwd, btnToggle, btnDelete);
 
             {
                 btnEdit.setGraphic(new FontIcon("fas-edit"));
-                btnEdit.getStyleClass().addAll("button", "flat", "sm");
+                btnEdit.getStyleClass().addAll("button", "flat", "sm", "accent");
                 btnEdit.setTooltip(new Tooltip("Editar"));
                 btnEdit.setMinWidth(26);
                 btnEdit.setMaxWidth(26);
@@ -326,6 +327,13 @@ public class UsuarioController {
                 btnToggle.setMinWidth(26);
                 btnToggle.setMaxWidth(26);
                 btnToggle.setOnAction(e -> handleToggleStatus(getTableView().getItems().get(getIndex())));
+
+                btnDelete.setGraphic(new FontIcon("fas-trash"));
+                btnDelete.getStyleClass().addAll("button", "flat", "sm", "danger");
+                btnDelete.setTooltip(new Tooltip("Eliminar"));
+                btnDelete.setMinWidth(26);
+                btnDelete.setMaxWidth(26);
+                btnDelete.setOnAction(e -> handleDeleteUser(getTableView().getItems().get(getIndex())));
             }
 
             @Override
@@ -380,6 +388,19 @@ public class UsuarioController {
                 }
             }
         });
+    }
+
+    private void handleDeleteUser(Usuario u) {
+        String result = userAdapter.eliminarUsuario(u.getId());
+        if ("NO_HISTORY".equals(result)) {
+            showAlert(Alert.AlertType.WARNING, "Tiene historial",
+                "Este usuario tiene movimientos o atenciones registradas.\nUse Desactivar para bloquearlo sin perder historial.");
+        } else if ("OK".equals(result)) {
+            showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Usuario eliminado correctamente.");
+            loadData();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", result);
+        }
     }
 
     private void clearForm() {
