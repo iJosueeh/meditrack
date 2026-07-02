@@ -29,14 +29,6 @@ public class Usuario {
         return (nombres != null ? nombres : "") + " " + (apellidos != null ? apellidos : "");
     }
 
-    public boolean isAdmin() {
-        return rolId != null && rolId.equals("ROL-001");
-    }
-
-    public boolean isJefeSede() {
-        return rolNombre != null && rolNombre.toUpperCase().contains("JEFE");
-    }
-
     /**
      * Valida que los campos obligatorios estén presentes.
      *

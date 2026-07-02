@@ -47,7 +47,7 @@ public class SessionManager {
         if (user == null || user.getSedeId() == null) return false;
         
         // Admin tiene acceso global, no se valida bloqueo
-        if (user.isAdmin()) return false;
+        if (tienePermiso("M2_SEDES")) return false;
         
         return sedeRepository.isBloqueada(user.getSedeId());
     }
