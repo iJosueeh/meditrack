@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.domain.services.inventario;
 
 import com.utp.meditrackapp.application.config.TransactionManager;
+import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.domain.entities.Lote;
 import com.utp.meditrackapp.domain.entities.Movimiento;
 import com.utp.meditrackapp.domain.ports.out.LoteRepository;
@@ -74,7 +75,7 @@ public class RegistrarMovimientoUseCase {
                 mov.setLoteId(loteId);
                 mov.setSedeId(sedeId);
                 mov.setUsuarioId(usuarioId);
-                mov.setTipoId("SALIDA");
+                mov.setTipoId(TipoMovimientoEnum.SALIDA.getId());
                 mov.setMotivoId(motivoId);
                 mov.setCantidad(cantidad);
                 mov.setObservacion(observacion);
@@ -87,10 +88,7 @@ public class RegistrarMovimientoUseCase {
 
     private boolean isTipoEntrada(String tipoId) {
         if (tipoId == null) return false;
-        String upper = tipoId.toUpperCase();
-        if (upper.equals("ENTRADA")) return true;
-        if (upper.equals("SALIDA")) return false;
-        return upper.contains("ENTRADA");
+        return TipoMovimientoEnum.ENTRADA.getId().equals(tipoId);
     }
 
     private Movimiento buildMovimiento(Lote lote, String usuarioId, String motivoId,
@@ -98,7 +96,7 @@ public class RegistrarMovimientoUseCase {
         Movimiento mov = new Movimiento();
         mov.setSedeId(lote.getSedeId());
         mov.setUsuarioId(usuarioId);
-        mov.setTipoId("ENTRADA");
+        mov.setTipoId(TipoMovimientoEnum.ENTRADA.getId());
         mov.setMotivoId(motivoId);
         mov.setLoteId(lote.getId());
         mov.setCantidad(cantidad);

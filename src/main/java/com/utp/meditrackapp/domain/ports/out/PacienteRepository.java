@@ -26,6 +26,8 @@ public interface PacienteRepository {
 
     boolean softDelete(String id);
 
+    boolean reactivar(String id);
+
     boolean hardDelete(String id);
 
     int countBySede(String sedeId);

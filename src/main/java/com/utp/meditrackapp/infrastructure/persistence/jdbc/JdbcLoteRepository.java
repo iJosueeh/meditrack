@@ -138,6 +138,22 @@ public class JdbcLoteRepository implements LoteRepository {
     }
 
     @Override
+    public int findStockByLote(Connection conn, String loteId) {
+        String sql = "SELECT cantidad FROM lotes WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, loteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("cantidad");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al consultar stock del lote: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+
+    @Override
     public Lote save(Connection conn, Lote lote) {
         try {
             if (lote.getId() == null || lote.getId().isBlank()) {

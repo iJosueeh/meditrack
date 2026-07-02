@@ -73,6 +73,8 @@
                                                 <TableColumn fx:id="colMovBatch" text="Lote" prefWidth="120" />
                                                 <TableColumn fx:id="colMovQty" text="Cant." prefWidth="90" />
                                                 <TableColumn fx:id="colMovReason" text="Motivo" prefWidth="150" />
+                                                <TableColumn fx:id="colMovObs" text="Observación" prefWidth="180" />
+                                                <TableColumn fx:id="colMovActions" text="Acciones" prefWidth="200" />
                                             </columns>
                                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                                         </TableView>

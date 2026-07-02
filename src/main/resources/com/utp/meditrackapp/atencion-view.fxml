@@ -48,12 +48,8 @@
                                     <FontIcon iconLiteral="fas-user-injured" styleClass="icon-accent" />
                                     <Label text="DATOS DEL PACIENTE" styleClass="text-caption, text-bold, text-muted" />
                                 </HBox>
-                                <HBox spacing="10">
-                                    <TextField fx:id="txtPacienteDni" promptText="DNI del paciente..." styleClass="large" HBox.hgrow="ALWAYS" onAction="#onSearchPatient" />
-                                    <Button text="Buscar" onAction="#onSearchPatient" styleClass="button, accent">
-                                        <graphic><FontIcon iconLiteral="fas-search" iconColor="white" /></graphic>
-                                    </Button>
-                                </HBox>
+                                <Label text="Buscar paciente (DNI, nombre o apellido)" styleClass="text-caption, text-muted" />
+                                <ComboBox fx:id="cmbPaciente" promptText="Escriba para buscar..." maxWidth="Infinity" onAction="#onPacienteSelected" />
                                 <HBox spacing="10">
                                     <TextField fx:id="txtSearchReceta" promptText="Buscar por N° de receta..." HBox.hgrow="ALWAYS" onAction="#onSearchByReceta" />
                                     <Button text="Buscar" onAction="#onSearchByReceta" styleClass="button">
@@ -87,7 +83,7 @@
                                     </VBox>
                                     <VBox spacing="8">
                                         <Label text="MÉDICO TRATANTE" styleClass="text-caption, text-muted" />
-                                        <TextField fx:id="txtMedico" promptText="Nombre del médico" />
+                                        <ComboBox fx:id="cmbMedico" promptText="Escriba para buscar..." maxWidth="Infinity" />
                                     </VBox>
                                 </VBox>
                             </VBox>
@@ -115,6 +111,7 @@
                                         <graphic><FontIcon iconLiteral="fas-cart-plus" iconColor="white" /></graphic>
                                     </Button>
                                 </HBox>
+                                <Label fx:id="lblFefoSuggestion" text="" visible="false" managed="false" wrapText="true" style="-fx-font-size: 11px; -fx-text-fill: #2563eb; -fx-font-style: italic;" />
                             </VBox>
 
                             <!-- Basket Table -->
@@ -128,10 +125,11 @@
                                 
                                 <TableView fx:id="tableBasket" VBox.vgrow="ALWAYS">
                                     <columns>
-                                        <TableColumn fx:id="colBasketProduct" text="Producto" prefWidth="250" />
-                                        <TableColumn fx:id="colBasketLote" text="Lote" prefWidth="120" />
-                                        <TableColumn fx:id="colBasketQty" text="Cant." prefWidth="80" />
-                                        <TableColumn fx:id="colBasketAction" text="Acción" prefWidth="100" />
+                                        <TableColumn fx:id="colBasketProduct" text="Producto" prefWidth="200" />
+                                        <TableColumn fx:id="colBasketLote" text="Lote" prefWidth="110" />
+                                        <TableColumn fx:id="colBasketExp" text="Vencimiento" prefWidth="110" />
+                                        <TableColumn fx:id="colBasketQty" text="Cant." prefWidth="70" />
+                                        <TableColumn fx:id="colBasketAction" text="" prefWidth="60" />
                                     </columns>
                                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                                     <placeholder>

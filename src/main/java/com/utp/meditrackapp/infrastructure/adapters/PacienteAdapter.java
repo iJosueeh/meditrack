@@ -52,6 +52,10 @@ public class PacienteAdapter {
         return useCase.eliminarPaciente(id);
     }
 
+    public String reactivarPaciente(String id) {
+        return useCase.reactivarPaciente(id);
+    }
+
     /**
      * Obtiene el contador de pacientes totales por sede.
      */

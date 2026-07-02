@@ -94,7 +94,23 @@ public class UsuarioController {
             @Override public Sede fromString(String s) { return null; }
         });
 
-        rolCombo.setItems(FXCollections.observableArrayList(userAdapter.listarRoles()));
+        // Filtrar roles: solo mostrar roles de menor jerarquía (mayor nivel) que el usuario actual
+        var session = com.utp.meditrackapp.core.config.SessionManager.getInstance();
+        var rolActual = session.getRolUsuario();
+        
+        List<Rol> todosLosRoles = userAdapter.listarRoles();
+        List<Rol> rolesDisponibles;
+        
+        if (rolActual != null) {
+            rolesDisponibles = todosLosRoles.stream()
+                .filter(r -> r.getNivel() > rolActual.getNivel() || r.getId().equals(rolActual.getId()))
+                .filter(r -> r.getIsActivo() == 1)
+                .collect(Collectors.toList());
+        } else {
+            rolesDisponibles = todosLosRoles;
+        }
+        
+        rolCombo.setItems(FXCollections.observableArrayList(rolesDisponibles));
         sedeCombo.setItems(FXCollections.observableArrayList(userAdapter.listarSedes()));
     }
 

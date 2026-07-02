@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * Navigation service to handle view transitions.
- * Refactored to swap roots instead of scenes to prevent window resizing/flickering.
+ * All navigation methods validate permissions before switching views.
  */
 public class NavigationService {
 
@@ -50,6 +50,20 @@ public class NavigationService {
     }
 
     /**
+     * Verifica si el usuario actual tiene un permiso antes de navegar.
+     * Si no tiene permiso, redirige al dashboard.
+     */
+    private static boolean checkAndNavigate(String permiso, String fxmlPath, String title, boolean maximize) throws IOException {
+        SessionManager session = SessionManager.getInstance();
+        if (!session.tienePermiso(permiso)) {
+            switchRoot("/com/utp/meditrackapp/dashboard-view.fxml", "MediTrack — Panel de Control", true);
+            return false;
+        }
+        switchRoot(fxmlPath, title, maximize);
+        return true;
+    }
+
+    /**
      * Load and navigate to login view.
      */
     public static void toLogin() throws IOException {
@@ -64,40 +78,48 @@ public class NavigationService {
     }
 
     /**
-     * Load and navigate to site management view.
+     * Load and navigate to site management view. Requires M2_SEDES.
      */
     public static void toSedes() throws IOException {
-        switchRoot("/com/utp/meditrackapp/sede-view.fxml", "MediTrack — Gestión de Sedes", true);
+        checkAndNavigate("M2_SEDES", "/com/utp/meditrackapp/sede-view.fxml", "MediTrack — Gestión de Sedes", true);
     }
 
     public static void toProfile() throws IOException {
         switchRoot("/com/utp/meditrackapp/profile-view.fxml", "MediTrack — Mi Perfil", true);
     }
 
-    // Read-once search terms — safe because JavaFX UI runs on a single thread.
     private static String patientInitialSearch;
 
     public static void toPatients() throws IOException {
         toPatients(null);
     }
 
+    /**
+     * Load and navigate to patients view. Requires M7_PACIENTES.
+     */
     public static void toPatients(String initialSearch) throws IOException {
         patientInitialSearch = initialSearch;
-        switchRoot("/com/utp/meditrackapp/pacientes-view.fxml", "MediTrack — Gestión de Pacientes", true);
+        checkAndNavigate("M7_PACIENTES", "/com/utp/meditrackapp/pacientes-view.fxml", "MediTrack — Gestión de Pacientes", true);
     }
 
     public static String getPatientInitialSearch() {
         String search = patientInitialSearch;
-        patientInitialSearch = null; // Clear after read
+        patientInitialSearch = null;
         return search;
     }
 
+    /**
+     * Load and navigate to attentions view. Requires M8_ATENCIONES.
+     */
     public static void toAttention() throws IOException {
-        switchRoot("/com/utp/meditrackapp/atencion-view.fxml", "MediTrack — Registro de Atenciones", true);
+        checkAndNavigate("M8_ATENCIONES", "/com/utp/meditrackapp/atencion-view.fxml", "MediTrack — Registro de Atenciones", true);
     }
 
+    /**
+     * Load and navigate to reports view. Requires M10_REPORTES.
+     */
     public static void toReports() throws IOException {
-        switchRoot("/com/utp/meditrackapp/reports-view.fxml", "MediTrack — Centro de Reportes", true);
+        checkAndNavigate("M10_REPORTES", "/com/utp/meditrackapp/reports-view.fxml", "MediTrack — Centro de Reportes", true);
     }
 
     private static String inventoryInitialSearch;
@@ -106,14 +128,17 @@ public class NavigationService {
         toInventory(null);
     }
 
+    /**
+     * Load and navigate to inventory view. Requires M4_LOTES.
+     */
     public static void toInventory(String initialSearch) throws IOException {
         inventoryInitialSearch = initialSearch;
-        switchRoot("/com/utp/meditrackapp/inventory-view.fxml", "MediTrack — Inventario", true);
+        checkAndNavigate("M4_LOTES", "/com/utp/meditrackapp/inventory-view.fxml", "MediTrack — Inventario", true);
     }
 
     public static String getInventoryInitialSearch() {
         String search = inventoryInitialSearch;
-        inventoryInitialSearch = null; // Clear after read
+        inventoryInitialSearch = null;
         return search;
     }
 
@@ -143,20 +168,32 @@ public class NavigationService {
         }
     }
 
+    /**
+     * Load and navigate to users view. Requires USUARIOS.
+     */
     public static void toUsers() throws IOException {
-        switchRoot("/com/utp/meditrackapp/users-view.fxml", "MediTrack — Gestión de Usuarios", true);
+        checkAndNavigate("USUARIOS", "/com/utp/meditrackapp/users-view.fxml", "MediTrack — Gestión de Usuarios", true);
     }
 
+    /**
+     * Load and navigate to categories view. Requires CATEGORIAS.
+     */
     public static void toCategorias() throws IOException {
-        switchRoot("/com/utp/meditrackapp/categorias-view.fxml", "MediTrack — Gestión de Categorías", true);
+        checkAndNavigate("CATEGORIAS", "/com/utp/meditrackapp/categorias-view.fxml", "MediTrack — Gestión de Categorías", true);
     }
 
+    /**
+     * Load and navigate to roles view. Requires ROLES.
+     */
     public static void toRoles() throws IOException {
-        switchRoot("/com/utp/meditrackapp/roles-view.fxml", "MediTrack — Gestión de Roles", true);
+        checkAndNavigate("ROLES", "/com/utp/meditrackapp/roles-view.fxml", "MediTrack — Gestión de Roles", true);
     }
 
+    /**
+     * Load and navigate to movement catalogs view. Requires MOV_CATALOGOS.
+     */
     public static void toCatalogosMovimiento() throws IOException {
-        switchRoot("/com/utp/meditrackapp/catalogos-mov-view.fxml", "MediTrack — Catálogos de Movimiento", true);
+        checkAndNavigate("MOV_CATALOGOS", "/com/utp/meditrackapp/catalogos-mov-view.fxml", "MediTrack — Catálogos de Movimiento", true);
     }
 
     private static String productInitialSearch;
@@ -165,14 +202,17 @@ public class NavigationService {
         toProductos(null);
     }
 
+    /**
+     * Load and navigate to products view. Requires M3_PRODUCTOS.
+     */
     public static void toProductos(String initialSearch) throws IOException {
         productInitialSearch = initialSearch;
-        switchRoot("/com/utp/meditrackapp/productos-view.fxml", "MediTrack — Catálogo de Productos", true);
+        checkAndNavigate("M3_PRODUCTOS", "/com/utp/meditrackapp/productos-view.fxml", "MediTrack — Catálogo de Productos", true);
     }
 
     public static String getProductInitialSearch() {
         String search = productInitialSearch;
-        productInitialSearch = null; // Clear after read
+        productInitialSearch = null;
         return search;
     }
 }
