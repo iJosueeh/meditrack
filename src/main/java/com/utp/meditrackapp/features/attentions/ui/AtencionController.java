@@ -36,7 +36,7 @@ public class AtencionController {
     // Patient & Prescription
     @FXML private ComboBox<Paciente> cmbPaciente;
     @FXML private TextField txtReceta;
-    @FXML private ComboBox<String> cmbMedico;
+    @FXML private TextField txtMedico;
     @FXML private DatePicker dpFromDate, dpToDate;
     @FXML private Label lblPatientName, lblPatientPhone;
     @FXML private VBox vboxPatientInfo;
@@ -55,14 +55,12 @@ public class AtencionController {
 
     private final ObservableList<AtencionDetalle> basketItems = FXCollections.observableArrayList();
     private final ObservableList<Paciente> allPacientes = FXCollections.observableArrayList();
-    private final ObservableList<String> allMedicos = FXCollections.observableArrayList();
     private Paciente currentPaciente;
 
     @FXML
     public void initialize() {
         setupTables();
         setupPacienteCombo();
-        setupMedicoCombo();
         setupProductCombo();
         loadInitialData();
         autoGenerarReceta();
@@ -164,11 +162,6 @@ public class AtencionController {
 
             List<Paciente> pacientes = atencionAdapter.buscarPacientes("");
             allPacientes.setAll(pacientes);
-
-            List<String> medicos = atencionAdapter.listarMedicosDistinct();
-            for (String m : medicos) {
-                if (!allMedicos.contains(m)) allMedicos.add(m);
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -217,11 +210,6 @@ public class AtencionController {
         listHistory.itemsProperty().addListener((obs, old, items) -> {
             listHistory.setMouseTransparent(items == null || items.isEmpty());
         });
-    }
-
-    private void setupMedicoCombo() {
-        cmbMedico.setEditable(true);
-        cmbMedico.setItems(allMedicos);
     }
 
     @FXML
@@ -404,7 +392,7 @@ public class AtencionController {
         Atencion a = new Atencion();
         a.setPacienteId(currentPaciente.getId());
         a.setNumeroReceta(numReceta);
-        a.setMedico(cmbMedico.getValue() != null ? cmbMedico.getValue().trim() : "");
+        a.setMedico(txtMedico.getText() != null ? txtMedico.getText().trim() : "");
         a.setSedeId(sedeId);
         a.setUsuarioId(sessionManager.getCurrentUser().getId());
 
@@ -443,8 +431,7 @@ public class AtencionController {
         vboxPatientInfo.setManaged(false);
         cmbPaciente.getSelectionModel().clearSelection();
         cmbPaciente.getEditor().clear();
-        cmbMedico.getSelectionModel().clearSelection();
-        cmbMedico.getEditor().clear();
+        txtMedico.clear();
         txtCantidad.clear();
         cmbProducto.getSelectionModel().clearSelection();
         lblFefoSuggestion.setVisible(false);

@@ -62,7 +62,7 @@
                                 </VBox>
                                 <VBox spacing="4" HBox.hgrow="ALWAYS">
                                     <Label text="MÉDICO" styleClass="text-caption, text-muted" />
-                                    <ComboBox fx:id="cmbMedico" promptText="Buscar médico..." maxWidth="Infinity" />
+                                    <TextField fx:id="txtMedico" promptText="Opcional" maxWidth="Infinity" />
                                 </VBox>
                                 <Button onAction="#onSearchByReceta" styleClass="button">
                                     <graphic><FontIcon iconLiteral="fas-search" /></graphic>
