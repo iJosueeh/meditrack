@@ -243,6 +243,8 @@ public class RolController {
         
         clearPermisoCheckboxes();
         
+        System.out.println("[DEBUG] Cargando permisos para rol '" + rol.getNombre() + "': " + rol.getPermisos().stream().map(p -> p.getCodigo()).toList());
+        
         for (Permiso permiso : rol.getPermisos()) {
             switch (permiso.getCodigo()) {
                 case "M4_LOTES": if (chkM4Lotes != null) chkM4Lotes.setSelected(true); break;
@@ -299,6 +301,8 @@ public class RolController {
         
         // Obtener permisos seleccionados
         List<String> permisosSeleccionados = getSelectedPermisoIds();
+        
+        System.out.println("[DEBUG] Permisos a guardar para rol '" + nombre + "': " + permisosSeleccionados);
 
         if (selectedRol == null) {
             Rol nuevo = new Rol(null, nombre);
