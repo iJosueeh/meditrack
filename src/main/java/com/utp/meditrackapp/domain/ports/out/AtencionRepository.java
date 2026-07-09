@@ -32,4 +32,10 @@ public interface AtencionRepository {
     List<String> findMedicosDistinct();
 
     int countBySedeAndYear(String sedeId, int year);
+
+    List<AtencionDetalle> findDetallesByAtencionId(String atencionId);
+
+    void updateAtencion(Atencion atencion);
+
+    void deleteAtencion(String atencionId);
 }

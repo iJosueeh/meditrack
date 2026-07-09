@@ -140,3 +140,38 @@
 
 .text-on-danger { -fx-text-fill: -color-danger-fg; }
 .text-on-success { -fx-text-fill: -color-success-fg; }
+
+/* Typeahead Popup List */
+.popup-list {
+    -fx-background-color: -color-bg-default;
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 10, 0, 0, 5);
+    -fx-padding: 4 0;
+}
+
+.popup-list .list-cell {
+    -fx-padding: 10 14;
+    -fx-cursor: hand;
+}
+
+.popup-list .list-cell:hover {
+    -fx-background-color: -color-accent-subtle;
+}
+
+.popup-list .list-cell:selected {
+    -fx-background-color: -color-accent-fg;
+    -fx-text-fill: -color-bg-default;
+}
+
+/* Pagination cursor - forzar cursor en todos los elementos clickeables */
+.pagination,
+.pagination .pagination-control,
+.pagination .pagination-control .bullet-button,
+.pagination .pagination-control .bullet-button .number,
+.pagination .pagination-control .arrow-button,
+.pagination .pagination-control .arrow-button .arrow {
+    -fx-cursor: hand;
+}

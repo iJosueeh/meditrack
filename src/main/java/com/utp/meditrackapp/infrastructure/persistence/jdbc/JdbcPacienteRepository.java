@@ -229,6 +229,49 @@ public class JdbcPacienteRepository implements PacienteRepository {
         return 0;
     }
 
+    @Override
+    public List<Paciente> findTypeahead(String query, int limit) {
+        List<Paciente> pacientes = new ArrayList<>();
+        if (query == null || query.trim().length() < 2) {
+            return pacientes;
+        }
+
+        String trimmed = query.trim();
+        StringBuilder sql = new StringBuilder("SELECT TOP (?) * FROM pacientes WHERE is_activo = 1");
+        List<String> params = new ArrayList<>();
+
+        if (trimmed.matches("\\d+")) {
+            sql.append(" AND numero_documento LIKE ?");
+            params.add("%" + trimmed + "%");
+        } else {
+            String[] terms = trimmed.split("\\s+");
+            for (String term : terms) {
+                sql.append(" AND (nombres LIKE ? OR apellidos LIKE ?)");
+                params.add("%" + term + "%");
+                params.add("%" + term + "%");
+            }
+        }
+
+        sql.append(" ORDER BY apellidos ASC");
+
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            ps.setInt(1, limit);
+            int paramIndex = 2;
+            for (String param : params) {
+                ps.setString(paramIndex++, param);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    pacientes.add(mapPaciente(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return pacientes;
+    }
+
     /**
      * Cuenta pacientes atendidos hoy en una sede.
      */

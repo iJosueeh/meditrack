@@ -78,7 +78,7 @@
                                             </columns>
                                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                                         </TableView>
-                                        
+                                        <Pagination fx:id="paginationMovements" pageCount="1" currentPageIndex="0" visible="true" />
                                         <VBox fx:id="alertsContainer" maxHeight="120" spacing="10" styleClass="card, elevated" visible="false" managed="false">
                                             <Label text="ALERTAS" styleClass="text-caption, text-bold, text-muted" />
                                         </VBox>
@@ -146,16 +146,19 @@
                                     </HBox>
 
                                     <!-- Tabla full width -->
-                                    <TableView fx:id="tableBatches" VBox.vgrow="ALWAYS">
-                                        <columns>
-                                            <TableColumn fx:id="colBatchDigemid" text="CÓD. DIGEMID" prefWidth="100" />
-                                            <TableColumn fx:id="colBatchProduct" text="Producto" prefWidth="250" />
-                                            <TableColumn fx:id="colBatchNum" text="LOTE" prefWidth="110" />
-                                            <TableColumn fx:id="colBatchFab" text="F. Fabricación" prefWidth="110" />
-                                            <TableColumn fx:id="colBatchExp" text="F. Vencimiento" prefWidth="110" />
-                                        </columns>
-                                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
-                                    </TableView>
+                                    <VBox spacing="10" VBox.vgrow="ALWAYS">
+                                        <TableView fx:id="tableBatches" VBox.vgrow="ALWAYS">
+                                            <columns>
+                                                <TableColumn fx:id="colBatchDigemid" text="CÓD. DIGEMID" prefWidth="100" />
+                                                <TableColumn fx:id="colBatchProduct" text="Producto" prefWidth="250" />
+                                                <TableColumn fx:id="colBatchNum" text="LOTE" prefWidth="110" />
+                                                <TableColumn fx:id="colBatchFab" text="F. Fabricación" prefWidth="110" />
+                                                <TableColumn fx:id="colBatchExp" text="F. Vencimiento" prefWidth="110" />
+                                            </columns>
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                        </TableView>
+                                        <Pagination fx:id="paginationBatches" pageCount="1" currentPageIndex="0" visible="true" />
+                                    </VBox>
                                 </VBox>
                             </Tab>
                         </tabs>

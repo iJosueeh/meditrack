@@ -91,6 +91,7 @@
                                 <Label text="No se encontraron pacientes registrados." styleClass="text-muted" />
                             </placeholder>
                         </TableView>
+                        <Pagination fx:id="paginationPatients" pageCount="1" currentPageIndex="0" />
                     </VBox>
                 </VBox>
             </ScrollPane>

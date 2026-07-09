@@ -5,12 +5,14 @@ import com.utp.meditrackapp.domain.entities.Paciente;
 import com.utp.meditrackapp.infrastructure.adapters.PacienteAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.List;
@@ -34,6 +36,11 @@ public class PacienteController {
     @FXML private Label lblTodayAttentions;
     @FXML private Label lblNewPatientsMonth;
 
+    // Pagination
+    @FXML private Pagination paginationPatients;
+    private static final int ROWS_PER_PAGE = 10;
+    private final ObservableList<Paciente> allPatients = FXCollections.observableArrayList();
+
     // Form Overlay Fields
     @FXML private StackPane formOverlay;
     @FXML private Label formTitle;
@@ -45,13 +52,13 @@ public class PacienteController {
     @FXML private CheckBox chkActivo;
 
     private final PacienteAdapter pacienteAdapter = new PacienteAdapter();
-    private Paciente currentPaciente; // Para edición
+    private Paciente currentPaciente;
 
     @FXML
     public void initialize() {
         setupTable();
         setupForm();
-        loadPatients();
+        loadDataInBackground();
         applyRoleRestrictions();
         handleInitialSearch();
     }
@@ -140,49 +147,94 @@ public class PacienteController {
         typeDocCombo.getSelectionModel().selectFirst();
     }
 
-    private void loadPatients() {
-        try {
-            List<Paciente> pacientes = pacienteAdapter.listarPacientes();
-            patientsTable.setItems(FXCollections.observableArrayList(pacientes));
-            updateSummary();
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "No se pudieron cargar los pacientes: " + e.getMessage());
-        }
+    private void loadDataInBackground() {
+        patientsTable.setPlaceholder(new Label("Cargando pacientes..."));
+
+        Task<List<?>> loadTask = new Task<>() {
+            @Override
+            protected List<?> call() throws Exception {
+                List<Paciente> pacientes = pacienteAdapter.listarPacientes();
+                int total = pacienteAdapter.getContadorTotal();
+                int atendidosHoy = pacienteAdapter.getAtendidosHoy();
+                int nuevosMes = pacienteAdapter.getNuevosDelMes();
+                return List.of(pacientes, total, atendidosHoy, nuevosMes);
+            }
+        };
+
+        loadTask.setOnSucceeded(e -> {
+            List<?> result = loadTask.getValue();
+            @SuppressWarnings("unchecked")
+            List<Paciente> pacientes = (List<Paciente>) result.get(0);
+            int total = (int) result.get(1);
+            int atendidosHoy = (int) result.get(2);
+            int nuevosMes = (int) result.get(3);
+
+            allPatients.setAll(pacientes);
+            refreshPagination();
+
+            lblTotalPatients.setText(String.valueOf(total));
+            lblTodayAttentions.setText(String.valueOf(atendidosHoy));
+            lblNewPatientsMonth.setText(String.valueOf(nuevosMes));
+
+            patientsTable.setPlaceholder(new Label("No se encontraron pacientes registrados."));
+        });
+
+        loadTask.setOnFailed(e -> {
+            patientsTable.setPlaceholder(new Label("Error al cargar pacientes."));
+            Throwable ex = loadTask.getException();
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudieron cargar los pacientes: " + (ex != null ? ex.getMessage() : "Error desconocido"));
+        });
+
+        new Thread(loadTask).start();
     }
 
-    private void updateSummary() {
-        javafx.application.Platform.runLater(() -> {
-            try {
-                lblTotalPatients.setText(String.valueOf(pacienteAdapter.getContadorTotal()));
-                lblTodayAttentions.setText(String.valueOf(pacienteAdapter.getAtendidosHoy()));
-                lblNewPatientsMonth.setText(String.valueOf(pacienteAdapter.getNuevosDelMes()));
-            } catch (Exception e) {
-                System.err.println("[UI ERROR] Fallo al actualizar resumen: " + e.getMessage());
-            }
-        });
+    private void refreshPagination() {
+        String query = searchField.getText();
+        List<Paciente> filtered = filterPatients(allPatients, query);
+
+        int totalItems = filtered.size();
+        int pageCount = (int) Math.ceil((double) totalItems / ROWS_PER_PAGE);
+        if (pageCount < 1) pageCount = 1;
+
+        paginationPatients.setPageCount(pageCount);
+        paginationPatients.currentPageIndexProperty().set(0);
+        paginationPatients.setPageFactory(this::createPage);
+    }
+
+    private javafx.scene.Node createPage(int pageIndex) {
+        String query = searchField.getText();
+        List<Paciente> filtered = filterPatients(allPatients, query);
+
+        int fromIndex = pageIndex * ROWS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, filtered.size());
+
+        ObservableList<Paciente> pageItems = FXCollections.observableArrayList();
+        if (fromIndex < toIndex) {
+            pageItems.addAll(filtered.subList(fromIndex, toIndex));
+        }
+        patientsTable.setItems(pageItems);
+        return new VBox();
+    }
+
+    private List<Paciente> filterPatients(ObservableList<Paciente> source, String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.copyOf(source);
+        }
+        String[] terms = query.trim().toLowerCase().split("\\s+");
+        return source.stream()
+            .filter(p -> {
+                String fullData = (p.getNumeroDocumento() + " " + p.getNombres() + " " + p.getApellidos()).toLowerCase();
+                for (String term : terms) {
+                    if (!fullData.contains(term)) return false;
+                }
+                return true;
+            })
+            .toList();
     }
 
     @FXML
     protected void onSearch() {
-        String query = searchField.getText();
-        List<Paciente> basePacientes = pacienteAdapter.listarPacientes();
-
-        if (query == null || query.trim().isEmpty()) {
-            patientsTable.setItems(FXCollections.observableArrayList(basePacientes));
-        } else {
-            String[] terms = query.trim().toLowerCase().split("\\s+");
-            List<Paciente> filtered = basePacientes.stream()
-                .filter(p -> {
-                    String fullData = (p.getNumeroDocumento() + " " + p.getNombres() + " " + p.getApellidos()).toLowerCase();
-                    for (String term : terms) {
-                        if (!fullData.contains(term)) return false;
-                    }
-                    return true;
-                })
-                .toList();
-            patientsTable.setItems(FXCollections.observableArrayList(filtered));
-        }
-        updateSummary();
+        refreshPagination();
     }
 
     @FXML
@@ -233,7 +285,7 @@ public class PacienteController {
         if ("OK".equals(result)) {
             showAlert(Alert.AlertType.INFORMATION, "Éxito", "Paciente guardado correctamente.");
             formOverlay.setVisible(false);
-            loadPatients();
+            loadDataInBackground();
         } else {
             showAlert(Alert.AlertType.ERROR, "Error de Validación", result);
         }
@@ -334,7 +386,7 @@ public class PacienteController {
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 String resultMsg = pacienteAdapter.desactivarPaciente(p.getId());
                 if ("OK".equals(resultMsg)) {
-                    loadPatients();
+                    loadDataInBackground();
                 } else {
                     showAlert(Alert.AlertType.WARNING, "No se pudo bloquear", resultMsg);
                 }
@@ -342,7 +394,7 @@ public class PacienteController {
         } else {
             String resultMsg = pacienteAdapter.reactivarPaciente(p.getId());
             if ("OK".equals(resultMsg)) {
-                loadPatients();
+                loadDataInBackground();
             } else {
                 showAlert(Alert.AlertType.WARNING, "No se pudo reactivar", resultMsg);
             }
@@ -378,7 +430,7 @@ public class PacienteController {
                 "El paciente \"" + p.getNombres() + " " + p.getApellidos() + "\" tiene movimientos de inventario o atenciones registradas.\nNo se puede eliminar sin borrar primero el historial asociado.");
         } else if ("OK".equals(resultMsg)) {
             showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Paciente eliminado correctamente.");
-            loadPatients();
+            loadDataInBackground();
         } else {
             showAlert(Alert.AlertType.ERROR, "Error", resultMsg);
         }

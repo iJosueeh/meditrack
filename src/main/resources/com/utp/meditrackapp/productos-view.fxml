@@ -72,6 +72,7 @@
                                 <Label text="No se encontraron productos." styleClass="text-muted" />
                             </placeholder>
                         </TableView>
+                        <Pagination fx:id="paginationProducts" pageCount="1" currentPageIndex="0" />
                     </VBox>
                 </VBox>
             </ScrollPane>
