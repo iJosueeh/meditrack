@@ -1,5 +1,7 @@
 package com.utp.meditrackapp.infrastructure.adapters;
 
+import com.utp.meditrackapp.core.cache.ReferenceCacheManager;
+import com.utp.meditrackapp.core.cache.ReferenceCacheManager.CacheType;
 import com.utp.meditrackapp.domain.entities.Categoria;
 import com.utp.meditrackapp.domain.entities.Producto;
 import com.utp.meditrackapp.domain.services.inventario.CalcularStockUseCase;
@@ -11,13 +13,10 @@ import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcProductoReposito
 import java.util.List;
 import java.util.Map;
 
-/**
- * Adaptador para ProductoController.
- * Delega al GestionarProductoUseCase del dominio.
- */
 public class ProductoAdapter {
     private final GestionarProductoUseCase useCase;
     private final CalcularStockUseCase stockUseCase;
+    private final ReferenceCacheManager cache = ReferenceCacheManager.getInstance();
 
     public ProductoAdapter() {
         JdbcLoteRepository loteRepo = new JdbcLoteRepository();
@@ -33,19 +32,25 @@ public class ProductoAdapter {
     }
 
     public String guardarProducto(Producto producto) {
-        return useCase.guardar(producto);
+        String r = useCase.guardar(producto);
+        if ("OK".equals(r)) cache.invalidate(CacheType.PRODUCTOS, CacheType.CATEGORIAS);
+        return r;
     }
 
     public String actualizarProducto(Producto producto) {
-        return useCase.actualizar(producto);
+        String r = useCase.actualizar(producto);
+        cache.invalidate(CacheType.PRODUCTOS, CacheType.CATEGORIAS);
+        return r;
     }
 
     public String desactivarProducto(String id) {
-        return useCase.desactivar(id);
+        String r = useCase.desactivar(id);
+        if ("OK".equals(r)) cache.invalidate(CacheType.PRODUCTOS);
+        return r;
     }
 
     public List<Categoria> listarCategorias() {
-        return useCase.listarCategorias();
+        return cache.get(CacheType.CATEGORIAS, () -> useCase.listarCategorias());
     }
 
     public int obtenerStockTotal(String sedeId, String productoId) {

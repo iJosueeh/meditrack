@@ -256,4 +256,73 @@ public class JdbcAtencionRepository implements AtencionRepository {
         }
         return a;
     }
+
+    @Override
+    public List<AtencionDetalle> findDetallesByAtencionId(String atencionId) {
+        List<AtencionDetalle> lista = new ArrayList<>();
+        String sql = "SELECT ad.*, l.numero_lote, l.fecha_vencimiento, p.nombre as producto_nombre " +
+            "FROM atencion_detalles ad " +
+            "JOIN lotes l ON ad.lote_id = l.id " +
+            "JOIN productos p ON l.producto_id = p.id " +
+            "WHERE ad.atencion_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, atencionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    AtencionDetalle d = new AtencionDetalle();
+                    d.setId(rs.getString("id"));
+                    d.setAtencionId(rs.getString("atencion_id"));
+                    d.setLoteId(rs.getString("lote_id"));
+                    d.setCantidadEntregada(rs.getInt("cantidad_entregada"));
+                    d.setLoteNumero(rs.getString("numero_lote"));
+                    d.setProductoNombre(rs.getString("producto_nombre"));
+                    Timestamp vence = rs.getTimestamp("fecha_vencimiento");
+                    if (vence != null) {
+                        d.setFechaVencimiento(vence.toLocalDateTime().toLocalDate().toString());
+                    }
+                    lista.add(d);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    @Override
+    public void updateAtencion(Atencion atencion) {
+        String sql = "UPDATE atenciones SET numero_receta = ?, medico = ? WHERE id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, atencion.getNumeroReceta());
+            ps.setString(2, atencion.getMedico());
+            ps.setString(3, atencion.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar atención: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteAtencion(String atencionId) {
+        String sqlDetalles = "DELETE FROM atencion_detalles WHERE atencion_id = ?";
+        String sqlAtencion = "DELETE FROM atenciones WHERE id = ?";
+        try (Connection conn = dbConfig.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps1 = conn.prepareStatement(sqlDetalles);
+                 PreparedStatement ps2 = conn.prepareStatement(sqlAtencion)) {
+                ps1.setString(1, atencionId);
+                ps1.executeUpdate();
+                ps2.setString(1, atencionId);
+                ps2.executeUpdate();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar atención: " + e.getMessage(), e);
+        }
+    }
 }

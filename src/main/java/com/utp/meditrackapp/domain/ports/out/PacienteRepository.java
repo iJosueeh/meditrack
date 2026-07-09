@@ -31,4 +31,6 @@ public interface PacienteRepository {
     boolean hardDelete(String id);
 
     int countBySede(String sedeId);
+
+    List<Paciente> findTypeahead(String query, int limit);
 }

@@ -21,126 +21,182 @@
                     <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
                     
                     <!-- Header -->
-                    <VBox spacing="10">
-                        <HBox alignment="CENTER_LEFT" spacing="15">
-                            <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                <Label text="Atención y Dispensación" styleClass="title-2" />
-                                <Label text="Registre la entrega de medicamentos basada en recetas médicas." styleClass="text-muted" wrapText="true" />
-                            </VBox>
-                            <HBox spacing="8" alignment="CENTER_LEFT">
-                                <Button text="Limpiar" onAction="#onLimpiarTodo" styleClass="button, flat, sm">
-                                    <graphic><FontIcon iconLiteral="fas-eraser" /></graphic>
-                                </Button>
-                                <Button onAction="#onGenerateReport" styleClass="button, sm, danger">
-                                    <graphic><FontIcon iconLiteral="fas-file-pdf" iconColor="white" /></graphic>
-                                </Button>
-                            </HBox>
-                        </HBox>
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Periodo:" styleClass="text-caption, text-muted" />
-                            <DatePicker fx:id="dpFromDate" promptText="Desde" maxWidth="130" />
-                            <DatePicker fx:id="dpToDate" promptText="Hasta" maxWidth="130" />
-                        </HBox>
+                    <VBox spacing="4">
+                        <Label text="Atención y Dispensación" styleClass="title-2" />
+                        <Label text="Registre la entrega de medicamentos basada en recetas médicas." styleClass="text-muted" wrapText="true" />
                     </VBox>
 
-                    <!-- Patient & Prescription row: full width -->
-                    <HBox spacing="20">
-                        <!-- Patient Search -->
-                        <VBox styleClass="card, elevated" spacing="12" HBox.hgrow="ALWAYS">
-                            <HBox alignment="CENTER_LEFT" spacing="10">
-                                <FontIcon iconLiteral="fas-user-injured" styleClass="icon-accent" />
-                                <Label text="DATOS DEL PACIENTE" styleClass="text-caption, text-bold, text-muted" />
-                            </HBox>
-                            <HBox spacing="10" alignment="BOTTOM_LEFT">
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="Buscar paciente (DNI, nombre o apellido)" styleClass="text-caption, text-muted" />
-                                    <ComboBox fx:id="cmbPaciente" promptText="Escriba para buscar..." maxWidth="Infinity" onAction="#onPacienteSelected" />
+                    <!-- Tabs -->
+                    <TabPane fx:id="atencionTabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                        <tabs>
+
+                            <!-- ==================== TAB ATENCIONES ==================== -->
+                            <Tab text="Atenciones">
+                                <VBox spacing="15" style="-fx-padding: 25 0 0 0;">
+                                    <!-- Search bar -->
+                                    <HBox styleClass="filter-bar" spacing="10" alignment="CENTER_LEFT">
+                                        <TextField fx:id="txtSearchPaciente" promptText="Buscar por DNI o nombre del paciente..." HBox.hgrow="ALWAYS" onKeyReleased="#onSearchPacienteKey" />
+                                        <Button text="Consultar" onAction="#onBuscarAtenciones" styleClass="button, accent">
+                                            <graphic><FontIcon iconLiteral="fas-search" iconColor="white" /></graphic>
+                                        </Button>
+                                        <Button text="Limpiar" onAction="#onLimpiarBusqueda" styleClass="button, flat">
+                                            <graphic><FontIcon iconLiteral="fas-eraser" iconColor="#6b7280" /></graphic>
+                                        </Button>
+                                    </HBox>
+
+                                    <!-- Info del paciente seleccionado -->
+                                    <HBox fx:id="hboxPacienteInfo" visible="false" managed="false" alignment="CENTER_LEFT" spacing="10" styleClass="bg-success-subtle" style="-fx-padding: 10 15; -fx-background-radius: 8;">
+                                        <FontIcon iconLiteral="fas-user-check" styleClass="icon-success" />
+                                        <Label fx:id="lblPacienteInfo" text="" styleClass="text-bold" />
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Label fx:id="lblAtencionesCount" text="" styleClass="text-caption, text-muted" />
+                                    </HBox>
+
+                                    <!-- Tabla de atenciones -->
+                                    <TableView fx:id="tableHistorial" VBox.vgrow="ALWAYS" fixedCellSize="45">
+                                        <columns>
+                                            <TableColumn fx:id="colHistFecha" text="FECHA" prefWidth="160" />
+                                            <TableColumn fx:id="colHistReceta" text="N° RECETA" prefWidth="160" />
+                                            <TableColumn fx:id="colHistMedico" text="MÉDICO" prefWidth="200" />
+                                            <TableColumn fx:id="colHistAcciones" text="ACCIONES" prefWidth="140" sortable="false" />
+                                        </columns>
+                                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                        <placeholder>
+                                            <Label text="Ingrese un DNI o nombre y presione Consultar para ver las atenciones." styleClass="text-muted" />
+                                        </placeholder>
+                                    </TableView>
                                 </VBox>
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="N° RECETA" styleClass="text-caption, text-muted" />
-                                    <TextField fx:id="txtReceta" promptText="Ej: REC-2024-001" />
-                                </VBox>
-                                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                    <Label text="MÉDICO" styleClass="text-caption, text-muted" />
-                                    <TextField fx:id="txtMedico" promptText="Opcional" maxWidth="Infinity" />
-                                </VBox>
-                                <Button onAction="#onSearchByReceta" styleClass="button">
-                                    <graphic><FontIcon iconLiteral="fas-search" /></graphic>
-                                </Button>
-                            </HBox>
-                            <VBox fx:id="vboxPatientInfo" visible="false" managed="false" spacing="10" styleClass="bg-accent-subtle" style="-fx-padding: 12; -fx-background-radius: 8;">
-                                <HBox spacing="20" alignment="CENTER_LEFT">
-                                    <VBox spacing="2">
-                                        <Label fx:id="lblPatientName" text="NOMBRE DEL PACIENTE" styleClass="text-bold" />
-                                        <Label fx:id="lblPatientPhone" text="Teléfono: -" styleClass="text-muted" />
+                            </Tab>
+
+                            <!-- ==================== TAB DISPENSACIÓN ==================== -->
+                            <Tab text="Dispensación">
+                                <VBox spacing="15" style="-fx-padding: 25 0 0 0;">
+                                    <!-- Search bar -->
+                                    <HBox styleClass="filter-bar" spacing="10" alignment="CENTER_LEFT">
+                                        <TextField fx:id="txtBusquedaPacienteDisp" promptText="Buscar por DNI o nombre del paciente..." HBox.hgrow="ALWAYS" onKeyReleased="#onSearchPacienteDispKey" />
+                                        <Button text="Consultar" onAction="#onBuscarPacienteDisp" styleClass="button, accent">
+                                            <graphic><FontIcon iconLiteral="fas-search" iconColor="white" /></graphic>
+                                        </Button>
+                                        <Button text="Limpiar" onAction="#onLimpiarBusquedaDisp" styleClass="button, flat">
+                                            <graphic><FontIcon iconLiteral="fas-eraser" iconColor="#6b7280" /></graphic>
+                                        </Button>
+                                    </HBox>
+
+                                    <!-- Info del paciente seleccionado -->
+                                    <HBox fx:id="hboxPacienteInfoDisp" visible="false" managed="false" alignment="CENTER_LEFT" spacing="15" styleClass="bg-success-subtle" style="-fx-padding: 10 15; -fx-background-radius: 8;">
+                                        <FontIcon iconLiteral="fas-user-check" styleClass="icon-success" />
+                                        <Label fx:id="lblPatientNameDisp" text="" styleClass="text-bold" />
+                                        <Label fx:id="lblPatientPhoneDisp" text="" styleClass="text-muted" />
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Label fx:id="lblRecetaNum" text="" styleClass="text-bold" style="-fx-text-fill: #2563eb;" />
+                                    </HBox>
+
+                                    <!-- Agregar medicamento -->
+                                    <HBox styleClass="card, elevated" spacing="12" alignment="BOTTOM_LEFT">
+                                        <VBox spacing="4" maxWidth="180">
+                                            <Label text="MÉDICO" styleClass="text-caption, text-muted" />
+                                            <TextField fx:id="txtMedico" promptText="Opcional" />
+                                        </VBox>
+                                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                            <Label text="PRODUCTO" styleClass="text-caption, text-muted" />
+                                            <ComboBox fx:id="cmbProducto" maxWidth="Infinity" promptText="Seleccione medicamento..." onAction="#onProductoSelected" />
+                                        </VBox>
+                                        <VBox spacing="4" maxWidth="90">
+                                            <Label text="CANTIDAD" styleClass="text-caption, text-muted" />
+                                            <TextField fx:id="txtCantidad" promptText="0" />
+                                        </VBox>
+                                        <Button text="Agregar" onAction="#onAddToBasket" styleClass="button, accent" />
+                                    </HBox>
+                                    <!-- Selección de lote FEFO -->
+                                    <HBox spacing="10" alignment="CENTER_LEFT" visible="false" managed="false" fx:id="hboxLoteSelect">
+                                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                            <Label text="LOTE (FEFO)" styleClass="text-caption, text-bold, text-muted" />
+                                            <ComboBox fx:id="cmbLote" maxWidth="Infinity" promptText="Seleccione producto primero..." />
+                                        </VBox>
+                                    </HBox>
+
+                                    <!-- Canasta -->
+                                    <VBox styleClass="card, elevated" spacing="12" VBox.vgrow="ALWAYS">
+                                        <HBox alignment="CENTER_LEFT" spacing="10">
+                                            <Label text="DETALLE DE DISPENSACIÓN" styleClass="text-caption, text-bold, text-muted" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="lblItemsCount" text="0 ítems" styleClass="text-caption, text-muted" />
+                                        </HBox>
+                                        
+                                        <TableView fx:id="tableBasket" VBox.vgrow="ALWAYS">
+                                            <columns>
+                                                <TableColumn fx:id="colBasketProduct" text="Producto" prefWidth="280" />
+                                                <TableColumn fx:id="colBasketLote" text="Lote" prefWidth="130" />
+                                                <TableColumn fx:id="colBasketExp" text="Vencimiento" prefWidth="120" />
+                                                <TableColumn fx:id="colBasketQty" text="Cant." prefWidth="70" />
+                                                <TableColumn fx:id="colBasketAction" text="" prefWidth="50" />
+                                            </columns>
+                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                            <placeholder>
+                                                <Label text="No hay productos en la canasta." styleClass="text-muted" />
+                                            </placeholder>
+                                        </TableView>
+
+                                        <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 5 0 0 0;">
+                                            <VBox alignment="CENTER_RIGHT">
+                                                <Label text="TOTAL A DISPENSAR" styleClass="text-caption, text-muted" />
+                                                <Label fx:id="lblTotalDispensed" text="0" styleClass="title-3" />
+                                            </VBox>
+                                            <Button text="Confirmar Atención" onAction="#onConfirmarEntrega" styleClass="button, accent, large" />
+                                        </HBox>
                                     </VBox>
-                                    <Region HBox.hgrow="ALWAYS" />
-                                    <VBox spacing="4">
-                                        <Label text="ÚLTIMAS ATENCIONES" styleClass="text-caption, text-bold, text-muted" />
-                                        <ListView fx:id="listHistory" prefHeight="80" maxWidth="350" styleClass="edge-to-edge" />
-                                    </VBox>
-                                </HBox>
-                            </VBox>
-                        </VBox>
-                    </HBox>
-
-                    <!-- Add to Basket: full width -->
-                    <VBox styleClass="card, elevated" spacing="12">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <FontIcon iconLiteral="fas-pills" styleClass="icon-accent" />
-                            <Label text="AGREGAR MEDICAMENTO" styleClass="text-caption, text-bold, text-muted" />
-                        </HBox>
-                        <HBox spacing="12" alignment="BOTTOM_LEFT">
-                            <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                <Label text="PRODUCTO" styleClass="text-caption, text-muted" />
-                                <ComboBox fx:id="cmbProducto" maxWidth="Infinity" promptText="Seleccione medicamento..." onAction="#onProductoSelected" />
-                            </VBox>
-                            <VBox spacing="4" maxWidth="90">
-                                <Label text="CANTIDAD" styleClass="text-caption, text-muted" />
-                                <TextField fx:id="txtCantidad" promptText="0" />
-                            </VBox>
-                            <Button text="Agregar" onAction="#onAddToBasket" styleClass="button, accent">
-                                <graphic><FontIcon iconLiteral="fas-cart-plus" iconColor="white" /></graphic>
-                            </Button>
-                        </HBox>
-                        <Label fx:id="lblFefoSuggestion" text="" visible="false" managed="false" wrapText="true" style="-fx-font-size: 11px; -fx-text-fill: #2563eb; -fx-font-style: italic;" />
-                    </VBox>
-
-                    <!-- Basket Table: full width -->
-                    <VBox styleClass="card, elevated" spacing="12" VBox.vgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <FontIcon iconLiteral="fas-shopping-basket" styleClass="icon-accent" />
-                            <Label text="DETALLE DE DISPENSACIÓN (CANASTA)" styleClass="text-caption, text-bold, text-muted" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <Label fx:id="lblItemsCount" text="0 ítems" styleClass="text-caption, text-muted" />
-                        </HBox>
-                        
-                        <TableView fx:id="tableBasket" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="colBasketProduct" text="Producto" prefWidth="280" />
-                                <TableColumn fx:id="colBasketLote" text="Lote" prefWidth="130" />
-                                <TableColumn fx:id="colBasketExp" text="Vencimiento" prefWidth="120" />
-                                <TableColumn fx:id="colBasketQty" text="Cant." prefWidth="70" />
-                                <TableColumn fx:id="colBasketAction" text="" prefWidth="50" />
-                            </columns>
-                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
-                            <placeholder>
-                                <Label text="No hay productos en la canasta." styleClass="text-muted" />
-                            </placeholder>
-                        </TableView>
-
-                        <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 5 0 0 0;">
-                            <VBox alignment="CENTER_RIGHT">
-                                <Label text="TOTAL A DISPENSAR" styleClass="text-caption, text-muted" />
-                                <Label fx:id="lblTotalDispensed" text="0" styleClass="title-3" />
-                            </VBox>
-                            <Button text="Confirmar Atención" onAction="#onConfirmarEntrega" styleClass="button, accent, large">
-                                <graphic><FontIcon iconLiteral="fas-check-circle" iconColor="white" /></graphic>
-                            </Button>
-                        </HBox>
-                    </VBox>
+                                </VBox>
+                            </Tab>
+                        </tabs>
+                    </TabPane>
                 </VBox>
             </ScrollPane>
         </center>
     </BorderPane>
+
+    <!-- Modal: Ver Detalle -->
+    <StackPane fx:id="modalDetalle" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="700" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+            <VBox styleClass="modal-header">
+                <Label fx:id="lblDetalleTitle" text="Detalle de Atención" styleClass="title-4" />
+                <Label fx:id="lblDetalleSub" text="" styleClass="text-muted" />
+            </VBox>
+            <TableView fx:id="tableDetalle" prefHeight="250">
+                <columns>
+                    <TableColumn fx:id="colDetProducto" text="Producto" prefWidth="250" />
+                    <TableColumn fx:id="colDetLote" text="Lote" prefWidth="120" />
+                    <TableColumn fx:id="colDetVencimiento" text="Vencimiento" prefWidth="110" />
+                    <TableColumn fx:id="colDetCantidad" text="Cantidad" prefWidth="80" />
+                </columns>
+                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+            </TableView>
+            <HBox alignment="CENTER_RIGHT">
+                <Button text="Cerrar" onAction="#onCloseDetalle" styleClass="button, flat" />
+            </HBox>
+        </VBox>
+    </StackPane>
+
+    <!-- Modal: Editar Atención -->
+    <StackPane fx:id="modalEditar" visible="false" styleClass="modal-overlay">
+        <VBox maxWidth="450" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+            <VBox styleClass="modal-header">
+                <Label text="Editar Atención" styleClass="title-4" />
+                <Label fx:id="lblEditarSub" text="" styleClass="text-muted" />
+            </VBox>
+            <VBox spacing="12">
+                <VBox spacing="4">
+                    <Label text="N° RECETA" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="txtEditReceta" maxWidth="Infinity" />
+                </VBox>
+                <VBox spacing="4">
+                    <Label text="MÉDICO" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="txtEditMedico" maxWidth="Infinity" />
+                </VBox>
+            </VBox>
+            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button text="Cancelar" onAction="#onCloseEditar" styleClass="button, flat" />
+                <Button text="Guardar" onAction="#onSaveEditar" styleClass="button, accent" />
+            </HBox>
+        </VBox>
+    </StackPane>
 </StackPane>

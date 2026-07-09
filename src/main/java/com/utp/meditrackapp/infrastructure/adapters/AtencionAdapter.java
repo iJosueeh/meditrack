@@ -71,7 +71,9 @@ public class AtencionAdapter {
     }
 
     public List<Producto> listarProductosActivos() {
-        return productoRepository.findActivos();
+        return com.utp.meditrackapp.core.cache.ReferenceCacheManager.getInstance()
+            .get(com.utp.meditrackapp.core.cache.ReferenceCacheManager.CacheType.PRODUCTOS,
+                 () -> productoRepository.findActivos());
     }
 
     public List<Lote> listarLotesConProducto(String sedeId) {
@@ -98,6 +100,24 @@ public class AtencionAdapter {
 
     public List<Paciente> buscarPacientes(String query) {
         return pacienteUseCase.buscarPacientes(query);
+    }
+
+    public List<Paciente> buscarPacientesTypeahead(String query) {
+        return pacienteUseCase.buscarPacientesTypeahead(query);
+    }
+
+    public List<AtencionDetalle> buscarDetallesAtencion(String atencionId) {
+        return atencionRepository.findDetallesByAtencionId(atencionId);
+    }
+
+    public String editarAtencion(Atencion atencion) {
+        atencionRepository.updateAtencion(atencion);
+        return "OK";
+    }
+
+    public String eliminarAtencion(String atencionId) {
+        atencionRepository.deleteAtencion(atencionId);
+        return "OK";
     }
 
     private DispensacionReportDTO toDispensacionDTO(Object raw) {

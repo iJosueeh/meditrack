@@ -2,6 +2,8 @@ package com.utp.meditrackapp.infrastructure.adapters;
 
 import com.utp.meditrackapp.application.config.TransactionManager;
 import com.utp.meditrackapp.application.dto.StockCriticoDTO;
+import com.utp.meditrackapp.core.cache.ReferenceCacheManager;
+import com.utp.meditrackapp.core.cache.ReferenceCacheManager.CacheType;
 import com.utp.meditrackapp.domain.entities.Lote;
 import com.utp.meditrackapp.domain.entities.Movimiento;
 import com.utp.meditrackapp.domain.entities.Producto;
@@ -22,10 +24,6 @@ import com.utp.meditrackapp.domain.entities.TipoMovimiento;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Adaptador para InventoryController.
- * Delega a los casos de uso y repositorios del dominio.
- */
 public class InventoryAdapter {
     private final JdbcProductoRepository productoRepository;
     private final JdbcTipoMovimientoRepository tipoMovimientoRepository;
@@ -36,6 +34,7 @@ public class InventoryAdapter {
     private final RegistrarMovimientoUseCase registrarMovimientoUseCase;
     private final AnularMovimientoUseCase anularMovimientoUseCase;
     private final EditarMovimientoUseCase editarMovimientoUseCase;
+    private final ReferenceCacheManager cache = ReferenceCacheManager.getInstance();
 
     public InventoryAdapter() {
         this.productoRepository = new JdbcProductoRepository();
@@ -62,15 +61,15 @@ public class InventoryAdapter {
     }
 
     public List<Producto> listarProductosActivos() {
-        return productoRepository.findActivos();
+        return cache.get(CacheType.PRODUCTOS, () -> productoRepository.findActivos());
     }
 
     public List<TipoMovimiento> listarTiposMovimiento() {
-        return tipoMovimientoRepository.findAll();
+        return cache.get(CacheType.TIPOS_MOVIMIENTO, () -> tipoMovimientoRepository.findAll());
     }
 
     public List<MotivoMovimiento> listarMotivosMovimiento() {
-        return motivoMovimientoRepository.findAll();
+        return cache.get(CacheType.MOTIVOS_MOVIMIENTO, () -> motivoMovimientoRepository.findAll());
     }
 
     public List<Movimiento> listarMovimientosConFiltros(String sedeId, String tipoId, String buscar,
@@ -111,5 +110,13 @@ public class InventoryAdapter {
         } catch (java.sql.SQLException e) {
             throw new RuntimeException("Error al actualizar observación: " + e.getMessage(), e);
         }
+    }
+
+    public void invalidateCatalogCache() {
+        cache.invalidate(CacheType.TIPOS_MOVIMIENTO, CacheType.MOTIVOS_MOVIMIENTO);
+    }
+
+    public void invalidateProductCache() {
+        cache.invalidate(CacheType.PRODUCTOS);
     }
 }
