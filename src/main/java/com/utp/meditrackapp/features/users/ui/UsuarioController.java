@@ -9,6 +9,7 @@ import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
 import com.utp.meditrackapp.infrastructure.adapters.UserAdapter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -29,6 +30,11 @@ public class UsuarioController {
     @FXML private TableColumn<Usuario, String> colDni, colNombres, colRol, colSede;
     @FXML private TableColumn<Usuario, Integer> colEstado;
     @FXML private TableColumn<Usuario, Void> colActions;
+
+    // Pagination
+    @FXML private Pagination paginationUsers;
+    private static final int ROWS_PER_PAGE = 10;
+    private final ObservableList<Usuario> allUsers = FXCollections.observableArrayList();
 
     @FXML private StackPane formOverlay;
     @FXML private Label formTitle;
@@ -53,8 +59,140 @@ public class UsuarioController {
     @FXML
     public void initialize() {
         setupTable();
-        setupForm();
-        loadData();
+        loadFormDataInBackground();
+        loadDataInBackground();
+    }
+
+    private void loadFormDataInBackground() {
+        Task<List<?>> formTask = new Task<>() {
+            @Override
+            protected List<?> call() throws Exception {
+                var session = SessionManager.getInstance();
+                var rolActual = session.getRolUsuario();
+                List<Rol> todosLosRoles = userAdapter.listarRoles();
+                List<Rol> rolesDisponibles;
+                if (rolActual != null) {
+                    rolesDisponibles = todosLosRoles.stream()
+                        .filter(r -> r.getNivel() > rolActual.getNivel() || r.getId().equals(rolActual.getId()))
+                        .filter(r -> r.getIsActivo() == 1)
+                        .collect(Collectors.toList());
+                } else {
+                    rolesDisponibles = todosLosRoles;
+                }
+                List<Sede> sedesDisponibles = userAdapter.listarSedes();
+                if (!session.tienePermiso("M2_SEDES")) {
+                    Usuario currentUser = session.getCurrentUser();
+                    if (currentUser != null && currentUser.getSedeId() != null) {
+                        sedesDisponibles = sedesDisponibles.stream()
+                            .filter(s -> s.getId().equals(currentUser.getSedeId()))
+                            .collect(Collectors.toList());
+                    }
+                }
+                return List.of(rolesDisponibles, sedesDisponibles);
+            }
+        };
+
+        formTask.setOnSucceeded(e -> {
+            List<?> result = formTask.getValue();
+            @SuppressWarnings("unchecked")
+            List<Rol> rolesDisponibles = (List<Rol>) result.get(0);
+            @SuppressWarnings("unchecked")
+            List<Sede> sedesDisponibles = (List<Sede>) result.get(1);
+
+            typeDocCombo.setItems(FXCollections.observableArrayList("DNI", "CE"));
+
+            rolCombo.setConverter(new StringConverter<>() {
+                @Override public String toString(Rol r) { return r != null ? r.getNombre() : ""; }
+                @Override public Rol fromString(String s) { return null; }
+            });
+            sedeCombo.setConverter(new StringConverter<>() {
+                @Override public String toString(Sede s) { return s != null ? s.getNombre() : ""; }
+                @Override public Sede fromString(String s) { return null; }
+            });
+
+            rolCombo.setItems(FXCollections.observableArrayList(rolesDisponibles));
+            sedeCombo.setItems(FXCollections.observableArrayList(sedesDisponibles));
+        });
+
+        new Thread(formTask).start();
+    }
+
+    private void loadDataInBackground() {
+        usersTable.setPlaceholder(new Label("Cargando usuarios..."));
+
+        Task<List<?>> loadTask = new Task<>() {
+            @Override
+            protected List<?> call() throws Exception {
+                SessionManager session = SessionManager.getInstance();
+                if (session.tienePermiso("M2_SEDES")) {
+                    return userAdapter.listarUsuarios();
+                } else {
+                    Usuario currentUser = session.getCurrentUser();
+                    if (currentUser != null && currentUser.getSedeId() != null) {
+                        return userAdapter.listarUsuariosPorSede(currentUser.getSedeId());
+                    }
+                    return userAdapter.listarUsuarios();
+                }
+            }
+        };
+
+        loadTask.setOnSucceeded(e -> {
+            @SuppressWarnings("unchecked")
+            List<Usuario> users = (List<Usuario>) loadTask.getValue();
+            allUsers.setAll(users);
+            refreshPagination();
+            usersTable.setPlaceholder(new Label("No se encontraron usuarios."));
+        });
+
+        loadTask.setOnFailed(e -> {
+            usersTable.setPlaceholder(new Label("Error al cargar usuarios."));
+        });
+
+        new Thread(loadTask).start();
+    }
+
+    private void refreshPagination() {
+        String query = searchField.getText();
+        List<Usuario> filtered = filterUsers(allUsers, query);
+
+        int totalItems = filtered.size();
+        int pageCount = (int) Math.ceil((double) totalItems / ROWS_PER_PAGE);
+        if (pageCount < 1) pageCount = 1;
+
+        paginationUsers.setPageCount(pageCount);
+        paginationUsers.currentPageIndexProperty().set(0);
+        paginationUsers.setPageFactory(this::createPage);
+    }
+
+    private javafx.scene.Node createPage(int pageIndex) {
+        String query = searchField.getText();
+        List<Usuario> filtered = filterUsers(allUsers, query);
+
+        int fromIndex = pageIndex * ROWS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, filtered.size());
+
+        ObservableList<Usuario> pageItems = FXCollections.observableArrayList();
+        if (fromIndex < toIndex) {
+            pageItems.addAll(filtered.subList(fromIndex, toIndex));
+        }
+        usersTable.setItems(pageItems);
+        return new VBox();
+    }
+
+    private List<Usuario> filterUsers(ObservableList<Usuario> source, String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.copyOf(source);
+        }
+        String[] terms = query.trim().toLowerCase().split("\\s+");
+        return source.stream()
+            .filter(u -> {
+                String fullData = (u.getNombreCompleto() + " " + u.getNumeroDocumento()).toLowerCase();
+                for (String term : terms) {
+                    if (!fullData.contains(term)) return false;
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
     }
 
     private void setupTable() {
@@ -142,36 +280,7 @@ public class UsuarioController {
 
     @FXML
     protected void onSearch() {
-        String query = searchField.getText().toLowerCase().trim();
-        if (query.isEmpty()) {
-            loadData();
-            return;
-        }
-
-        SessionManager session = SessionManager.getInstance();
-        List<Usuario> baseUsers;
-        if (session.tienePermiso("M2_SEDES")) {
-            baseUsers = userAdapter.listarUsuarios();
-        } else {
-            Usuario currentUser = session.getCurrentUser();
-            if (currentUser != null && currentUser.getSedeId() != null) {
-                baseUsers = userAdapter.listarUsuariosPorSede(currentUser.getSedeId());
-            } else {
-                baseUsers = userAdapter.listarUsuarios();
-            }
-        }
-
-        String[] terms = query.split("\\s+");
-        List<Usuario> filtered = baseUsers.stream()
-            .filter(u -> {
-                String fullData = (u.getNombreCompleto() + " " + u.getNumeroDocumento()).toLowerCase();
-                for (String term : terms) {
-                    if (!fullData.contains(term)) return false;
-                }
-                return true;
-            })
-            .collect(Collectors.toList());
-        usersTable.setItems(FXCollections.observableArrayList(filtered));
+        refreshPagination();
     }
 
     @FXML
@@ -209,7 +318,7 @@ public class UsuarioController {
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Éxito", "Usuario guardado correctamente.");
                 formOverlay.setVisible(false);
-                loadData();
+                loadDataInBackground();
             } else {
                 showAlert(Alert.AlertType.ERROR, "Error", "No se pudo guardar el usuario.");
             }
@@ -384,7 +493,7 @@ public class UsuarioController {
         alert.showAndWait().ifPresent(type -> {
             if (type == ButtonType.YES) {
                 if ("OK".equals(userAdapter.toggleEstado(u.getId()))) {
-                    loadData();
+                    loadDataInBackground();
                 }
             }
         });
@@ -407,7 +516,7 @@ public class UsuarioController {
                 "El usuario \"" + u.getNombreCompleto() + "\" tiene movimientos o atenciones registradas.\nUse Desactivar para bloquearlo sin perder historial.");
         } else if ("OK".equals(deleteResult)) {
             showAlert(Alert.AlertType.INFORMATION, "Eliminado", "Usuario eliminado correctamente.");
-            loadData();
+            loadDataInBackground();
         } else {
             showAlert(Alert.AlertType.ERROR, "Error", deleteResult);
         }

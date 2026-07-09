@@ -9,12 +9,14 @@ import com.utp.meditrackapp.domain.entities.Usuario;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -35,6 +37,10 @@ public class ProductoController {
 
     @FXML private TextField txtSearch;
     @FXML private Label lblTotalProductos;
+
+    // Pagination
+    @FXML private Pagination paginationProducts;
+    private static final int ROWS_PER_PAGE = 10;
 
     // Modal fields
     @FXML private StackPane modalProducto;
@@ -165,35 +171,81 @@ public class ProductoController {
 
     @FXML
     public void loadData() {
-        try {
-            Usuario user = sessionManager.getCurrentUser();
-            if (user != null) {
-                stockMap.clear();
-                stockMap.putAll(productoAdapter.obtenerStockTotalPorSede(user.getSedeId()));
-            }
+        tableProductos.setPlaceholder(new Label("Cargando productos..."));
 
-            List<Producto> list = productoAdapter.listarProductos();
-            masterData.setAll(list);
-            tableProductos.setItems(masterData);
-            lblTotalProductos.setText(String.valueOf(list.size()));
-            
-            // Reload categories for the modal
-            cmbCategoria.setItems(FXCollections.observableArrayList(productoAdapter.listarCategorias()));
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Error al cargar datos: " + e.getMessage());
-        }
+        Task<List<?>> loadTask = new Task<>() {
+            @Override
+            protected List<?> call() throws Exception {
+                Usuario user = sessionManager.getCurrentUser();
+                Map<String, Integer> stock = user != null ? productoAdapter.obtenerStockTotalPorSede(user.getSedeId()) : new HashMap<>();
+                List<Producto> productos = productoAdapter.listarProductos();
+                List<Categoria> categorias = productoAdapter.listarCategorias();
+                return List.of(productos, stock, categorias);
+            }
+        };
+
+        loadTask.setOnSucceeded(e -> {
+            List<?> result = loadTask.getValue();
+            @SuppressWarnings("unchecked")
+            List<Producto> productos = (List<Producto>) result.get(0);
+            @SuppressWarnings("unchecked")
+            Map<String, Integer> stock = (Map<String, Integer>) result.get(1);
+            @SuppressWarnings("unchecked")
+            List<Categoria> categorias = (List<Categoria>) result.get(2);
+
+            stockMap.clear();
+            stockMap.putAll(stock);
+            masterData.setAll(productos);
+            cmbCategoria.setItems(FXCollections.observableArrayList(categorias));
+            lblTotalProductos.setText(String.valueOf(productos.size()));
+
+            refreshPagination();
+            tableProductos.setPlaceholder(new Label("No se encontraron productos."));
+        });
+
+        loadTask.setOnFailed(e -> {
+            tableProductos.setPlaceholder(new Label("Error al cargar productos."));
+            Throwable ex = loadTask.getException();
+            showAlert(Alert.AlertType.ERROR, "Error", "Error al cargar datos: " + (ex != null ? ex.getMessage() : "Error desconocido"));
+        });
+
+        new Thread(loadTask).start();
     }
 
-    @FXML
-    protected void onSearch() {
-        String query = txtSearch.getText().toLowerCase().trim();
-        if (query.isEmpty()) {
-            tableProductos.setItems(masterData);
-            return;
-        }
+    private void refreshPagination() {
+        String query = txtSearch.getText();
+        List<Producto> filtered = filterProducts(masterData, query);
 
-        String[] terms = query.split("\\s+");
-        List<Producto> filtered = masterData.stream()
+        int totalItems = filtered.size();
+        int pageCount = (int) Math.ceil((double) totalItems / ROWS_PER_PAGE);
+        if (pageCount < 1) pageCount = 1;
+
+        paginationProducts.setPageCount(pageCount);
+        paginationProducts.currentPageIndexProperty().set(0);
+        paginationProducts.setPageFactory(this::createPage);
+    }
+
+    private javafx.scene.Node createPage(int pageIndex) {
+        String query = txtSearch.getText();
+        List<Producto> filtered = filterProducts(masterData, query);
+
+        int fromIndex = pageIndex * ROWS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, filtered.size());
+
+        ObservableList<Producto> pageItems = FXCollections.observableArrayList();
+        if (fromIndex < toIndex) {
+            pageItems.addAll(filtered.subList(fromIndex, toIndex));
+        }
+        tableProductos.setItems(pageItems);
+        return new VBox();
+    }
+
+    private List<Producto> filterProducts(ObservableList<Producto> source, String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.copyOf(source);
+        }
+        String[] terms = query.trim().toLowerCase().split("\\s+");
+        return source.stream()
             .filter(p -> {
                 String fullData = (p.getNombre() + " " + p.getCodigoDigemid()).toLowerCase();
                 for (String term : terms) {
@@ -201,8 +253,12 @@ public class ProductoController {
                 }
                 return true;
             })
-            .collect(Collectors.toList());
-        tableProductos.setItems(FXCollections.observableArrayList(filtered));
+            .toList();
+    }
+
+    @FXML
+    protected void onSearch() {
+        refreshPagination();
     }
 
     @FXML

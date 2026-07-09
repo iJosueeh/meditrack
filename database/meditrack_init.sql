@@ -717,9 +717,9 @@ INSERT INTO [sedes] ([id], [nombre], [direccion], [telefono], [ubigeo], [tipo_se
 -- Usuarios (contraseña: admin123 - mismo hash para todos)
 -- Formato: USR-[SEDE_NUM]-[SECUENCIA 4 DIGITOS]
 INSERT INTO [usuarios] ([id], [sede_id], [rol_id], [tipo_documento], [numero_documento], [nombres], [apellidos], [telefono], [ubigeo], [password]) VALUES
-('USR-001-0001', 'SED-001', 'ROL-003', 'DNI', '33333333', 'Katherine Patricia', 'Salas Quiroz', '988333444', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU='),
-('USR-001-0002', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', '988111222', '150101', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU='),
-('USR-002-0001', 'SED-002', 'ROL-002', 'DNI', '22222222', 'Jefe', 'Farmacia', '988222333', '150102', 'gtLXTLxK5ju8hjct2v5uiQ==:9QRw+doH87Pe5YkHZtBI8cge8dLt79pBdkyRwck6LqU=');
+('USR-001-0001', 'SED-001', 'ROL-003', 'DNI', '33333333', 'Katherine Patricia', 'Salas Quiroz', '988333444', '150101', 'wVi9SjtGDbGlilL++RB/Iw==:eSjnPRrGdag6u2gJww8VPtyKatUvg2JyaiKmwOdI4Sc='),
+('USR-001-0002', 'SED-001', 'ROL-001', 'DNI', '12345678', 'Admin', 'Sistema', '988111222', '150101', 'wVi9SjtGDbGlilL++RB/Iw==:eSjnPRrGdag6u2gJww8VPtyKatUvg2JyaiKmwOdI4Sc='),
+('USR-002-0001', 'SED-002', 'ROL-002', 'DNI', '22222222', 'Jefe', 'Farmacia', '988222333', '150102', 'wVi9SjtGDbGlilL++RB/Iw==:eSjnPRrGdag6u2gJww8VPtyKatUvg2JyaiKmwOdI4Sc=');
 
 -- Actualizar administrador_id de sedes
 UPDATE [sedes] SET [administrador_id] = 'USR-001-0002' WHERE [id] = 'SED-001';

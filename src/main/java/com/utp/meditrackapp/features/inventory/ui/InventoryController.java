@@ -13,8 +13,10 @@ import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.infrastructure.adapters.InventoryAdapter;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -83,12 +85,136 @@ public class InventoryController {
     @FXML private TextArea txtModalObs;
     @FXML private DatePicker dpNewVenc, dpNewFab;
 
+    // Pagination
+    @FXML private Pagination paginationMovements;
+    @FXML private Pagination paginationBatches;
+    private static final int ROWS_PER_PAGE = 10;
+    private ObservableList<Movimiento> allMovements = FXCollections.observableArrayList();
+    private ObservableList<Lote> allBatches = FXCollections.observableArrayList();
+
     @FXML
     public void initialize() {
         setupTables();
-        loadInitialData();
-        handleInitialSearch();
+        loadDataInBackground();
         applyRolePermissions();
+    }
+
+    private void loadDataInBackground() {
+        setUIBusy(true);
+        
+        Task<List<?>> loadTask = new Task<>() {
+            @Override
+            protected List<?> call() throws Exception {
+                Usuario user = sessionManager.getCurrentUser();
+                if (user == null) return List.of();
+                
+                List<Producto> productos = inventoryAdapter.listarProductosActivos();
+                List<TipoMovimiento> tipos = inventoryAdapter.listarTiposMovimiento();
+                List<MotivoMovimiento> motivos = inventoryAdapter.listarMotivosMovimiento();
+                List<Lote> lotes = inventoryAdapter.listarLotesConProducto(user.getSedeId());
+                
+                return List.of(productos, tipos, motivos, lotes);
+            }
+        };
+        
+        loadTask.setOnSucceeded(e -> {
+            try {
+                List<?> results = loadTask.get();
+                if (results.size() >= 4) {
+                    applyLoadedData(
+                        (List<Producto>) results.get(0),
+                        (List<TipoMovimiento>) results.get(1),
+                        (List<MotivoMovimiento>) results.get(2),
+                        (List<Lote>) results.get(3)
+                    );
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            } finally {
+                setUIBusy(false);
+            }
+        });
+        
+        loadTask.setOnFailed(e -> {
+            setUIBusy(false);
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudieron cargar los datos iniciales.");
+        });
+        
+        new Thread(loadTask).start();
+    }
+
+    private void applyLoadedData(List<Producto> productos, List<TipoMovimiento> tipos, 
+                                 List<MotivoMovimiento> motivos, List<Lote> lotes) {
+        cmbModalProduct.setItems(FXCollections.observableArrayList(productos));
+        
+        boolean canEntrada = sessionManager.tienePermiso("M5_ENTRADAS");
+        boolean canSalida = sessionManager.tienePermiso("M6_SALIDAS");
+        List<TipoMovimiento> tiposPermitidos = tipos.stream()
+            .filter(t -> {
+                if (t.getId().equals(TipoMovimientoEnum.ENTRADA.getId())) return canEntrada;
+                if (t.getId().equals(TipoMovimientoEnum.SALIDA.getId())) return canSalida;
+                return true;
+            })
+            .collect(Collectors.toList());
+        ObservableList<TipoMovimiento> obsTipos = FXCollections.observableArrayList(tiposPermitidos);
+        
+        cmbModalType.setItems(obsTipos);
+        cmbQuickType.setItems(obsTipos);
+        
+        ObservableList<TipoMovimiento> filterTipos = FXCollections.observableArrayList();
+        TipoMovimiento todos = new TipoMovimiento();
+        todos.setId("");
+        todos.setNombre("TODOS");
+        filterTipos.add(todos);
+        filterTipos.addAll(tipos);
+        cmbMovementType.setItems(filterTipos);
+        cmbMovementType.getSelectionModel().selectFirst();
+
+        StringConverter<TipoMovimiento> tipoConverter = new StringConverter<>() {
+            @Override public String toString(TipoMovimiento t) { return t != null ? t.getNombre().toUpperCase() : ""; }
+            @Override public TipoMovimiento fromString(String s) { return null; }
+        };
+
+        cmbModalType.setConverter(tipoConverter);
+        cmbQuickType.setConverter(tipoConverter);
+        cmbMovementType.setConverter(tipoConverter);
+        
+        cmbQuickMotivo.setItems(FXCollections.observableArrayList(motivos));
+        cmbQuickMotivo.setConverter(new StringConverter<>() {
+            @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
+            @Override public MotivoMovimiento fromString(String s) { return null; }
+        });
+        
+        cmbModalProduct.setConverter(new StringConverter<>() {
+            @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
+            @Override public Producto fromString(String s) { return null; }
+        });
+        cmbModalMotivo.setConverter(new StringConverter<>() {
+            @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
+            @Override public MotivoMovimiento fromString(String s) { return null; }
+        });
+
+        cmbQuickBatch.setItems(FXCollections.observableArrayList(lotes));
+        cmbQuickBatch.setConverter(new StringConverter<>() {
+            @Override public String toString(Lote l) { return l != null ? l.getProductoNombre() + " [" + l.getNumeroLote() + "]" : ""; }
+            @Override public Lote fromString(String s) { return null; }
+        });
+
+        cmbExpirationThreshold.setItems(FXCollections.observableArrayList(30, 60, 90));
+        cmbExpirationThreshold.getSelectionModel().selectFirst();
+
+        handleInitialSearch();
+        refreshMovements();
+        refreshBatches();
+    }
+
+    private void setUIBusy(boolean busy) {
+        if (inventoryTabPane != null) {
+            inventoryTabPane.setDisable(busy);
+        }
+        if (btnNewMovement != null) {
+            btnNewMovement.setDisable(busy);
+        }
     }
 
     private void applyRolePermissions() {
@@ -458,86 +584,6 @@ public class InventoryController {
         });
     }
 
-    private void loadInitialData() {
-        try {
-            List<Producto> productos = inventoryAdapter.listarProductosActivos();
-            cmbModalProduct.setItems(FXCollections.observableArrayList(productos));
-            
-            List<TipoMovimiento> tipos = inventoryAdapter.listarTiposMovimiento();
-            boolean canEntrada = sessionManager.tienePermiso("M5_ENTRADAS");
-            boolean canSalida = sessionManager.tienePermiso("M6_SALIDAS");
-            List<TipoMovimiento> tiposPermitidos = tipos.stream()
-                .filter(t -> {
-                    if (t.getId().equals(TipoMovimientoEnum.ENTRADA.getId())) return canEntrada;
-                    if (t.getId().equals(TipoMovimientoEnum.SALIDA.getId())) return canSalida;
-                    return true;
-                })
-                .collect(Collectors.toList());
-            ObservableList<TipoMovimiento> obsTipos = FXCollections.observableArrayList(tiposPermitidos);
-            
-            cmbModalType.setItems(obsTipos);
-            cmbQuickType.setItems(obsTipos);
-            
-            ObservableList<TipoMovimiento> filterTipos = FXCollections.observableArrayList();
-            TipoMovimiento todos = new TipoMovimiento();
-            todos.setId("");
-            todos.setNombre("TODOS");
-            filterTipos.add(todos);
-            filterTipos.addAll(tipos);
-            cmbMovementType.setItems(filterTipos);
-            cmbMovementType.getSelectionModel().selectFirst();
-
-            StringConverter<TipoMovimiento> tipoConverter = new StringConverter<>() {
-                @Override public String toString(TipoMovimiento t) { return t != null ? t.getNombre().toUpperCase() : ""; }
-                @Override public TipoMovimiento fromString(String s) { return null; }
-            };
-
-            cmbModalType.setConverter(tipoConverter);
-            cmbQuickType.setConverter(tipoConverter);
-            cmbMovementType.setConverter(tipoConverter);
-            
-            // Initialize motivo combo for quick update
-            try {
-                List<MotivoMovimiento> motivos = inventoryAdapter.listarMotivosMovimiento();
-                cmbQuickMotivo.setItems(FXCollections.observableArrayList(motivos));
-                cmbQuickMotivo.setConverter(new StringConverter<>() {
-                    @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
-                    @Override public MotivoMovimiento fromString(String s) { return null; }
-                });
-            } catch (Exception e) {
-                System.err.println("[INV] Error cargando motivos: " + e.getMessage());
-            }
-            
-            cmbModalProduct.setConverter(new StringConverter<>() {
-                @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
-                @Override public Producto fromString(String s) { return null; }
-            });
-            cmbModalMotivo.setConverter(new StringConverter<>() {
-                @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
-                @Override public MotivoMovimiento fromString(String s) { return null; }
-            });
-
-            cmbQuickBatch.setConverter(new StringConverter<>() {
-                @Override public String toString(Lote l) { return l != null ? l.getProductoNombre() + " [" + l.getNumeroLote() + "]" : ""; }
-                @Override public Lote fromString(String s) { return null; }
-            });
-
-            refreshQuickBatchCombo();
-
-            // RF-10: Configurable expiration thresholds
-            cmbExpirationThreshold.setItems(FXCollections.observableArrayList(30, 60, 90));
-            cmbExpirationThreshold.getSelectionModel().selectFirst(); // Default: 30 days
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Error", "No se pudieron cargar los datos iniciales: " + e.getMessage());
-            return;
-        }
-        refreshMovements();
-        refreshBatches();
-        populateAlerts();
-    }
-
     private void refreshQuickBatchCombo() {
         try {
             Usuario user = sessionManager.getCurrentUser();
@@ -760,8 +806,15 @@ public class InventoryController {
             LocalDate hasta = dpToDate != null ? dpToDate.getValue() : null;
 
             List<Movimiento> movements = inventoryAdapter.listarMovimientosConFiltros(user.getSedeId(), tipoId, searchText, desde, hasta); 
-            tableMovements.setItems(FXCollections.observableArrayList(movements));
-            tableMovements.refresh();
+            allMovements.setAll(movements);
+            
+            int totalItems = allMovements.size();
+            int pageCount = (int) Math.ceil((double) totalItems / ROWS_PER_PAGE);
+            if (pageCount < 1) pageCount = 1;
+            
+            paginationMovements.setPageCount(pageCount);
+            paginationMovements.currentPageIndexProperty().set(0);
+            paginationMovements.setPageFactory(this::createMovementsPage);
 
             // Update KPIs
             int total = movements.size();
@@ -773,6 +826,18 @@ public class InventoryController {
             if (lblExitQty != null) lblExitQty.setText(String.valueOf(exit));
 
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private javafx.scene.Node createMovementsPage(int pageIndex) {
+        int fromIndex = pageIndex * ROWS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, allMovements.size());
+        
+        ObservableList<Movimiento> pageItems = FXCollections.observableArrayList();
+        if (fromIndex < toIndex) {
+            pageItems.addAll(allMovements.subList(fromIndex, toIndex));
+        }
+        tableMovements.setItems(pageItems);
+        return new VBox();
     }
 
     @FXML
@@ -800,11 +865,31 @@ public class InventoryController {
                 }).collect(Collectors.toList());
             }
 
-            tableBatches.setItems(FXCollections.observableArrayList(batches));
-            tableBatches.refresh();
+            allBatches.setAll(batches);
+            
+            int totalItems = allBatches.size();
+            int pageCount = (int) Math.ceil((double) totalItems / ROWS_PER_PAGE);
+            if (pageCount < 1) pageCount = 1;
+            
+            paginationBatches.setPageCount(pageCount);
+            paginationBatches.currentPageIndexProperty().set(0);
+            paginationBatches.setPageFactory(this::createBatchesPage);
+            
             updateBatchSummary(user.getSedeId(), batches);
             populateAlerts();
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private javafx.scene.Node createBatchesPage(int pageIndex) {
+        int fromIndex = pageIndex * ROWS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, allBatches.size());
+        
+        ObservableList<Lote> pageItems = FXCollections.observableArrayList();
+        if (fromIndex < toIndex) {
+            pageItems.addAll(allBatches.subList(fromIndex, toIndex));
+        }
+        tableBatches.setItems(pageItems);
+        return new VBox();
     }
 
     @FXML

@@ -38,6 +38,13 @@ public class GestionarPacienteUseCase {
         return pacienteRepository.findByQuery(query.trim());
     }
 
+    public List<Paciente> buscarPacientesTypeahead(String query) {
+        if (query == null || query.trim().length() < 2) {
+            return java.util.Collections.emptyList();
+        }
+        return pacienteRepository.findTypeahead(query.trim(), 10);
+    }
+
     /**
      * Guarda o actualiza un paciente aplicando validaciones de dominio.
      *

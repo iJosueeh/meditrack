@@ -15,52 +15,68 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import javafx.stage.FileChooser;
-import com.utp.meditrackapp.infrastructure.adapters.ReportAdapter;
 
 public class AtencionController {
 
     private final AtencionAdapter atencionAdapter = new AtencionAdapter();
     private final SessionManager sessionManager = SessionManager.getInstance();
 
-    // Patient & Prescription
-    @FXML private ComboBox<Paciente> cmbPaciente;
-    @FXML private TextField txtReceta;
-    @FXML private TextField txtMedico;
-    @FXML private DatePicker dpFromDate, dpToDate;
-    @FXML private Label lblPatientName, lblPatientPhone;
-    @FXML private VBox vboxPatientInfo;
-    @FXML private ListView<String> listHistory;
+    @FXML private BorderPane rootPane;
 
-    // Basket Entry
+    // Tab Atenciones
+    @FXML private TextField txtSearchPaciente;
+    @FXML private HBox hboxPacienteInfo;
+    @FXML private Label lblPacienteInfo, lblAtencionesCount;
+    @FXML private TableView<Atencion> tableHistorial;
+    @FXML private TableColumn<Atencion, String> colHistFecha, colHistReceta, colHistMedico, colHistAcciones;
+
+    // Tab Dispensación
+    @FXML private TextField txtBusquedaPacienteDisp;
+    @FXML private HBox hboxPacienteInfoDisp;
+    @FXML private Label lblPatientNameDisp, lblPatientPhoneDisp, lblRecetaNum;
+    @FXML private TextField txtMedico;
     @FXML private ComboBox<Producto> cmbProducto;
     @FXML private TextField txtCantidad;
-    
-    // Basket Table
     @FXML private TableView<AtencionDetalle> tableBasket;
     @FXML private TableColumn<AtencionDetalle, String> colBasketProduct, colBasketLote, colBasketExp, colBasketAction;
     @FXML private TableColumn<AtencionDetalle, Integer> colBasketQty;
     @FXML private Label lblItemsCount, lblTotalDispensed;
-    @FXML private Label lblFefoSuggestion;
+    @FXML private ComboBox<Lote> cmbLote;
+    @FXML private javafx.scene.layout.HBox hboxLoteSelect;
+
+    // Modals
+    @FXML private StackPane modalDetalle;
+    @FXML private Label lblDetalleTitle, lblDetalleSub;
+    @FXML private TableView<AtencionDetalle> tableDetalle;
+    @FXML private TableColumn<AtencionDetalle, String> colDetProducto, colDetLote, colDetVencimiento;
+    @FXML private TableColumn<AtencionDetalle, Integer> colDetCantidad;
+    @FXML private StackPane modalEditar;
+    @FXML private Label lblEditarSub;
+    @FXML private TextField txtEditReceta, txtEditMedico;
 
     private final ObservableList<AtencionDetalle> basketItems = FXCollections.observableArrayList();
-    private final ObservableList<Paciente> allPacientes = FXCollections.observableArrayList();
-    private Paciente currentPaciente;
+    private final ObservableList<Atencion> historialItems = FXCollections.observableArrayList();
+    private final ObservableList<AtencionDetalle> detalleItems = FXCollections.observableArrayList();
+    private Paciente currentPacienteDisp;
+    private Atencion editingAtencion;
+    private String recetaGenerada;
+
+    private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @FXML
     public void initialize() {
         setupTables();
-        setupPacienteCombo();
         setupProductCombo();
         loadInitialData();
         autoGenerarReceta();
@@ -70,59 +86,19 @@ public class AtencionController {
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
-            String receta = atencionAdapter.generarNumeroReceta(user.getSedeId());
-            txtReceta.setText(receta);
+            recetaGenerada = atencionAdapter.generarNumeroReceta(user.getSedeId());
+            lblRecetaNum.setText("N° Receta: " + recetaGenerada);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    @FXML
-    protected void onGenerateReport() {
-        try {
-            Usuario user = sessionManager.getCurrentUser();
-            if (user == null) return;
-
-            java.time.LocalDate desde = dpFromDate.getValue();
-            java.time.LocalDate hasta = dpToDate.getValue();
-
-            com.utp.meditrackapp.infrastructure.adapters.            ReportAdapter reportAdapter = new ReportAdapter();
-
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Guardar Reporte de Dispensaciones");
-            fileChooser.setInitialFileName("reporte_dispensaciones_" + java.time.LocalDate.now() + ".pdf");
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
-            File file = fileChooser.showSaveDialog(cmbPaciente.getScene().getWindow());
-
-            if (file != null) {
-                String sedeName = com.utp.meditrackapp.core.util.SedeResolver.getSedeName(user);
-                boolean generated = reportAdapter.generarReporteDispensaciones(
-                    user.getSedeId(),
-                    user.getNombres() + " " + user.getApellidos(),
-                    sedeName,
-                    desde, hasta,
-                    file
-                );
-                
-                if (generated) {
-                    showAlert(Alert.AlertType.INFORMATION, "Reporte Generado", "El reporte modernizado (HTML/CSS) se ha guardado exitosamente.");
-                } else {
-                    showAlert(Alert.AlertType.INFORMATION, "Reporte Vacío", "No hay dispensaciones registradas en el periodo seleccionado.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Ocurrió un error al generar el reporte: " + e.getMessage());
         }
     }
 
     private void setupTables() {
-        // Basket Table
+        // Basket table
         colBasketProduct.setCellValueFactory(new PropertyValueFactory<>("productoNombre"));
         colBasketLote.setCellValueFactory(new PropertyValueFactory<>("loteNumero"));
         colBasketExp.setCellValueFactory(new PropertyValueFactory<>("fechaVencimiento"));
         colBasketQty.setCellValueFactory(new PropertyValueFactory<>("cantidadEntregada"));
-
         colBasketAction.setCellFactory(param -> new TableCell<>() {
             private final Button btnDelete = new Button();
             {
@@ -137,15 +113,59 @@ public class AtencionController {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) setGraphic(null);
+                else { HBox box = new HBox(btnDelete); box.setAlignment(Pos.CENTER); setGraphic(box); }
+            }
+        });
+        tableBasket.setItems(basketItems);
+
+        // Historial table
+        colHistFecha.setCellValueFactory(cellData -> {
+            Atencion a = cellData.getValue();
+            String fecha = a.getFechaAtencion() != null ? a.getFechaAtencion().format(FMT_FECHA) : "N/D";
+            return new javafx.beans.property.SimpleStringProperty(fecha);
+        });
+        colHistReceta.setCellValueFactory(new PropertyValueFactory<>("numeroReceta"));
+        colHistMedico.setCellValueFactory(new PropertyValueFactory<>("medico"));
+        colHistAcciones.setCellFactory(param -> new TableCell<>() {
+            private final Button btnVer = new Button();
+            private final Button btnEditar = new Button();
+            private final Button btnEliminar = new Button();
+            {
+                btnVer.setGraphic(new FontIcon("fas-eye"));
+                btnVer.getStyleClass().addAll("button", "flat", "accent", "sm");
+                btnVer.setTooltip(new Tooltip("Ver detalle"));
+                btnVer.setOnAction(e -> { Atencion a = getTableRow().getItem(); if (a != null) onVerDetalle(a); });
+
+                btnEditar.setGraphic(new FontIcon("fas-edit"));
+                btnEditar.getStyleClass().addAll("button", "flat", "accent", "sm");
+                btnEditar.setTooltip(new Tooltip("Editar"));
+                btnEditar.setOnAction(e -> { Atencion a = getTableRow().getItem(); if (a != null) onEditarAtencion(a); });
+
+                btnEliminar.setGraphic(new FontIcon("fas-trash"));
+                btnEliminar.getStyleClass().addAll("button", "flat", "danger", "sm");
+                btnEliminar.setTooltip(new Tooltip("Eliminar"));
+                btnEliminar.setOnAction(e -> { Atencion a = getTableRow().getItem(); if (a != null) onEliminarAtencion(a); });
+            }
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) setGraphic(null);
                 else {
-                    HBox box = new HBox(btnDelete);
+                    boolean canWrite = sessionManager.tienePermiso("M8_ATENCIONES");
+                    HBox box = new HBox(6, btnVer);
+                    if (canWrite) box.getChildren().addAll(btnEditar, btnEliminar);
                     box.setAlignment(Pos.CENTER);
                     setGraphic(box);
                 }
             }
         });
+        tableHistorial.setItems(historialItems);
 
-        tableBasket.setItems(basketItems);
+        // Detalle modal table
+        colDetProducto.setCellValueFactory(new PropertyValueFactory<>("productoNombre"));
+        colDetLote.setCellValueFactory(new PropertyValueFactory<>("loteNumero"));
+        colDetVencimiento.setCellValueFactory(new PropertyValueFactory<>("fechaVencimiento"));
+        colDetCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidadEntregada"));
+        tableDetalle.setItems(detalleItems);
     }
 
     private void setupProductCombo() {
@@ -153,201 +173,319 @@ public class AtencionController {
             @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
             @Override public Producto fromString(String s) { return null; }
         });
+        cmbLote.setConverter(new StringConverter<>() {
+            @Override public String toString(Lote l) {
+                if (l == null) return "";
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String vence = l.getFechaVencimiento() != null ? l.getFechaVencimiento().format(fmt) : "N/D";
+                return l.getNumeroLote() + " — Vence: " + vence + " — Stock: " + l.getCantidad();
+            }
+            @Override public Lote fromString(String s) { return null; }
+        });
     }
 
     private void loadInitialData() {
         try {
             List<Producto> productos = atencionAdapter.listarProductosActivos();
             cmbProducto.setItems(FXCollections.observableArrayList(productos));
-
-            List<Paciente> pacientes = atencionAdapter.buscarPacientes("");
-            allPacientes.setAll(pacientes);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void setupPacienteCombo() {
-        cmbPaciente.setEditable(true);
-        cmbPaciente.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(Paciente p) {
-                if (p == null) return "";
-                return p.getNumeroDocumento() + " — " + p.getNombreCompleto();
-            }
-            @Override
-            public Paciente fromString(String s) { return null; }
-        });
+    // ==================== TAB ATENCIONES ====================
 
-        cmbPaciente.setItems(allPacientes);
-
-        cmbPaciente.getEditor().textProperty().addListener((obs, old, newValue) -> {
-            if (newValue == null) newValue = "";
-            String filter = newValue.toLowerCase();
-
-            // Don't filter if the text matches the currently selected patient (set by converter after selection)
-            if (cmbPaciente.getValue() != null) {
-                String expected = cmbPaciente.getConverter().toString(cmbPaciente.getValue());
-                if (filter.equals(expected != null ? expected.toLowerCase() : "")) {
-                    return;
-                }
-            }
-
-            List<Paciente> filtered = allPacientes.stream()
-                .filter(p -> filter.isEmpty()
-                    || (p.getNumeroDocumento() != null && p.getNumeroDocumento().toLowerCase().contains(filter))
-                    || (p.getNombres() != null && p.getNombres().toLowerCase().contains(filter))
-                    || (p.getApellidos() != null && p.getApellidos().toLowerCase().contains(filter)))
-                .collect(Collectors.toList());
-
-            cmbPaciente.hide();
-            cmbPaciente.setItems(FXCollections.observableArrayList(filtered));
-            if (!filtered.isEmpty()) {
-                cmbPaciente.show();
-            }
-        });
-
-        listHistory.itemsProperty().addListener((obs, old, items) -> {
-            listHistory.setMouseTransparent(items == null || items.isEmpty());
-        });
+    @FXML
+    protected void onSearchPacienteKey() {
+        if (txtSearchPaciente.getText() != null && !txtSearchPaciente.getText().trim().isEmpty()) {
+            // Allow typing; consult with Enter handled by onBuscarAtenciones
+        }
     }
 
     @FXML
-    protected void onPacienteSelected() {
-        Paciente selected = cmbPaciente.getValue();
-        if (selected == null) return;
-
-        currentPaciente = selected;
-        lblPatientName.setText(currentPaciente.getNombres() + " " + currentPaciente.getApellidos());
-        lblPatientPhone.setText("Teléfono: " + (currentPaciente.getTelefono() != null ? currentPaciente.getTelefono() : "N/R"));
-        vboxPatientInfo.setVisible(true);
-        vboxPatientInfo.setManaged(true);
-        loadPatientHistory(currentPaciente.getId());
-    }
-
-    @FXML
-    protected void onSearchByReceta() {
-        String receta = txtReceta.getText();
-        if (receta == null || receta.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un número de receta para buscar.");
+    protected void onBuscarAtenciones() {
+        String query = txtSearchPaciente.getText();
+        if (query == null || query.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un DNI o nombre para buscar.");
             return;
         }
 
-        Usuario user = sessionManager.getCurrentUser();
-        if (user == null) return;
-
-        List<Atencion> results = atencionAdapter.buscarHistorialPorReceta(user.getSedeId(), receta);
-        ObservableList<String> historyStrings = FXCollections.observableArrayList();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-        for (Atencion a : results) {
-            historyStrings.add(a.getFechaAtencion().format(formatter) + " - Receta: " + a.getNumeroReceta());
-        }
-
-        if (historyStrings.isEmpty()) {
-            showAlert(Alert.AlertType.INFORMATION, "Sin Resultados", "No se encontraron atenciones con la receta " + receta);
-        } else {
-            listHistory.setItems(historyStrings);
-            vboxPatientInfo.setVisible(true);
-            vboxPatientInfo.setManaged(true);
-            lblPatientName.setText("Búsqueda por receta: " + receta);
-            lblPatientPhone.setText(results.size() + " resultado(s) encontrado(s)");
+        try {
+            List<Paciente> pacientes = atencionAdapter.buscarPacientes(query.trim());
+            if (pacientes.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "Sin resultados", "No se encontraron pacientes con: " + query);
+                return;
+            }
+            if (pacientes.size() == 1) {
+                cargarAtencionesPaciente(pacientes.get(0));
+            } else {
+                Paciente elegido = mostrarSelectorPaciente(pacientes);
+                if (elegido != null) {
+                    cargarAtencionesPaciente(elegido);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo buscar: " + e.getMessage());
         }
     }
 
-    private void loadPatientHistory(String pacienteId) {
-        List<Atencion> history = atencionAdapter.buscarHistorialPorPaciente(pacienteId);
-        ObservableList<String> historyStrings = FXCollections.observableArrayList();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        
-        for (Atencion a : history) {
-            historyStrings.add(a.getFechaAtencion().format(formatter) + " - Receta: " + a.getNumeroReceta());
+    private Paciente mostrarSelectorPaciente(List<Paciente> pacientes) {
+        List<String> opciones = pacientes.stream()
+            .map(p -> p.getNumeroDocumento() + " \u2014 " + p.getNombreCompleto())
+            .collect(Collectors.toList());
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(opciones.get(0), opciones);
+        dialog.setTitle("Seleccionar Paciente");
+        dialog.setHeaderText("Se encontraron múltiples pacientes:");
+        dialog.setContentText("Seleccione:");
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(rootPane.getScene().getWindow());
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            String selected = result.get();
+            return pacientes.stream()
+                .filter(p -> selected.equals(p.getNumeroDocumento() + " \u2014 " + p.getNombreCompleto()))
+                .findFirst().orElse(null);
         }
-        
-        if (historyStrings.isEmpty()) historyStrings.add("Sin atenciones previas.");
-        listHistory.setItems(historyStrings);
+        return null;
+    }
+
+    private void cargarAtencionesPaciente(Paciente paciente) {
+        List<Atencion> atenciones = atencionAdapter.buscarHistorialPorPaciente(paciente.getId());
+        historialItems.setAll(atenciones);
+
+        hboxPacienteInfo.setVisible(true);
+        hboxPacienteInfo.setManaged(true);
+        lblPacienteInfo.setText(paciente.getNumeroDocumento() + " \u2014 " + paciente.getNombreCompleto());
+        lblAtencionesCount.setText(atenciones.size() + " atenciones encontradas");
+    }
+
+    @FXML
+    protected void onLimpiarBusqueda() {
+        txtSearchPaciente.clear();
+        historialItems.clear();
+        hboxPacienteInfo.setVisible(false);
+        hboxPacienteInfo.setManaged(false);
+    }
+
+    private void onVerDetalle(Atencion atencion) {
+        try {
+            List<AtencionDetalle> detalles = atencionAdapter.buscarDetallesAtencion(atencion.getId());
+            detalleItems.setAll(detalles);
+            lblDetalleTitle.setText("Detalle — Receta: " + atencion.getNumeroReceta());
+            String fecha = atencion.getFechaAtencion() != null ? atencion.getFechaAtencion().format(FMT_FECHA) : "N/D";
+            lblDetalleSub.setText("Fecha: " + fecha + "  |  Médico: " + (atencion.getMedico() != null ? atencion.getMedico() : "N/D"));
+            modalDetalle.setVisible(true);
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo cargar el detalle: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    protected void onCloseDetalle() {
+        modalDetalle.setVisible(false);
+        detalleItems.clear();
+    }
+
+    private void onEditarAtencion(Atencion atencion) {
+        if (!sessionManager.tienePermiso("M8_ATENCIONES")) {
+            showAlert(Alert.AlertType.WARNING, "Sin permisos", "No tiene permisos para editar atenciones.");
+            return;
+        }
+        if (atencion.getFechaAtencion() != null && atencion.getFechaAtencion().isBefore(java.time.LocalDateTime.now().minusHours(24))) {
+            showAlert(Alert.AlertType.WARNING, "No permitido", "Solo se pueden editar atenciones de las últimas 24 horas.");
+            return;
+        }
+        editingAtencion = atencion;
+        txtEditReceta.setText(atencion.getNumeroReceta());
+        txtEditMedico.setText(atencion.getMedico() != null ? atencion.getMedico() : "");
+        String fecha = atencion.getFechaAtencion() != null ? atencion.getFechaAtencion().format(FMT_FECHA) : "N/D";
+        lblEditarSub.setText("Atención del " + fecha);
+        modalEditar.setVisible(true);
+    }
+
+    @FXML
+    protected void onCloseEditar() {
+        modalEditar.setVisible(false);
+        editingAtencion = null;
+    }
+
+    @FXML
+    protected void onSaveEditar() {
+        if (editingAtencion == null) return;
+        String receta = txtEditReceta.getText();
+        if (receta == null || receta.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "El número de receta es obligatorio.");
+            return;
+        }
+        editingAtencion.setNumeroReceta(receta.trim());
+        editingAtencion.setMedico(txtEditMedico.getText() != null ? txtEditMedico.getText().trim() : "");
+        try {
+            atencionAdapter.editarAtencion(editingAtencion);
+            showAlert(Alert.AlertType.INFORMATION, "Éxito", "Atención actualizada correctamente.");
+            modalEditar.setVisible(false);
+            editingAtencion = null;
+            onBuscarAtenciones();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo actualizar: " + e.getMessage());
+        }
+    }
+
+    private void onEliminarAtencion(Atencion atencion) {
+        if (!sessionManager.tienePermiso("M8_ATENCIONES")) {
+            showAlert(Alert.AlertType.WARNING, "Sin permisos", "No tiene permisos para eliminar atenciones.");
+            return;
+        }
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Confirmar Eliminación");
+        dialog.setHeaderText("¿Está seguro de eliminar esta atención?");
+        dialog.setContentText("Receta: " + atencion.getNumeroReceta() + "\nEscriba 'ELIMINAR' para confirmar:");
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initOwner(rootPane.getScene().getWindow());
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+            try {
+                String r = atencionAdapter.eliminarAtencion(atencion.getId());
+                if ("OK".equals(r)) {
+                    showAlert(Alert.AlertType.INFORMATION, "Éxito", "Atención eliminada.");
+                    onBuscarAtenciones();
+                }
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo eliminar: " + e.getMessage());
+            }
+        }
+    }
+
+    // ==================== TAB DISPENSACIÓN ====================
+
+    @FXML
+    protected void onBuscarPacienteDisp() {
+        String query = txtBusquedaPacienteDisp.getText();
+        if (query == null || query.trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese un DNI o nombre para buscar.");
+            return;
+        }
+
+        try {
+            List<Paciente> pacientes = atencionAdapter.buscarPacientes(query.trim());
+            if (pacientes.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "Sin resultados", "No se encontraron pacientes con: " + query);
+                return;
+            }
+            if (pacientes.size() == 1) {
+                selectPacienteDisp(pacientes.get(0));
+            } else {
+                Paciente elegido = mostrarSelectorPaciente(pacientes);
+                if (elegido != null) {
+                    selectPacienteDisp(elegido);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo buscar: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    protected void onLimpiarBusquedaDisp() {
+        currentPacienteDisp = null;
+        txtBusquedaPacienteDisp.clear();
+        hboxPacienteInfoDisp.setVisible(false);
+        hboxPacienteInfoDisp.setManaged(false);
+        txtMedico.clear();
+        txtCantidad.clear();
+        cmbProducto.getSelectionModel().clearSelection();
+        hboxLoteSelect.setVisible(false);
+        hboxLoteSelect.setManaged(false);
+        cmbLote.getItems().clear();
+        basketItems.clear();
+        updateBasketTotals();
+        autoGenerarReceta();
+    }
+
+    @FXML
+    protected void onSearchPacienteDispKey(javafx.scene.input.KeyEvent e) {
+        if (e.getCode() == KeyCode.ENTER) {
+            onBuscarPacienteDisp();
+        }
+    }
+
+    private void setupDispensacionTypeahead() {
+    }
+
+    private void hidePopup() {
+    }
+
+    private void selectPacienteDisp(Paciente paciente) {
+        currentPacienteDisp = paciente;
+        txtBusquedaPacienteDisp.setText(paciente.getNumeroDocumento() + " \u2014 " + paciente.getNombreCompleto());
+        lblPatientNameDisp.setText(paciente.getNombreCompleto());
+        lblPatientPhoneDisp.setText("Tel: " + (paciente.getTelefono() != null ? paciente.getTelefono() : "N/R"));
+        lblRecetaNum.setText("N° Receta: " + recetaGenerada);
+        hboxPacienteInfoDisp.setVisible(true);
+        hboxPacienteInfoDisp.setManaged(true);
     }
 
     @FXML
     protected void onProductoSelected() {
         Producto p = cmbProducto.getValue();
         if (p == null) {
-            lblFefoSuggestion.setVisible(false);
-            lblFefoSuggestion.setManaged(false);
+            hboxLoteSelect.setVisible(false);
+            hboxLoteSelect.setManaged(false);
             return;
         }
+        cargarLotesProducto(p);
+    }
 
+    private void cargarLotesProducto(Producto producto) {
         Usuario user = sessionManager.getCurrentUser();
         if (user == null) return;
-
-        List<Lote> lotesFefo = atencionAdapter.listarLotesFefo(user.getSedeId(), p.getId());
+        List<Lote> lotesFefo = atencionAdapter.listarLotesFefo(user.getSedeId(), producto.getId());
+        cmbLote.getItems().clear();
         if (lotesFefo.isEmpty()) {
-            lblFefoSuggestion.setText("Sin stock disponible para este producto.");
-            lblFefoSuggestion.setVisible(true);
-            lblFefoSuggestion.setManaged(true);
+            hboxLoteSelect.setVisible(false);
+            hboxLoteSelect.setManaged(false);
+            showAlert(Alert.AlertType.INFORMATION, "Sin stock", "No hay lotes disponibles para este producto.");
         } else {
-            Lote primero = lotesFefo.get(0);
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            String vence = primero.getFechaVencimiento() != null ? primero.getFechaVencimiento().format(fmt) : "N/D";
-            lblFefoSuggestion.setText("FEFO sugerido: Lote " + primero.getNumeroLote()
-                + " — Vence: " + vence
-                + " — Stock: " + primero.getCantidad()
-                + (lotesFefo.size() > 1 ? " (+ " + (lotesFefo.size() - 1) + " lote(s) más)" : ""));
-            lblFefoSuggestion.setVisible(true);
-            lblFefoSuggestion.setManaged(true);
+            cmbLote.getItems().addAll(lotesFefo);
+            cmbLote.getSelectionModel().selectFirst();
+            hboxLoteSelect.setVisible(true);
+            hboxLoteSelect.setManaged(true);
         }
     }
 
     @FXML
     protected void onAddToBasket() {
         Producto p = cmbProducto.getValue();
+        Lote loteSeleccionado = cmbLote.getValue();
         String qtyStr = txtCantidad.getText();
-
-        if (p == null || qtyStr.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validación", "Seleccione un producto y cantidad.");
+        if (p == null || loteSeleccionado == null || qtyStr.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "Seleccione producto, lote y cantidad.");
             return;
         }
-
         try {
             int qty = Integer.parseInt(qtyStr);
             if (qty <= 0) throw new NumberFormatException();
-
-            Usuario user = sessionManager.getCurrentUser();
-            if (user == null) {
-                showAlert(Alert.AlertType.ERROR, "Sesión", "No hay una sesión activa.");
+            if (loteSeleccionado.getCantidad() < qty) {
+                showAlert(Alert.AlertType.WARNING, "Stock insuficiente", 
+                    "El lote " + loteSeleccionado.getNumeroLote() + " solo tiene " + loteSeleccionado.getCantidad() + " unidades.");
                 return;
             }
-            String sedeId = user.getSedeId();
-
-            List<Lote> lotesDisponibles = atencionAdapter.listarLotesConProducto(sedeId);
-            List<AtencionDetalle> suggestions = atencionAdapter.sugerirDispensacion(sedeId, p.getId(), qty);
-            
-            for (AtencionDetalle det : suggestions) {
-                Optional<Lote> loteOpt = lotesDisponibles.stream()
-                    .filter(l -> l.getId().equals(det.getLoteId()))
-                    .findFirst();
-                
-                det.setProductoNombre(p.getNombre());
-                if (loteOpt.isPresent()) {
-                    det.setLoteNumero(loteOpt.get().getNumeroLote());
-                    if (loteOpt.get().getFechaVencimiento() != null) {
-                        det.setFechaVencimiento(loteOpt.get().getFechaVencimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-                    }
-                } else {
-                    det.setLoteNumero("LOTE-?");
-                }
-                
-                basketItems.add(det);
-            }
-            
+            AtencionDetalle det = new AtencionDetalle();
+            det.setLoteId(loteSeleccionado.getId());
+            det.setProductoNombre(p.getNombre());
+            det.setLoteNumero(loteSeleccionado.getNumeroLote());
+            det.setCantidadEntregada(qty);
+            if (loteSeleccionado.getFechaVencimiento() != null)
+                det.setFechaVencimiento(loteSeleccionado.getFechaVencimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            basketItems.add(det);
             updateBasketTotals();
             txtCantidad.clear();
             cmbProducto.getSelectionModel().clearSelection();
-
+            hboxLoteSelect.setVisible(false);
+            hboxLoteSelect.setManaged(false);
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese una cantidad válida.");
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Sin Stock", e.getMessage());
         }
     }
 
@@ -360,52 +498,32 @@ public class AtencionController {
 
     @FXML
     protected void onConfirmarEntrega() {
-        // Validar que la sede no esté bloqueada
-        try {
-            SedeAccessValidator.validarSedeActiva();
-        } catch (SedeAccessValidator.SedeBloqueadaException e) {
-            showAlert(Alert.AlertType.WARNING, "Sede Bloqueada", e.getMessage());
-            return;
-        }
-        
-        if (currentPaciente == null) {
-            showAlert(Alert.AlertType.WARNING, "Falta Información", "Debe seleccionar un paciente.");
-            return;
-        }
-        if (basketItems.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Falta Información", "La canasta está vacía.");
-            return;
-        }
-        if (txtReceta.getText().isBlank()) {
-            showAlert(Alert.AlertType.WARNING, "Falta Información", "Ingrese el número de receta.");
-            return;
-        }
+        try { SedeAccessValidator.validarSedeActiva(); }
+        catch (SedeAccessValidator.SedeBloqueadaException e) { showAlert(Alert.AlertType.WARNING, "Sede Bloqueada", e.getMessage()); return; }
 
-        String numReceta = txtReceta.getText().trim();
+        if (currentPacienteDisp == null) { showAlert(Alert.AlertType.WARNING, "Falta", "Debe seleccionar un paciente."); return; }
+        if (basketItems.isEmpty()) { showAlert(Alert.AlertType.WARNING, "Falta", "La canasta está vacía."); return; }
+
+        String numReceta = recetaGenerada;
         String sedeId = sessionManager.getCurrentUser().getSedeId();
         if (atencionAdapter.existeReceta(sedeId, numReceta)) {
-            showAlert(Alert.AlertType.WARNING, "Duplicado",
-                "Ya existe una atención con el número de receta " + numReceta + ". Modifíquelo e intente de nuevo.");
+            showAlert(Alert.AlertType.WARNING, "Duplicado", "Ya existe una atención con receta " + numReceta);
             return;
         }
 
         Atencion a = new Atencion();
-        a.setPacienteId(currentPaciente.getId());
+        a.setPacienteId(currentPacienteDisp.getId());
         a.setNumeroReceta(numReceta);
         a.setMedico(txtMedico.getText() != null ? txtMedico.getText().trim() : "");
         a.setSedeId(sedeId);
         a.setUsuarioId(sessionManager.getCurrentUser().getId());
 
-        // Re-validar stock antes de confirmar (FEFO)
         try {
             List<Lote> lotesActuales = atencionAdapter.listarLotesConProducto(sedeId);
             for (AtencionDetalle det : basketItems) {
-                Optional<Lote> loteActual = lotesActuales.stream()
-                    .filter(l -> l.getId().equals(det.getLoteId()))
-                    .findFirst();
+                Optional<Lote> loteActual = lotesActuales.stream().filter(l -> l.getId().equals(det.getLoteId())).findFirst();
                 if (loteActual.isEmpty() || loteActual.get().getCantidad() < det.getCantidadEntregada()) {
-                    showAlert(Alert.AlertType.WARNING, "Stock Cambiado",
-                        "El lote " + det.getLoteNumero() + " ya no tiene stock suficiente. Por favor actualice la canasta.");
+                    showAlert(Alert.AlertType.WARNING, "Stock Cambiado", "El lote " + det.getLoteNumero() + " ya no tiene stock suficiente.");
                     return;
                 }
             }
@@ -415,9 +533,8 @@ public class AtencionController {
         }
 
         String result = atencionAdapter.registrarAtencion(a, new ArrayList<>(basketItems));
-        
-        if (result.equals("OK")) {
-            showAlert(Alert.AlertType.INFORMATION, "Atención Exitosa", "La atención se registró y el stock fue actualizado.");
+        if ("OK".equals(result)) {
+            showAlert(Alert.AlertType.INFORMATION, "Éxito", "La atención se registró y el stock fue actualizado.");
             onLimpiarTodo();
         } else {
             showAlert(Alert.AlertType.ERROR, "Error", result);
@@ -426,16 +543,20 @@ public class AtencionController {
 
     @FXML
     protected void onLimpiarTodo() {
-        currentPaciente = null;
-        vboxPatientInfo.setVisible(false);
-        vboxPatientInfo.setManaged(false);
-        cmbPaciente.getSelectionModel().clearSelection();
-        cmbPaciente.getEditor().clear();
+        currentPacienteDisp = null;
+        txtBusquedaPacienteDisp.clear();
+        hboxPacienteInfoDisp.setVisible(false);
+        hboxPacienteInfoDisp.setManaged(false);
+        txtSearchPaciente.clear();
+        historialItems.clear();
+        hboxPacienteInfo.setVisible(false);
+        hboxPacienteInfo.setManaged(false);
         txtMedico.clear();
         txtCantidad.clear();
         cmbProducto.getSelectionModel().clearSelection();
-        lblFefoSuggestion.setVisible(false);
-        lblFefoSuggestion.setManaged(false);
+        hboxLoteSelect.setVisible(false);
+        hboxLoteSelect.setManaged(false);
+        cmbLote.getItems().clear();
         basketItems.clear();
         updateBasketTotals();
         autoGenerarReceta();
@@ -447,7 +568,7 @@ public class AtencionController {
         alert.setHeaderText(null);
         alert.setContentText(msg);
         alert.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-        alert.initOwner(cmbPaciente.getScene().getWindow());
+        alert.initOwner(rootPane.getScene().getWindow());
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/utp/meditrackapp/styles/global.css").toExternalForm());
         alert.showAndWait();
     }

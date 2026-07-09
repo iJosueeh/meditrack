@@ -21,22 +21,28 @@ public class DatabaseConfig {
         String dbName = dotenv.get("DB_NAME");
         String dbUser = dotenv.get("DB_USER");
         String dbPassword = dotenv.get("DB_PASSWORD");
+        boolean dbEncrypt = Boolean.parseBoolean(dotenv.get("DB_ENCRYPT", "false"));
+        boolean dbTrustCert = Boolean.parseBoolean(dotenv.get("DB_TRUST_SERVER_CERTIFICATE", "true"));
+        String hostNameInCert = dotenv.get("DB_HOST_NAME_IN_CERTIFICATE", "");
 
         System.out.println("[DB] Conectando a: " + dbHost + ":" + dbPort + " BD: " + dbName);
 
-        // URL simplificada para evitar problemas de cifrado/certificados en local
-        String url = String.format(
-                "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=false;loginTimeout=10;sendStringParametersAsUnicode=true;characterEncoding=UTF-8;",
-                dbHost, dbPort, dbName
-        );
+        StringBuilder urlBuilder = new StringBuilder(String.format(
+                "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=%s;trustServerCertificate=%s;loginTimeout=30;sendStringParametersAsUnicode=true;characterEncoding=UTF-8;",
+                dbHost, dbPort, dbName, dbEncrypt, dbTrustCert
+        ));
+
+        if (hostNameInCert != null && !hostNameInCert.isEmpty()) {
+            urlBuilder.append("hostNameInCertificate=").append(hostNameInCert).append(";");
+        }
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(url);
+        config.setJdbcUrl(urlBuilder.toString());
         config.setUsername(dbUser);
         config.setPassword(dbPassword);
         config.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         config.setMaximumPoolSize(10);
-        config.setConnectionTimeout(10000);
+        config.setConnectionTimeout(15000);
         config.setPoolName("MediTrackPool");
         config.setInitializationFailTimeout(0);
         
@@ -59,10 +65,6 @@ public class DatabaseConfig {
         }
     }
 
-    /**
-     * Verifica si la base de datos está disponible.
-     * Útil para saltar tests de integración si no hay un servidor activo.
-     */
     public boolean isReachable() {
         try (Connection conn = getConnection()) {
             return conn.isValid(2);

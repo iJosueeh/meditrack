@@ -51,6 +51,7 @@
                         </columns>
                         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                     </TableView>
+                    <Pagination fx:id="paginationUsers" pageCount="1" currentPageIndex="0" />
                 </VBox>
             </ScrollPane>
         </center>
