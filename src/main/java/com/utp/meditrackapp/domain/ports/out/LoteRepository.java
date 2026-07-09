@@ -34,6 +34,11 @@ public interface LoteRepository {
     int findStockByLote(Connection conn, String loteId);
 
     /**
+     * Verifica si ya existe un lote con el número dado para el mismo producto en la misma sede.
+     */
+    boolean existsByNumeroLoteProductoSede(String numeroLote, String productoId, String sedeId);
+
+    /**
      * Versión sin Connection para operaciones simples que manejan su propia conexión.
      */
     Lote save(Lote lote);

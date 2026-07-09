@@ -26,6 +26,10 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.property.IntegerProperty;
 
 public class AtencionController {
 
@@ -64,13 +68,19 @@ public class AtencionController {
     @FXML private StackPane modalEditar;
     @FXML private Label lblEditarSub;
     @FXML private TextField txtEditReceta, txtEditMedico;
+    @FXML private TableView<EditableDetalleRow> tableEditDetalle;
+    @FXML private TableColumn<EditableDetalleRow, String> colEditProducto;
+    @FXML private TableColumn<EditableDetalleRow, String> colEditLote;
+    @FXML private TableColumn<EditableDetalleRow, Number> colEditCantidad;
 
     private final ObservableList<AtencionDetalle> basketItems = FXCollections.observableArrayList();
     private final ObservableList<Atencion> historialItems = FXCollections.observableArrayList();
     private final ObservableList<AtencionDetalle> detalleItems = FXCollections.observableArrayList();
+    private final ObservableList<EditableDetalleRow> editDetalleItems = FXCollections.observableArrayList();
     private Paciente currentPacienteDisp;
     private Atencion editingAtencion;
     private String recetaGenerada;
+    private List<AtencionDetalle> originalDetalles = new ArrayList<>();
 
     private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -166,6 +176,72 @@ public class AtencionController {
         colDetVencimiento.setCellValueFactory(new PropertyValueFactory<>("fechaVencimiento"));
         colDetCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidadEntregada"));
         tableDetalle.setItems(detalleItems);
+
+        // Edit modal detail table
+        colEditProducto.setCellValueFactory(cd -> cd.getValue().productoNombreProperty());
+        colEditCantidad.setCellValueFactory(cd -> cd.getValue().cantidadEntregadaProperty());
+        colEditLote.setCellValueFactory(cd -> cd.getValue().loteNumeroProperty());
+        colEditLote.setCellFactory(param -> new TableCell<>() {
+            private ComboBox<Lote> combo;
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    EditableDetalleRow row = getTableView().getItems().get(getIndex());
+                    combo = new ComboBox<>(row.getLotesDisponibles());
+                    combo.setConverter(new StringConverter<>() {
+                        @Override public String toString(Lote l) {
+                            if (l == null) return "";
+                            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                            String vence = l.getFechaVencimiento() != null ? l.getFechaVencimiento().format(fmt) : "N/D";
+                            return l.getNumeroLote() + " — Vence: " + vence + " — Stock: " + l.getCantidad();
+                        }
+                        @Override public Lote fromString(String s) { return null; }
+                    });
+                    // Select current lot
+                    for (Lote l : row.getLotesDisponibles()) {
+                        if (l.getId().equals(row.getLoteId())) {
+                            combo.getSelectionModel().select(l);
+                            break;
+                        }
+                    }
+                    combo.valueProperty().addListener((obs, oldVal, newVal) -> {
+                        if (newVal != null) {
+                            row.loteIdProperty().set(newVal.getId());
+                            row.loteNumeroProperty().set(newVal.getNumeroLote());
+                        }
+                    });
+                    combo.setMaxWidth(Double.MAX_VALUE);
+                    setGraphic(combo);
+                }
+            }
+        });
+        colEditCantidad.setCellFactory(param -> new TableCell<>() {
+            private TextField tf;
+            @Override
+            protected void updateItem(Number item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    tf = new TextField(item != null ? String.valueOf(item.intValue()) : "0");
+                    tf.setMaxWidth(80);
+                    tf.textProperty().addListener((obs, oldVal, newVal) -> {
+                        try {
+                            int qty = Integer.parseInt(newVal);
+                            if (qty > 0) {
+                                EditableDetalleRow row = getTableView().getItems().get(getIndex());
+                                row.cantidadEntregadaProperty().set(qty);
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    });
+                    setGraphic(tf);
+                }
+            }
+        });
+        tableEditDetalle.setItems(editDetalleItems);
     }
 
     private void setupProductCombo() {
@@ -301,12 +377,42 @@ public class AtencionController {
         txtEditMedico.setText(atencion.getMedico() != null ? atencion.getMedico() : "");
         String fecha = atencion.getFechaAtencion() != null ? atencion.getFechaAtencion().format(FMT_FECHA) : "N/D";
         lblEditarSub.setText("Atención del " + fecha);
+
+        // Load details for editing
+        editDetalleItems.clear();
+        originalDetalles.clear();
+        try {
+            List<AtencionDetalle> detalles = atencionAdapter.buscarDetallesAtencion(atencion.getId());
+            originalDetalles.addAll(detalles);
+            Usuario user = sessionManager.getCurrentUser();
+            String sedeId = user != null ? user.getSedeId() : null;
+            for (AtencionDetalle det : detalles) {
+                EditableDetalleRow row = new EditableDetalleRow();
+                row.detalleIdProperty().set(det.getId());
+                row.productoIdProperty().set(det.getProductoId());
+                row.productoNombreProperty().set(det.getProductoNombre());
+                row.loteIdProperty().set(det.getLoteId());
+                row.loteNumeroProperty().set(det.getLoteNumero());
+                row.cantidadEntregadaProperty().set(det.getCantidadEntregada());
+                // Load available lots for this product
+                if (det.getProductoId() != null && sedeId != null) {
+                    List<Lote> lotes = atencionAdapter.listarLotesFefo(sedeId, det.getProductoId());
+                    row.setLotesDisponibles(FXCollections.observableArrayList(lotes));
+                }
+                editDetalleItems.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         modalEditar.setVisible(true);
     }
 
     @FXML
     protected void onCloseEditar() {
         modalEditar.setVisible(false);
+        editDetalleItems.clear();
+        originalDetalles.clear();
         editingAtencion = null;
     }
 
@@ -320,12 +426,41 @@ public class AtencionController {
         }
         editingAtencion.setNumeroReceta(receta.trim());
         editingAtencion.setMedico(txtEditMedico.getText() != null ? txtEditMedico.getText().trim() : "");
+
+        // Build new details list from edit table
+        List<AtencionDetalle> nuevas = new ArrayList<>();
+        for (EditableDetalleRow row : editDetalleItems) {
+            if (row.getLoteId() == null || row.getLoteId().isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Validación",
+                    "Seleccione un lote para: " + row.getProductoNombre());
+                return;
+            }
+            if (row.getCantidadEntregada() <= 0) {
+                showAlert(Alert.AlertType.WARNING, "Validación",
+                    "Ingrese una cantidad válida para: " + row.getProductoNombre());
+                return;
+            }
+            AtencionDetalle det = new AtencionDetalle();
+            det.setId(row.getDetalleId());
+            det.setLoteId(row.getLoteId());
+            det.setCantidadEntregada(row.getCantidadEntregada());
+            det.setProductoId(row.getProductoId());
+            det.setProductoNombre(row.getProductoNombre());
+            nuevas.add(det);
+        }
+
         try {
-            atencionAdapter.editarAtencion(editingAtencion);
-            showAlert(Alert.AlertType.INFORMATION, "Éxito", "Atención actualizada correctamente.");
-            modalEditar.setVisible(false);
-            editingAtencion = null;
-            onBuscarAtenciones();
+            String result = atencionAdapter.editarAtencionCompleta(editingAtencion, originalDetalles, nuevas);
+            if ("OK".equals(result)) {
+                showAlert(Alert.AlertType.INFORMATION, "Éxito", "Atención actualizada correctamente.");
+                modalEditar.setVisible(false);
+                editDetalleItems.clear();
+                originalDetalles.clear();
+                editingAtencion = null;
+                onBuscarAtenciones();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", result);
+            }
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Error", "No se pudo actualizar: " + e.getMessage());
         }
@@ -571,5 +706,33 @@ public class AtencionController {
         alert.initOwner(rootPane.getScene().getWindow());
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/utp/meditrackapp/styles/global.css").toExternalForm());
         alert.showAndWait();
+    }
+
+    // Inner class for editable detail rows in the edit modal
+    public static class EditableDetalleRow {
+        private final StringProperty productoNombre = new SimpleStringProperty();
+        private final StringProperty loteNumero = new SimpleStringProperty();
+        private final IntegerProperty cantidadEntregada = new SimpleIntegerProperty();
+        private final StringProperty loteId = new SimpleStringProperty();
+        private final StringProperty productoId = new SimpleStringProperty();
+        private final StringProperty detalleId = new SimpleStringProperty();
+        private ObservableList<Lote> lotesDisponibles = FXCollections.observableArrayList();
+
+        public StringProperty productoNombreProperty() { return productoNombre; }
+        public StringProperty loteNumeroProperty() { return loteNumero; }
+        public IntegerProperty cantidadEntregadaProperty() { return cantidadEntregada; }
+        public StringProperty loteIdProperty() { return loteId; }
+        public StringProperty productoIdProperty() { return productoId; }
+        public StringProperty detalleIdProperty() { return detalleId; }
+
+        public ObservableList<Lote> getLotesDisponibles() { return lotesDisponibles; }
+        public void setLotesDisponibles(ObservableList<Lote> lotes) { this.lotesDisponibles = lotes; }
+
+        public String getProductoNombre() { return productoNombre.get(); }
+        public String getLoteNumero() { return loteNumero.get(); }
+        public int getCantidadEntregada() { return cantidadEntregada.get(); }
+        public String getLoteId() { return loteId.get(); }
+        public String getProductoId() { return productoId.get(); }
+        public String getDetalleId() { return detalleId.get(); }
     }
 }

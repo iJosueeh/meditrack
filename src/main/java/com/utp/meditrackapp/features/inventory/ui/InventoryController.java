@@ -13,7 +13,6 @@ import com.utp.meditrackapp.domain.entities.Usuario;
 import com.utp.meditrackapp.core.models.enums.MotivoMovimientoEnum;
 import com.utp.meditrackapp.core.models.enums.TipoMovimientoEnum;
 import com.utp.meditrackapp.infrastructure.adapters.InventoryAdapter;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -21,7 +20,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -66,6 +64,7 @@ public class InventoryController {
 
     // Quick Registration
     @FXML private ComboBox<TipoMovimiento> cmbQuickType;
+    @FXML private ComboBox<Producto> cmbQuickProduct;
     @FXML private ComboBox<Lote> cmbQuickBatch;
     @FXML private ComboBox<MotivoMovimiento> cmbQuickMotivo;
     @FXML private TextField txtQuickQty, txtQuickObs;
@@ -74,7 +73,7 @@ public class InventoryController {
     @FXML private ComboBox<Integer> cmbExpirationThreshold;
 
     // Modal fields
-    @FXML private StackPane modalMovement;
+    @FXML private VBox modalMovement;
     @FXML private VBox vboxEntradaDetails;
     @FXML private ComboBox<Producto> cmbModalProduct;
     @FXML private ComboBox<TipoMovimiento> cmbModalType;
@@ -84,6 +83,19 @@ public class InventoryController {
     @FXML private TextField txtNewLote, txtModalQty;
     @FXML private TextArea txtModalObs;
     @FXML private DatePicker dpNewVenc, dpNewFab;
+    @FXML private Label lblLoteError;
+
+    // Modal summary
+    @FXML private Label lblModalTitle, lblModalSubtitle;
+    @FXML private VBox vboxModalSummary;
+    @FXML private Label lblSummaryTipo, lblSummaryProducto, lblSummaryLote, lblSummaryCantidad;
+    @FXML private Button btnModalConfirm;
+
+    // Wizard
+    @FXML private VBox wizardStep1, wizardStep2, wizardStep3, wizardStep4;
+    @FXML private Button btnCancel, btnBack, btnNext, btnConfirm;
+    @FXML private Label lblStep1, lblStep2, lblStep3, lblStep4;
+    @FXML private Label lblStep3Title;
 
     // Pagination
     @FXML private Pagination paginationMovements;
@@ -91,12 +103,15 @@ public class InventoryController {
     private static final int ROWS_PER_PAGE = 10;
     private ObservableList<Movimiento> allMovements = FXCollections.observableArrayList();
     private ObservableList<Lote> allBatches = FXCollections.observableArrayList();
+    private boolean modalSummaryMode = false;
+    private int wizardStep = 1;
 
     @FXML
     public void initialize() {
         setupTables();
         loadDataInBackground();
         applyRolePermissions();
+        txtNewLote.textProperty().addListener((obs, oldVal, newVal) -> hideLoteError());
     }
 
     private void loadDataInBackground() {
@@ -184,19 +199,30 @@ public class InventoryController {
             @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
             @Override public MotivoMovimiento fromString(String s) { return null; }
         });
-        
+
         cmbModalProduct.setConverter(new StringConverter<>() {
             @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
             @Override public Producto fromString(String s) { return null; }
         });
+        cmbModalMotivo.setItems(FXCollections.observableArrayList(motivos));
         cmbModalMotivo.setConverter(new StringConverter<>() {
             @Override public String toString(MotivoMovimiento m) { return m != null ? m.getNombre() : ""; }
             @Override public MotivoMovimiento fromString(String s) { return null; }
         });
 
-        cmbQuickBatch.setItems(FXCollections.observableArrayList(lotes));
+        cmbQuickProduct.setItems(FXCollections.observableArrayList(productos));
+        cmbQuickProduct.setConverter(new StringConverter<>() {
+            @Override public String toString(Producto p) { return p != null ? p.getNombre() : ""; }
+            @Override public Producto fromString(String s) { return null; }
+        });
+        cmbQuickProduct.setOnAction(e -> onQuickProductChanged());
         cmbQuickBatch.setConverter(new StringConverter<>() {
-            @Override public String toString(Lote l) { return l != null ? l.getProductoNombre() + " [" + l.getNumeroLote() + "]" : ""; }
+            @Override public String toString(Lote l) {
+                if (l == null) return "";
+                java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String vence = l.getFechaVencimiento() != null ? l.getFechaVencimiento().format(fmt) : "N/D";
+                return l.getNumeroLote() + " — Vence: " + vence + " — Stock: " + l.getCantidad();
+            }
             @Override public Lote fromString(String s) { return null; }
         });
 
@@ -585,55 +611,228 @@ public class InventoryController {
     }
 
     private void refreshQuickBatchCombo() {
+        Producto selectedProduct = cmbQuickProduct.getValue();
+        if (selectedProduct == null) {
+            cmbQuickBatch.getItems().clear();
+            cmbQuickBatch.setPromptText("Seleccione producto primero...");
+            return;
+        }
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user != null) {
-                List<Lote> batches = inventoryAdapter.listarLotesConProducto(user.getSedeId());
-                cmbQuickBatch.setItems(FXCollections.observableArrayList(batches));
+                List<Lote> allLots = inventoryAdapter.listarLotesConProducto(user.getSedeId());
+                List<Lote> productLots = allLots.stream()
+                    .filter(l -> selectedProduct.getId().equals(l.getProductoId()) && l.getCantidad() > 0)
+                    .collect(Collectors.toList());
+                cmbQuickBatch.setItems(FXCollections.observableArrayList(productLots));
+                if (!productLots.isEmpty()) {
+                    cmbQuickBatch.getSelectionModel().selectFirst();
+                }
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    @FXML protected void onOpenMovementModal() { modalMovement.setVisible(true); }
-    @FXML protected void onCloseModal() { modalMovement.setVisible(false); }
+    private void onQuickProductChanged() {
+        refreshQuickBatchCombo();
+    }
+
+    @FXML protected void onOpenMovementModal() {
+        wizardStep = 1;
+        showWizardStep(1);
+        modalMovement.setVisible(true);
+        modalMovement.setManaged(true);
+    }
+    @FXML protected void onCloseModal() {
+        modalMovement.setVisible(false);
+        modalMovement.setManaged(false);
+        clearModalFields();
+    }
 
     @FXML
-    protected void onModalProductChanged() {
-        TipoMovimiento selectedType = cmbModalType.getValue();
-        if (selectedType != null && selectedType.getNombre().toLowerCase().contains("salida")) {
-            loadBatchesForProduct(cmbModalProduct.getValue());
+    protected void onWizardNext() {
+        if (wizardStep == 1) {
+            if (cmbModalType.getValue() == null || cmbModalMotivo.getValue() == null) {
+                showAlert(Alert.AlertType.WARNING, "Campos Incompletos", "Seleccione tipo y motivo.");
+                return;
+            }
+            wizardStep = 2;
+            showWizardStep(2);
+        } else if (wizardStep == 2) {
+            if (cmbModalProduct.getValue() == null) {
+                showAlert(Alert.AlertType.WARNING, "Campo Requerido", "Seleccione un producto.");
+                return;
+            }
+            TipoMovimiento tipo = cmbModalType.getValue();
+            boolean isEntrada = tipo.getNombre().toLowerCase().contains("entrada");
+            vboxEntradaDetails.setVisible(isEntrada);
+            vboxEntradaDetails.setManaged(isEntrada);
+            cmbModalBatchContainer.setVisible(!isEntrada);
+            cmbModalBatchContainer.setManaged(!isEntrada);
+            if (!isEntrada) loadBatchesForProduct(cmbModalProduct.getValue());
+            lblStep3Title.setText(isEntrada ? "Ingrese los datos del nuevo lote" : "Seleccione el lote a dispensar");
+            wizardStep = 3;
+            showWizardStep(3);
+        } else if (wizardStep == 3) {
+            if (!validateStep3()) return;
+            buildSummary();
+            wizardStep = 4;
+            showWizardStep(4);
         }
     }
 
     @FXML
-    protected void onModalTypeChanged() {
-        TipoMovimiento selectedType = cmbModalType.getValue();
-        if (selectedType == null) return;
+    protected void onWizardBack() {
+        if (wizardStep > 1) {
+            wizardStep--;
+            showWizardStep(wizardStep);
+        }
+    }
 
-        boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
-        vboxEntradaDetails.setVisible(isEntrada);
-        vboxEntradaDetails.setManaged(isEntrada);
-        cmbModalBatchContainer.setVisible(!isEntrada);
-        cmbModalBatchContainer.setManaged(!isEntrada);
-        
+    private boolean validateStep3() {
+        String qtyStr = txtModalQty.getText();
+        if (qtyStr == null || qtyStr.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "Ingrese la cantidad.");
+            return false;
+        }
+        int cantidad;
         try {
-            List<MotivoMovimiento> motivos = inventoryAdapter.listarMotivosMovimiento();
-            cmbModalMotivo.setItems(FXCollections.observableArrayList(motivos));
-        } catch (Exception e) { e.printStackTrace(); }
-        
-        if (!isEntrada) loadBatchesForProduct(cmbModalProduct.getValue());
+            cantidad = Integer.parseInt(qtyStr);
+            if (cantidad <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            showAlert(Alert.AlertType.WARNING, "Validación", "La cantidad debe ser un número entero mayor a cero.");
+            return false;
+        }
+
+        TipoMovimiento tipo = cmbModalType.getValue();
+        boolean isEntrada = tipo.getNombre().toLowerCase().contains("entrada");
+        if (isEntrada) {
+            if (txtNewLote.getText() == null || txtNewLote.getText().isBlank()) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "El N° de Lote es requerido para entradas.");
+                return false;
+            }
+            if (dpNewVenc.getValue() == null) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "La Fecha de Vencimiento es requerida para entradas.");
+                return false;
+            }
+            Producto producto = cmbModalProduct.getValue();
+            Usuario user = sessionManager.getCurrentUser();
+            String numLote = txtNewLote.getText().trim();
+            if (inventoryAdapter.existeLote(numLote, producto.getId(), user.getSedeId())) {
+                lblLoteError.setText("Ya existe un lote \"" + numLote + "\" para este producto en esta sede.");
+                lblLoteError.setVisible(true);
+                lblLoteError.setManaged(true);
+                return false;
+            }
+            hideLoteError();
+        } else {
+            Lote lote = cmbModalBatch.getValue();
+            if (lote == null) {
+                showAlert(Alert.AlertType.WARNING, "Validación", "Seleccione un lote para salidas.");
+                return false;
+            }
+            if (lote.getCantidad() < cantidad) {
+                showAlert(Alert.AlertType.WARNING, "Stock insuficiente",
+                    "El lote " + lote.getNumeroLote() + " solo tiene " + lote.getCantidad() + " unidades.");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void buildSummary() {
+        TipoMovimiento tipo = cmbModalType.getValue();
+        MotivoMovimiento motivo = cmbModalMotivo.getValue();
+        Producto producto = cmbModalProduct.getValue();
+        int cantidad = Integer.parseInt(txtModalQty.getText());
+
+        lblSummaryTipo.setText("Tipo: " + tipo.getNombre().toUpperCase() + "  |  Motivo: " + motivo.getNombre());
+        lblSummaryProducto.setText("Producto: " + producto.getNombre());
+
+        boolean isEntrada = tipo.getNombre().toLowerCase().contains("entrada");
+        if (isEntrada) {
+            lblSummaryLote.setText("Lote: " + txtNewLote.getText() + "  |  Vence: " + dpNewVenc.getValue());
+        } else {
+            Lote lote = cmbModalBatch.getValue();
+            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String vence = lote.getFechaVencimiento() != null ? lote.getFechaVencimiento().format(fmt) : "N/D";
+            lblSummaryLote.setText("Lote: " + lote.getNumeroLote() + "  |  Vence: " + vence + "  |  Stock: " + lote.getCantidad());
+        }
+        String obs = txtModalObs.getText();
+        lblSummaryCantidad.setText("Cantidad: " + cantidad + (obs != null && !obs.isBlank() ? "  |  Obs: " + obs : ""));
+    }
+
+    private void showWizardStep(int step) {
+        wizardStep1.setVisible(step == 1);
+        wizardStep1.setManaged(step == 1);
+        wizardStep2.setVisible(step == 2);
+        wizardStep2.setManaged(step == 2);
+        wizardStep3.setVisible(step == 3);
+        wizardStep3.setManaged(step == 3);
+        wizardStep4.setVisible(step == 4);
+        wizardStep4.setManaged(step == 4);
+
+        btnCancel.setVisible(step < 4);
+        btnCancel.setManaged(step < 4);
+        btnBack.setVisible(step > 1);
+        btnBack.setManaged(step > 1);
+        btnNext.setVisible(step < 4);
+        btnNext.setManaged(step < 4);
+        btnConfirm.setVisible(step == 4);
+        btnConfirm.setManaged(step == 4);
+
+        String[] stepLabels = {"1. Tipo", "2. Producto", "3. Lote y Cant.", "4. Confirmar"};
+        Label[] stepLabelsUI = {lblStep1, lblStep2, lblStep3, lblStep4};
+        for (int i = 0; i < 4; i++) {
+            if (i + 1 == step) {
+                stepLabelsUI[i].setStyle("-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-accent-fg; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold;");
+            } else if (i + 1 < step) {
+                stepLabelsUI[i].setStyle("-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-success-fg; -fx-text-fill: white; -fx-font-size: 11px;");
+            } else {
+                stepLabelsUI[i].setStyle("-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-size: 11px;");
+            }
+        }
+
+        String[] subtitles = {
+            "Paso 1 de 4 — Tipo y Motivo",
+            "Paso 2 de 4 — Seleccionar Producto",
+            "Paso 3 de 4 — Lote y Cantidad",
+            "Paso 4 de 4 — Confirmar Operación"
+        };
+        lblModalSubtitle.setText(subtitles[step - 1]);
+    }
+
+    @FXML
+    protected void onModalTypeChanged() {
     }
 
     private void loadBatchesForProduct(Producto p) {
-        if (p == null) return;
+        if (p == null) {
+            cmbModalBatch.getItems().clear();
+            cmbModalBatch.setPromptText("Seleccione producto primero...");
+            return;
+        }
         try {
             Usuario user = sessionManager.getCurrentUser();
             if (user == null) return;
             String sedeId = user.getSedeId();
-            List<Lote> lotes = inventoryAdapter.listarLotesFefo(sedeId, p.getId());
-            cmbModalBatch.setItems(FXCollections.observableArrayList(lotes));
+            List<Lote> allLots = inventoryAdapter.listarLotesConProducto(sedeId);
+            List<Lote> productLots = allLots.stream()
+                .filter(l -> p.getId().equals(l.getProductoId()) && l.getCantidad() > 0)
+                .sorted((a, b) -> {
+                    if (a.getFechaVencimiento() == null) return 1;
+                    if (b.getFechaVencimiento() == null) return -1;
+                    return a.getFechaVencimiento().compareTo(b.getFechaVencimiento());
+                })
+                .collect(Collectors.toList());
+
+            cmbModalBatch.setItems(FXCollections.observableArrayList(productLots));
             cmbModalBatch.setConverter(new StringConverter<>() {
-                @Override public String toString(Lote l) { return l != null ? l.getNumeroLote() : ""; }
+                @Override public String toString(Lote l) {
+                    if (l == null) return "";
+                    java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    String vence = l.getFechaVencimiento() != null ? l.getFechaVencimiento().format(fmt) : "N/D";
+                    return l.getNumeroLote() + " — Vence: " + vence + " — Stock: " + l.getCantidad();
+                }
                 @Override public Lote fromString(String s) { return null; }
             });
             cmbModalBatch.setCellFactory(cb -> new javafx.scene.control.ListCell<>() {
@@ -641,10 +840,11 @@ public class InventoryController {
                 protected void updateItem(Lote item, boolean empty) {
                     super.updateItem(item, empty);
                     if (empty || item == null) {
-                        setText(null);
-                        setGraphic(null);
+                        setText(null); setGraphic(null); setStyle("");
                     } else {
-                        setText(item.getNumeroLote() + " (vence: " + item.getFechaVencimiento() + ")");
+                        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        String vence = item.getFechaVencimiento() != null ? item.getFechaVencimiento().format(fmt) : "N/D";
+                        setText(item.getNumeroLote() + " — Vence: " + vence + " — Stock: " + item.getCantidad());
                         if (getIndex() == 0) {
                             setStyle("-fx-font-weight: bold; -fx-text-fill: #2ea043;");
                         } else {
@@ -653,34 +853,22 @@ public class InventoryController {
                     }
                 }
             });
+
+            if (!productLots.isEmpty()) {
+                cmbModalBatch.getSelectionModel().selectFirst();
+            }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
     protected void onSaveMovement() {
         try {
-            // Validar que la sede no esté bloqueada
             SedeAccessValidator.validarSedeActiva();
-            
+
             Producto producto = cmbModalProduct.getValue();
             TipoMovimiento selectedType = cmbModalType.getValue();
             MotivoMovimiento motivo = cmbModalMotivo.getValue();
-            String qtyStr = txtModalQty.getText();
-
-            if (producto == null || selectedType == null || motivo == null || qtyStr.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Campos Incompletos", "Por favor complete todos los campos obligatorios.");
-                return;
-            }
-
-            int cantidad;
-            try {
-                cantidad = Integer.parseInt(qtyStr);
-                if (cantidad <= 0) throw new NumberFormatException();
-            } catch (NumberFormatException e) {
-                showAlert(Alert.AlertType.WARNING, "Validación", "La cantidad debe ser un número entero mayor a cero.");
-                return;
-            }
-
+            int cantidad = Integer.parseInt(txtModalQty.getText());
             Usuario user = sessionManager.getCurrentUser();
             String obs = txtModalObs.getText();
             boolean isEntrada = selectedType.getNombre().toLowerCase().contains("entrada");
@@ -693,19 +881,9 @@ public class InventoryController {
                 nuevoLote.setFechaFabricacion(dpNewFab.getValue());
                 nuevoLote.setFechaVencimiento(dpNewVenc.getValue());
                 nuevoLote.setCantidad(cantidad);
-                
-                if (nuevoLote.getNumeroLote() == null || nuevoLote.getNumeroLote().isBlank() || nuevoLote.getFechaVencimiento() == null) {
-                    showAlert(Alert.AlertType.WARNING, "Datos de Lote", "Debe ingresar el N° de Lote y la Fecha de Vencimiento.");
-                    return;
-                }
-
                 inventoryAdapter.registrarMovimiento(nuevoLote, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
             } else {
                 Lote loteExistente = cmbModalBatch.getValue();
-                if (loteExistente == null) {
-                    showAlert(Alert.AlertType.WARNING, "Lote no seleccionado", "Debe seleccionar un lote para realizar una salida.");
-                    return;
-                }
                 inventoryAdapter.registrarMovimiento(loteExistente, user.getId(), selectedType.getId(), motivo.getId(), cantidad, obs);
             }
 
@@ -714,7 +892,6 @@ public class InventoryController {
             refreshMovements();
             refreshBatches();
             refreshQuickBatchCombo();
-            clearModalFields();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -723,6 +900,8 @@ public class InventoryController {
     }
 
     private void clearModalFields() {
+        modalSummaryMode = false;
+        wizardStep = 1;
         txtModalQty.clear();
         txtModalObs.clear();
         txtNewLote.clear();
@@ -732,6 +911,19 @@ public class InventoryController {
         cmbModalType.getSelectionModel().clearSelection();
         cmbModalMotivo.getSelectionModel().clearSelection();
         cmbModalBatch.getSelectionModel().clearSelection();
+        cmbModalBatch.getItems().clear();
+        vboxEntradaDetails.setVisible(false);
+        vboxEntradaDetails.setManaged(false);
+        cmbModalBatchContainer.setVisible(false);
+        cmbModalBatchContainer.setManaged(false);
+        hideLoteError();
+    }
+
+    private void hideLoteError() {
+        if (lblLoteError != null) {
+            lblLoteError.setVisible(false);
+            lblLoteError.setManaged(false);
+        }
     }
 
     @FXML

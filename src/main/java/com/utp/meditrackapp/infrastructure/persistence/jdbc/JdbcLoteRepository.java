@@ -209,6 +209,25 @@ public class JdbcLoteRepository implements LoteRepository {
     }
 
     @Override
+    public boolean existsByNumeroLoteProductoSede(String numeroLote, String productoId, String sedeId) {
+        String sql = "SELECT COUNT(*) FROM lotes WHERE numero_lote = ? AND producto_id = ? AND sede_id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, numeroLote);
+            ps.setString(2, productoId);
+            ps.setString(3, sedeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public Lote save(Lote lote) {
         try (Connection conn = dbConfig.getConnection()) {
             return save(conn, lote);
