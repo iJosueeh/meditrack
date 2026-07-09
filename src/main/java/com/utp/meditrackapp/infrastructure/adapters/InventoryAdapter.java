@@ -85,6 +85,10 @@ public class InventoryAdapter {
         return loteRepository.findFefo(sedeId, productoId);
     }
 
+    public boolean existeLote(String numeroLote, String productoId, String sedeId) {
+        return loteRepository.existsByNumeroLoteProductoSede(numeroLote, productoId, sedeId);
+    }
+
     public List<StockCriticoDTO> obtenerStockCritico(String sedeId) {
         return calcularStockUseCase.calcularStockCritico(sedeId, 10);
     }

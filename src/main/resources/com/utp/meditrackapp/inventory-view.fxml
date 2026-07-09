@@ -88,24 +88,32 @@
                             
                             <Tab text="Monitor de Lotes">
                                 <VBox spacing="15" style="-fx-padding: 20 0 0 0;">
-                                    <!-- Registro Rápido: full width arriba -->
+                                    <!-- Registro Rápido -->
                                     <VBox styleClass="card, elevated" spacing="12" style="-fx-padding: 15;">
                                         <HBox alignment="CENTER_LEFT" spacing="10">
                                             <FontIcon iconLiteral="fas-bolt" iconSize="16" styleClass="icon-accent" />
                                             <Label text="REGISTRO RÁPIDO" styleClass="text-caption, text-bold, text-muted" />
                                         </HBox>
+                                        <!-- Fila 1: Tipo, Producto, Motivo -->
                                         <HBox spacing="15" alignment="BOTTOM_LEFT">
-                                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                            <VBox spacing="4" maxWidth="180">
                                                 <Label text="TIPO" styleClass="text-caption, text-muted" />
                                                 <ComboBox fx:id="cmbQuickType" maxWidth="Infinity" promptText="Seleccionar" />
                                             </VBox>
                                             <VBox spacing="4" HBox.hgrow="ALWAYS">
-                                                <Label text="LOTE" styleClass="text-caption, text-muted" />
-                                                <ComboBox fx:id="cmbQuickBatch" maxWidth="Infinity" promptText="Seleccionar lote" />
+                                                <Label text="PRODUCTO" styleClass="text-caption, text-muted" />
+                                                <ComboBox fx:id="cmbQuickProduct" maxWidth="Infinity" promptText="Seleccionar producto..." />
                                             </VBox>
-                                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                            <VBox spacing="4" maxWidth="200">
                                                 <Label text="MOTIVO" styleClass="text-caption, text-muted" />
                                                 <ComboBox fx:id="cmbQuickMotivo" maxWidth="Infinity" promptText="Seleccionar motivo" />
+                                            </VBox>
+                                        </HBox>
+                                        <!-- Fila 2: Lote, Cantidad, Observaciones, Registrar -->
+                                        <HBox spacing="15" alignment="BOTTOM_LEFT">
+                                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                <Label text="LOTE" styleClass="text-caption, text-muted" />
+                                                <ComboBox fx:id="cmbQuickBatch" maxWidth="Infinity" promptText="Seleccione producto primero..." />
                                             </VBox>
                                             <VBox spacing="4" maxWidth="120">
                                                 <Label text="CANTIDAD" styleClass="text-caption, text-muted" />
@@ -116,7 +124,6 @@
                                                 <TextField fx:id="txtQuickObs" promptText="Notas breves" />
                                             </VBox>
                                             <Button text="Registrar" onAction="#onQuickUpdate" styleClass="button, accent">
-                                                <graphic><FontIcon iconLiteral="fas-sync-alt" iconColor="white" /></graphic>
                                                 <VBox.margin><Insets bottom="2" /></VBox.margin>
                                             </Button>
                                         </HBox>
@@ -168,71 +175,101 @@
         </center>
     </BorderPane>
 
-    <!-- Movement Modal -->
-    <StackPane fx:id="modalMovement" visible="false" styleClass="modal-overlay">
-        <VBox maxWidth="600" maxHeight="-Infinity" styleClass="modal-content" spacing="25">
+    <!-- Movement Modal - Wizard -->
+    <VBox fx:id="modalMovement" visible="false" managed="false" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.45);">
+        <VBox maxWidth="650" styleClass="modal-content" spacing="15">
             <VBox styleClass="modal-header">
-                <Label text="Registrar Operación de Inventario" styleClass="title-4" />
-                <Label text="Ingrese los detalles de la entrada o salida a continuación." styleClass="text-muted" />
+                <Label fx:id="lblModalTitle" text="Registrar Operación de Inventario" styleClass="title-4" />
+                <Label fx:id="lblModalSubtitle" text="Paso 1 de 4 — Tipo y Motivo" styleClass="text-muted" />
             </VBox>
-            
-            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
-                <VBox spacing="25">
-                    <VBox spacing="8">
-                        <Label text="PRODUCTO / MEDICAMENTO" styleClass="text-caption, text-bold, text-muted" />
-                        <ComboBox fx:id="cmbModalProduct" maxWidth="Infinity" promptText="Seleccionar de la lista" onAction="#onModalProductChanged" styleClass="large" />
+
+            <!-- Step indicator -->
+            <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 0 0 5 0;">
+                <Label fx:id="lblStep1" text="1. Tipo" style="-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-accent-fg; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold;" />
+                <Label fx:id="lblStep2" text="2. Producto" style="-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-size: 11px;" />
+                <Label fx:id="lblStep3" text="3. Lote y Cant." style="-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-size: 11px;" />
+                <Label fx:id="lblStep4" text="4. Confirmar" style="-fx-padding: 3 10; -fx-background-radius: 12; -fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-size: 11px;" />
+            </HBox>
+
+            <!-- ===== PASO 1: Tipo + Motivo ===== -->
+            <VBox fx:id="wizardStep1" spacing="15">
+                <Label text="¿Qué tipo de operación va a registrar?" styleClass="text-muted" />
+                <VBox spacing="6">
+                    <Label text="TIPO DE MOVIMIENTO *" styleClass="text-caption, text-bold, text-muted" />
+                    <ComboBox fx:id="cmbModalType" maxWidth="Infinity" promptText="Seleccionar tipo..." />
+                </VBox>
+                <VBox spacing="6">
+                    <Label text="MOTIVO *" styleClass="text-caption, text-bold, text-muted" />
+                    <ComboBox fx:id="cmbModalMotivo" maxWidth="Infinity" promptText="Seleccionar motivo..." />
+                </VBox>
+            </VBox>
+
+            <!-- ===== PASO 2: Producto ===== -->
+            <VBox fx:id="wizardStep2" visible="false" managed="false" spacing="15">
+                <Label text="¿Qué producto o medicamento va a operar?" styleClass="text-muted" />
+                <VBox spacing="6">
+                    <Label text="PRODUCTO / MEDICAMENTO *" styleClass="text-caption, text-bold, text-muted" />
+                    <ComboBox fx:id="cmbModalProduct" maxWidth="Infinity" promptText="Seleccionar producto..." />
+                </VBox>
+            </VBox>
+
+            <!-- ===== PASO 3: Lote + Cantidad ===== -->
+            <VBox fx:id="wizardStep3" visible="false" managed="false" spacing="15">
+                <Label fx:id="lblStep3Title" text="Detalle del lote y cantidad" styleClass="text-muted" />
+
+                <!-- Si ENTRADA: datos del nuevo lote -->
+                <VBox fx:id="vboxEntradaDetails" visible="false" managed="false" spacing="12" style="-fx-padding: 15; -fx-background-color: -color-bg-subtle; -fx-background-radius: 10;">
+                    <Label text="DATOS DEL NUEVO LOTE" styleClass="text-caption, text-bold, text-muted" />
+                    <VBox spacing="6">
+                        <Label text="N° de Lote (Proveedor) *" styleClass="text-caption, text-muted" />
+                        <TextField fx:id="txtNewLote" promptText="Ej: LOT-2026-X  (asignado por el proveedor/fabricante)" maxWidth="Infinity" />
+                        <Label fx:id="lblLoteError" visible="false" managed="false"
+                               style="-fx-text-fill: -color-danger-fg; -fx-font-size: 11px;" />
                     </VBox>
-                    
-                    <HBox spacing="25">
-                        <VBox HBox.hgrow="ALWAYS" spacing="8">
-                            <Label text="TIPO DE MOVIMIENTO" styleClass="text-caption, text-bold, text-muted" />
-                            <ComboBox fx:id="cmbModalType" maxWidth="Infinity" promptText="Operación" onAction="#onModalTypeChanged" />
+                    <HBox spacing="20">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Fecha Fabricación (opcional)" styleClass="text-caption, text-muted" />
+                            <DatePicker fx:id="dpNewFab" maxWidth="Infinity" />
                         </VBox>
-                        <VBox HBox.hgrow="ALWAYS" spacing="8">
-                            <Label text="MOTIVO" styleClass="text-caption, text-bold, text-muted" />
-                            <ComboBox fx:id="cmbModalMotivo" maxWidth="Infinity" promptText="Razón del registro" />
-                        </VBox>
-                    </HBox>
-                    
-                    <VBox fx:id="vboxEntradaDetails" visible="false" managed="false" spacing="20" style="-fx-padding: 15; -fx-background-color: -color-bg-subtle; -fx-background-radius: 10;">
-                        <VBox spacing="8">
-                            <Label text="IDENTIFICACIÓN DE LOTE (PROVEEDOR)" styleClass="text-caption, text-bold, text-muted" />
-                            <TextField fx:id="txtNewLote" promptText="Ej: LOT-2026-X" />
-                        </VBox>
-                        <HBox spacing="20">
-                            <VBox HBox.hgrow="ALWAYS" spacing="8">
-                                <Label text="FECHA FABRICACIÓN" styleClass="text-caption, text-bold, text-muted" />
-                                <DatePicker fx:id="dpNewFab" maxWidth="Infinity" />
-                            </VBox>
-                            <VBox HBox.hgrow="ALWAYS" spacing="8">
-                                <Label text="FECHA VENCIMIENTO" styleClass="text-caption, text-bold, text-muted" />
-                                <DatePicker fx:id="dpNewVenc" maxWidth="Infinity" />
-                            </VBox>
-                        </HBox>
-                    </VBox>
-                    
-                    <VBox fx:id="cmbModalBatchContainer" visible="false" managed="false" spacing="8">
-                        <Label text="SELECCIONAR LOTE DISPONIBLE" styleClass="text-caption, text-bold, text-muted" />
-                        <ComboBox fx:id="cmbModalBatch" maxWidth="Infinity" promptText="Lotes activos en sede" />
-                    </VBox>
-                    
-                    <HBox spacing="25">
-                        <VBox prefWidth="180" spacing="8">
-                            <Label text="CANTIDAD" styleClass="text-caption, text-bold, text-muted" />
-                            <TextField fx:id="txtModalQty" promptText="0" styleClass="large" />
-                        </VBox>
-                        <VBox HBox.hgrow="ALWAYS" spacing="8">
-                            <Label text="OBSERVACIONES" styleClass="text-caption, text-bold, text-muted" />
-                            <TextArea fx:id="txtModalObs" prefHeight="90" wrapText="true" promptText="Notas adicionales del movimiento..." />
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Fecha Vencimiento *" styleClass="text-caption, text-muted" />
+                            <DatePicker fx:id="dpNewVenc" maxWidth="Infinity" />
                         </VBox>
                     </HBox>
                 </VBox>
-            </ScrollPane>
-            
-            <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
-                <Button text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
-                <Button text="Confirmar y Guardar" onAction="#onSaveMovement" styleClass="button, accent, large" />
+
+                <!-- Si SALIDA: seleccionar lote existente -->
+                <VBox fx:id="cmbModalBatchContainer" visible="false" managed="false" spacing="6">
+                    <Label text="LOTE DISPONIBLE (FEFO) *" styleClass="text-caption, text-bold, text-muted" />
+                    <ComboBox fx:id="cmbModalBatch" maxWidth="Infinity" promptText="Seleccionar producto primero..." />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label text="CANTIDAD *" styleClass="text-caption, text-bold, text-muted" />
+                    <TextField fx:id="txtModalQty" promptText="0" maxWidth="200" />
+                </VBox>
+                <VBox spacing="6">
+                    <Label text="OBSERVACIONES (opcional)" styleClass="text-caption, text-bold, text-muted" />
+                    <TextArea fx:id="txtModalObs" prefHeight="60" wrapText="true" promptText="Notas adicionales del movimiento..." maxWidth="Infinity" />
+                </VBox>
+            </VBox>
+
+            <!-- ===== PASO 4: Resumen ===== -->
+            <VBox fx:id="wizardStep4" visible="false" managed="false" spacing="12" style="-fx-padding: 15; -fx-background-color: -color-accent-subtle; -fx-background-radius: 8; -fx-border-color: -color-accent-fg; -fx-border-width: 1; -fx-border-radius: 8;">
+                <Label text="RESUMEN DE LA OPERACIÓN" styleClass="text-caption, text-bold" style="-fx-text-fill: -color-accent-fg;" />
+                <Label fx:id="lblSummaryTipo" text="" styleClass="text-caption" />
+                <Label fx:id="lblSummaryProducto" text="" styleClass="text-caption" />
+                <Label fx:id="lblSummaryLote" text="" styleClass="text-caption" />
+                <Label fx:id="lblSummaryCantidad" text="" styleClass="text-caption" />
+            </VBox>
+
+            <!-- Footer: navigation buttons -->
+            <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="modal-footer">
+                <Button fx:id="btnCancel" text="Cancelar" onAction="#onCloseModal" styleClass="button, flat" />
+                <Button fx:id="btnBack" text="← Anterior" onAction="#onWizardBack" styleClass="button, flat" visible="false" managed="false" />
+                <Button fx:id="btnNext" text="Siguiente →" onAction="#onWizardNext" styleClass="button, accent" />
+                <Button fx:id="btnConfirm" text="Confirmar y Guardar" onAction="#onSaveMovement" styleClass="button, accent, large" visible="false" managed="false" />
             </HBox>
         </VBox>
-    </StackPane>
+    </VBox>
 </StackPane>

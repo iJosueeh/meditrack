@@ -11,6 +11,7 @@ public class AtencionDetalle {
     private int cantidadEntregada;
 
     // Transient fields for UI
+    private String productoId;
     private String productoNombre;
     private String loteNumero;
     private String fechaVencimiento;
@@ -59,6 +60,9 @@ public class AtencionDetalle {
 
     public int getCantidadEntregada() { return cantidadEntregada; }
     public void setCantidadEntregada(int cantidadEntregada) { this.cantidadEntregada = cantidadEntregada; }
+
+    public String getProductoId() { return productoId; }
+    public void setProductoId(String productoId) { this.productoId = productoId; }
 
     public String getProductoNombre() { return productoNombre; }
     public void setProductoNombre(String productoNombre) { this.productoNombre = productoNombre; }

@@ -110,6 +110,12 @@ public class RegistrarMovimientoUseCase {
         if (lote.getSedeId() == null || lote.getSedeId().isEmpty()) return "La sede es obligatoria.";
         if (cantidad <= 0) return "La cantidad debe ser mayor a cero.";
         if (lote.getFechaVencimiento() == null) return "La fecha de vencimiento es obligatoria.";
+        if (lote.getNumeroLote() == null || lote.getNumeroLote().isBlank()) return "El N° de Lote es obligatorio.";
+        if (loteRepository.existsByNumeroLoteProductoSede(
+                lote.getNumeroLote().trim(), lote.getProductoId(), lote.getSedeId())) {
+            return "Ya existe un lote con el N° \"" + lote.getNumeroLote().trim()
+                    + "\" para este producto en esta sede. Verifique el número e intente nuevamente.";
+        }
         return null;
     }
 }
