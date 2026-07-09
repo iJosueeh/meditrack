@@ -178,7 +178,7 @@
 
     <!-- Modal: Editar Atención -->
     <StackPane fx:id="modalEditar" visible="false" styleClass="modal-overlay">
-        <VBox maxWidth="450" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
+        <VBox maxWidth="750" maxHeight="-Infinity" styleClass="modal-content" spacing="20">
             <VBox styleClass="modal-header">
                 <Label text="Editar Atención" styleClass="title-4" />
                 <Label fx:id="lblEditarSub" text="" styleClass="text-muted" />
@@ -193,6 +193,23 @@
                     <TextField fx:id="txtEditMedico" maxWidth="Infinity" />
                 </VBox>
             </VBox>
+
+            <!-- Detalle de medicamentos editable -->
+            <VBox spacing="6">
+                <Label text="DETALLE DE MEDICAMENTOS" styleClass="text-caption, text-bold, text-muted" />
+                <TableView fx:id="tableEditDetalle" prefHeight="180" maxWidth="Infinity">
+                    <columns>
+                        <TableColumn fx:id="colEditProducto" text="Producto" prefWidth="220" />
+                        <TableColumn fx:id="colEditLote" text="Lote" prefWidth="250" />
+                        <TableColumn fx:id="colEditCantidad" text="Cantidad" prefWidth="100" />
+                    </columns>
+                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    <placeholder>
+                        <Label text="Esta atención no tiene medicamentos registrados." styleClass="text-muted" />
+                    </placeholder>
+                </TableView>
+            </VBox>
+
             <HBox spacing="15" alignment="CENTER_RIGHT" styleClass="modal-footer">
                 <Button text="Cancelar" onAction="#onCloseEditar" styleClass="button, flat" />
                 <Button text="Guardar" onAction="#onSaveEditar" styleClass="button, accent" />

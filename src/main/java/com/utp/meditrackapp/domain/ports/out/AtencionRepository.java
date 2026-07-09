@@ -37,5 +37,11 @@ public interface AtencionRepository {
 
     void updateAtencion(Atencion atencion);
 
+    void updateDetalle(String detalleId, String nuevoLoteId, int nuevaCantidad);
+
+    void deleteDetallesByAtencionId(java.sql.Connection conn, String atencionId);
+
+    void deleteMovimientosByAtencionId(java.sql.Connection conn, String atencionId);
+
     void deleteAtencion(String atencionId);
 }

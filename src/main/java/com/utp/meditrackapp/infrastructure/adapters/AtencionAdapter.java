@@ -10,6 +10,8 @@ import com.utp.meditrackapp.domain.entities.Producto;
 import com.utp.meditrackapp.domain.ports.out.AtencionRepository;
 import com.utp.meditrackapp.domain.ports.out.DispensacionRepository;
 import com.utp.meditrackapp.domain.services.dispensacion.DispensarMedicamentoUseCase;
+import com.utp.meditrackapp.domain.services.dispensacion.EditarAtencionUseCase;
+import com.utp.meditrackapp.domain.services.dispensacion.EliminarAtencionUseCase;
 import com.utp.meditrackapp.domain.services.paciente.GestionarPacienteUseCase;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcAtencionRepository;
 import com.utp.meditrackapp.infrastructure.persistence.jdbc.JdbcDispensacionRepository;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
  */
 public class AtencionAdapter {
     private final DispensarMedicamentoUseCase dispensarUseCase;
+    private final EditarAtencionUseCase editarAtencionUseCase;
+    private final EliminarAtencionUseCase eliminarAtencionUseCase;
     private final GestionarPacienteUseCase pacienteUseCase;
     private final JdbcAtencionRepository atencionRepository;
     private final JdbcDispensacionRepository dispensacionRepository;
@@ -38,6 +42,18 @@ public class AtencionAdapter {
         this.atencionRepository = new JdbcAtencionRepository();
         JdbcPacienteRepository pacienteRepo = new JdbcPacienteRepository();
         this.dispensarUseCase = new DispensarMedicamentoUseCase(
+            atencionRepository,
+            new JdbcLoteRepository(),
+            new JdbcMovimientoRepository(),
+            new TransactionManager()
+        );
+        this.editarAtencionUseCase = new EditarAtencionUseCase(
+            atencionRepository,
+            new JdbcLoteRepository(),
+            new JdbcMovimientoRepository(),
+            new TransactionManager()
+        );
+        this.eliminarAtencionUseCase = new EliminarAtencionUseCase(
             atencionRepository,
             new JdbcLoteRepository(),
             new JdbcMovimientoRepository(),
@@ -115,9 +131,17 @@ public class AtencionAdapter {
         return "OK";
     }
 
+    public String editarAtencionCompleta(Atencion atencion, List<AtencionDetalle> originales, List<AtencionDetalle> nuevas) {
+        return editarAtencionUseCase.editarAtencion(atencion, originales, nuevas);
+    }
+
+    public void editarDetalle(String detalleId, String nuevoLoteId, int nuevaCantidad) {
+        atencionRepository.updateDetalle(detalleId, nuevoLoteId, nuevaCantidad);
+    }
+
     public String eliminarAtencion(String atencionId) {
-        atencionRepository.deleteAtencion(atencionId);
-        return "OK";
+        com.utp.meditrackapp.domain.entities.Usuario user = com.utp.meditrackapp.core.config.SessionManager.getInstance().getCurrentUser();
+        return eliminarAtencionUseCase.eliminar(atencionId, user.getSedeId(), user.getId());
     }
 
     private DispensacionReportDTO toDispensacionDTO(Object raw) {

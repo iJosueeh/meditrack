@@ -260,7 +260,7 @@ public class JdbcAtencionRepository implements AtencionRepository {
     @Override
     public List<AtencionDetalle> findDetallesByAtencionId(String atencionId) {
         List<AtencionDetalle> lista = new ArrayList<>();
-        String sql = "SELECT ad.*, l.numero_lote, l.fecha_vencimiento, p.nombre as producto_nombre " +
+        String sql = "SELECT ad.*, l.numero_lote, l.fecha_vencimiento, l.producto_id, p.nombre as producto_nombre " +
             "FROM atencion_detalles ad " +
             "JOIN lotes l ON ad.lote_id = l.id " +
             "JOIN productos p ON l.producto_id = p.id " +
@@ -276,6 +276,7 @@ public class JdbcAtencionRepository implements AtencionRepository {
                     d.setLoteId(rs.getString("lote_id"));
                     d.setCantidadEntregada(rs.getInt("cantidad_entregada"));
                     d.setLoteNumero(rs.getString("numero_lote"));
+                    d.setProductoId(rs.getString("producto_id"));
                     d.setProductoNombre(rs.getString("producto_nombre"));
                     Timestamp vence = rs.getTimestamp("fecha_vencimiento");
                     if (vence != null) {
@@ -305,6 +306,20 @@ public class JdbcAtencionRepository implements AtencionRepository {
     }
 
     @Override
+    public void updateDetalle(String detalleId, String nuevoLoteId, int nuevaCantidad) {
+        String sql = "UPDATE atencion_detalles SET lote_id = ?, cantidad_entregada = ? WHERE id = ?";
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nuevoLoteId);
+            ps.setInt(2, nuevaCantidad);
+            ps.setString(3, detalleId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar detalle: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public void deleteAtencion(String atencionId) {
         String sqlDetalles = "DELETE FROM atencion_detalles WHERE atencion_id = ?";
         String sqlAtencion = "DELETE FROM atenciones WHERE id = ?";
@@ -323,6 +338,31 @@ public class JdbcAtencionRepository implements AtencionRepository {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error al eliminar atención: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteDetallesByAtencionId(java.sql.Connection conn, String atencionId) {
+        String sql = "DELETE FROM atencion_detalles WHERE atencion_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, atencionId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar detalles: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteMovimientosByAtencionId(java.sql.Connection conn, String atencionId) {
+        String sql = "DELETE FROM movimientos WHERE lote_id IN " +
+            "(SELECT lote_id FROM atencion_detalles WHERE atencion_id = ?) " +
+            "AND observacion LIKE ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, atencionId);
+            ps.setString(2, "%Receta:%");
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al eliminar movimientos: " + e.getMessage(), e);
         }
     }
 }
