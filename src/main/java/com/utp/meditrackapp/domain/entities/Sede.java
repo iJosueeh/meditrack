@@ -1,5 +1,7 @@
 package com.utp.meditrackapp.domain.entities;
 
+import com.utp.meditrackapp.core.util.DateTimeProvider;
+
 import java.time.LocalDateTime;
 
 /**
@@ -65,7 +67,7 @@ public class Sede {
     public void bloquear(String motivo) {
         this.isBloqueada = 1;
         this.motivoBloqueo = motivo;
-        this.fechaBloqueo = LocalDateTime.now();
+        this.fechaBloqueo = DateTimeProvider.now();
     }
 
     /**

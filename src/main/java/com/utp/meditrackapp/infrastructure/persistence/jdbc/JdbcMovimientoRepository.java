@@ -2,6 +2,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
+import com.utp.meditrackapp.core.util.DateTimeProvider;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.entities.Movimiento;
@@ -31,7 +32,7 @@ public class JdbcMovimientoRepository implements MovimientoRepository {
             }
 
             String sql = "INSERT INTO movimientos (id, tipo_id, motivo_id, sede_id, usuario_id, lote_id, cantidad, observacion, fecha_registro) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, movimiento.getId());
@@ -42,6 +43,7 @@ public class JdbcMovimientoRepository implements MovimientoRepository {
                 ps.setString(6, movimiento.getLoteId());
                 ps.setInt(7, movimiento.getCantidad());
                 ps.setString(8, movimiento.getObservacion());
+                ps.setTimestamp(9, Timestamp.valueOf(DateTimeProvider.now()));
                 ps.executeUpdate();
             }
         } catch (SQLException e) {

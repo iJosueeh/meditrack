@@ -3,6 +3,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.config.SessionManager;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
+import com.utp.meditrackapp.core.util.DateTimeProvider;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.domain.entities.Paciente;
 import com.utp.meditrackapp.domain.ports.out.PacienteRepository;
@@ -12,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -276,10 +278,11 @@ public class JdbcPacienteRepository implements PacienteRepository {
      * Cuenta pacientes atendidos hoy en una sede.
      */
     public int countTodayAttentions(String sedeId) {
-        String sql = "SELECT COUNT(DISTINCT paciente_id) FROM atenciones WHERE sede_id = ? AND CAST(fecha_atencion AS DATE) = CAST(GETDATE() AS DATE)";
+        String sql = "SELECT COUNT(DISTINCT paciente_id) FROM atenciones WHERE sede_id = ? AND CAST(fecha_atencion AS DATE) = CAST(? AS DATE)";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sedeId);
+            ps.setTimestamp(2, Timestamp.valueOf(DateTimeProvider.now()));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(1);
             }
@@ -299,11 +302,14 @@ public class JdbcPacienteRepository implements PacienteRepository {
                      "  WHERE sede_id = ? " +
                      "  GROUP BY paciente_id" +
                      ") AS PrimerasAtenciones " +
-                     "WHERE MONTH(primera_atencion) = MONTH(GETDATE()) " +
-                     "AND YEAR(primera_atencion) = YEAR(GETDATE())";
+                     "WHERE MONTH(primera_atencion) = MONTH(?) " +
+                     "AND YEAR(primera_atencion) = YEAR(?)";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            Timestamp now = Timestamp.valueOf(DateTimeProvider.now());
             ps.setString(1, sedeId);
+            ps.setTimestamp(2, now);
+            ps.setTimestamp(3, now);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(1);
             }

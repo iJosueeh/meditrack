@@ -12,6 +12,7 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
+      - TZ=America/Lima
     command: >
       /bin/bash -c "
         /opt/mssql/bin/sqlservr &
