@@ -2,6 +2,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
+import com.utp.meditrackapp.core.util.DateTimeProvider;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.domain.entities.Sede;
 import com.utp.meditrackapp.domain.entities.Usuario;
@@ -146,11 +147,12 @@ public class JdbcSedeRepository implements SedeRepository {
 
     @Override
     public void bloquear(String id, String motivo) {
-        String sql = "UPDATE sedes SET is_bloqueada = 1, motivo_bloqueo = ?, fecha_bloqueo = GETDATE() WHERE id = ?";
+        String sql = "UPDATE sedes SET is_bloqueada = 1, motivo_bloqueo = ?, fecha_bloqueo = ? WHERE id = ?";
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, motivo);
-            ps.setString(2, id);
+            ps.setTimestamp(2, Timestamp.valueOf(DateTimeProvider.now()));
+            ps.setString(3, id);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error al bloquear sede: " + e.getMessage(), e);
