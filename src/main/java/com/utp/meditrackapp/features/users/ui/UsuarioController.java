@@ -443,6 +443,8 @@ public class UsuarioController {
                 btnDelete.setMinWidth(26);
                 btnDelete.setMaxWidth(26);
                 btnDelete.setOnAction(e -> handleDeleteUser(getTableView().getItems().get(getIndex())));
+
+                box.getStyleClass().add("actions-cell");
             }
 
             @Override

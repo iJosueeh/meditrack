@@ -47,7 +47,7 @@
                             <TableColumn fx:id="colRol" text="Rol" prefWidth="150" />
                             <TableColumn fx:id="colSede" text="Sede" prefWidth="200" />
                             <TableColumn fx:id="colEstado" text="Estado" prefWidth="120" />
-                            <TableColumn fx:id="colActions" text="ACCIONES" prefWidth="120" sortable="false" />
+                            <TableColumn fx:id="colActions" text="ACCIONES" prefWidth="155" minWidth="140" maxWidth="180" sortable="false" />
                         </columns>
                         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                     </TableView>
