@@ -13,19 +13,19 @@
 
 ---
 
-## Descripción
+## 📝 Descripción
 
 MediTrack administra recursos médicos en postas de salud. Garantiza disponibilidad de suministros, trazabilidad de lotes y toma de decisiones mediante una interfaz de escritorio moderna.
 
-## Stack
+## 🛠️ Stack
 
-- **Core:** Java 21 (Eclipse Adoptium)
-- **UI:** JavaFX 21 + AtlantaFX (Primer Theme)
-- **Iconos:** Ikonli (FontAwesome 5)
-- **Base de datos:** SQL Server (Docker)
-- **Build:** Maven + GitHub Actions
+- ☕ **Core:** Java 21 (Eclipse Adoptium)
+- 🎨 **UI:** JavaFX 21 + AtlantaFX (Primer Theme)
+- 🎯 **Iconos:** Ikonli (FontAwesome 5)
+- 🗄️ **Base de datos:** SQL Server (Docker)
+- 🔨 **Build:** Maven + GitHub Actions
 
-## Inicio Rápido
+## 🚀 Inicio Rápido
 
 **Requisitos:** JDK 21+, Maven 3.8+, Docker
 
@@ -38,26 +38,26 @@ docker-compose up -d
 ./mvnw javafx:run
 ```
 
-> En Windows usar `mvnw.cmd`. El primer inicio tarda ~45s en inicializar la BD.
+> 💡 En Windows usar `mvnw.cmd`. El primer inicio tarda ~45s en inicializar la BD.
 
-## Estructura
+## 📂 Estructura
 
 ```
 src/main/java/.../meditrackapp/
-├── application/        # Casos de uso
-├── core/               # Config y utilidades
-├── domain/             # Entidades y lógica de negocio
-├── features/           # Módulos (auth, inventory, patients, users...)
-├── infrastructure/     # Persistencia JDBC
-└── shared/             # Sidebar, navbar, componentes comunes
+├── 📦 application/        # Casos de uso
+├── ⚙️  core/               # Config y utilidades
+├── 🧩 domain/             # Entidades y lógica de negocio
+├── 📋 features/           # Módulos (auth, inventory, patients, users...)
+├── 🔌 infrastructure/     # Persistencia JDBC
+└── 🧩 shared/             # Sidebar, navbar, componentes comunes
 ```
 
-## Documentación
+## 📖 Documentación
 
-- [Arquitectura](./docs/ARCHITECTURE.md)
-- [Requerimientos Funcionales](./docs/FUNCTIONAL_REQUIREMENTS.md)
-- [Guía de Diseño UI](./docs/UI_GUIDE.md)
-- [Testing y CI](./docs/TESTING_CI.md)
+- 📘 [Arquitectura](./docs/ARCHITECTURE.md)
+- 📋 [Requerimientos Funcionales](./docs/FUNCTIONAL_REQUIREMENTS.md)
+- 🎨 [Guía de Diseño UI](./docs/UI_GUIDE.md)
+- 🧪 [Testing y CI](./docs/TESTING_CI.md)
 
 ---
 
