@@ -4,92 +4,166 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk" alt="Java">
-  <img src="https://img.shields.io/badge/JavaFX-21-blue?style=for-the-badge" alt="JavaFX">
-  <img src="https://img.shields.io/badge/Maven-Build-green?style=for-the-badge&logo=apache-maven" alt="Maven">
-  <img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-brightgreen?style=for-the-badge&logo=github-actions" alt="CI/CD">
+  <img src="https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk" alt="Java">
+  <img src="https://img.shields.io/badge/JavaFX-21-blue?style=flat-square" alt="JavaFX">
+  <img src="https://img.shields.io/badge/AtlantaFX-Primer-6C63FF?style=flat-square" alt="AtlantaFX">
+  <img src="https://img.shields.io/badge/SQL%20Server-CC2927?style=flat-square&logo=microsoft-sql-server&logoColor=white" alt="SQL Server">
+  <img src="https://img.shields.io/badge/Maven-3.9-C71A36?style=flat-square&logo=apache-maven&logoColor=white" alt="Maven">
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white" alt="CI/CD">
+</p>
+
+<p align="center">
+  <a href="#-características">Características</a> •
+  <a href="#️-stack-tecnológico">Stack</a> •
+  <a href="#-guía-de-inicio-rápido">Inicio Rápido</a> •
+  <a href="#-documentación-técnica">Docs</a>
 </p>
 
 ---
 
-### 📝 Descripción
-**MediTrack** es una solución robusta diseñada específicamente para la administración eficiente de recursos médicos en **Postas de Salud**. Su objetivo es garantizar la disponibilidad constante de suministros críticos, optimizar la trazabilidad de lotes y facilitar la toma de decisiones mediante una interfaz intuitiva de alta fidelidad visual.
+## ✨ Características
+
+<table>
+  <tr>
+    <td width="50%">
+
+#### 📦 Inventario Inteligente
+- Registro de medicamentos con **códigos DIGEMID**
+- Algoritmo **FEFO** (First Expire, First Out) automático
+- Control de lotes con trazabilidad completa
+
+#### 💊 Dispensación y Atención
+- Flujo integrado de **atención → dispensación**
+- Selección automática de lotes por vencimiento
+- Registro de pacientes con historial clínico
+
+#### 🏢 Multi-Sede
+- Gestión centralizada de múltiples postas
+- Control de acceso por sede (RBAC)
+- IDs secuenciales descriptivos (`PAC-001-000001`)
+
+    </td>
+    <td width="50%">
+
+#### 📊 Dashboard en Tiempo Real
+- Métricas de salud de inventario
+- Alertas de stock crítico y vencimiento
+- Actividad diaria de dispensación
+
+#### 🛡️ Seguridad y Roles
+- Control de acceso basado en **roles (RBAC)**
+- Identificación dinámica de jefaturas
+- Auditoría de movimientos
+
+#### 🖥️ Interfaz Moderna
+- Diseño **Fluent/Minimalist** con AtlantaFX
+- Iconografía **FontAwesome 5** (Ikonli)
+- Soporte completo **UTF-8** y responsive
+
+    </td>
+  </tr>
+</table>
 
 ---
 
-### ✨ Características Destacadas
+## 🛠️ Stack Tecnológico
 
-| Característica | Detalle |
-| :--- | :--- |
-| **📦 Catálogo de Productos** | Registro completo de medicamentos con códigos DIGEMID, categorías y unidades de medida. |
-| **🧪 Dispensación Inteligente** | Algoritmo **FEFO** (First Expire, First Out) automático para asegurar el uso eficiente de lotes. |
-| **💊 Transacciones ACID** | Motor de movimientos de inventario (Entradas/Salidas/Atenciones) con integridad total de datos. |
-| **👥 Gestión de Pacientes** | Registro clínico y consulta de historial de atenciones integrado en el flujo de dispensación. |
-| **🆔 IDs Secuenciales** | Sistema de identificadores legibles y descriptivos por sede (`CAT-001`, `PAC-001-000001`). |
-| **🛡️ Seguridad & Usuarios** | Control de acceso basado en roles (RBAC) con identificación dinámica de jefaturas. |
-| **📊 Dashboard Dinámico** | Métricas en tiempo real de salud de inventario, stock crítico y actividad diaria. |
-| **🏢 Gestión de Sedes** | Control centralizado de múltiples postas médicas y sus responsables. |
-| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *AtlantaFX* (Primer Theme) y soporte completo para **UTF-8**. |
+| Capa | Tecnología | Propósito |
+| :--- | :--- | :--- |
+| **Core** | Java 21 (Eclipse Adoptium) | Lenguaje y runtime LTS |
+| **UI** | JavaFX 21 + AtlantaFX Primer | Interfaz de escritorio moderna |
+| **Iconos** | Ikonli (FontAwesome 5) | Iconografía nativa |
+| **Base de Datos** | SQL Server (Docker) | Persistencia transaccional |
+| **Testing** | JUnit 5 | Pruebas de integración |
+| **Build** | Maven 3.9 | Compilación y dependencias |
+| **CI/CD** | GitHub Actions | Integración continua |
 
 ---
 
-### 🛠️ Stack Tecnológico
+## 🚀 Guía de Inicio Rápido
 
-- **Core:** Java 21 (LTS)
-- **UI:** JavaFX 21 + **AtlantaFX** (Fluent/Minimalist Design)
-- **Iconos:** Ikonli (FontAwesome 5 Packs)
-- **Database:** SQL Server (Docker Container)
-- **Testing:** JUnit 5 (Pruebas de Integración y Lógica)
-- **Build & CI:** Maven + GitHub Actions
+### Requisitos
 
----
+| Requisito | Versión mínima | Enlace |
+| :--- | :--- | :--- |
+| JDK | 21+ | [Eclipse Adoptium](https://adoptium.net/) |
+| Maven | 3.8+ | [Apache Maven](https://maven.apache.org/download.cgi) |
+| Docker | Latest | [Docker Desktop](https://www.docker.com/) |
 
-### 🚀 Guía de Inicio Rápido
-
-#### Requisitos
-- [JDK 21+](https://adoptium.net/)
-- [Maven 3.8+](https://maven.apache.org/download.cgi)
-- [Docker & Docker Compose](https://www.docker.com/)
-
-#### Configuración de la Base de Datos (Docker)
-Este proyecto utiliza SQL Server en un contenedor Docker para facilitar el desarrollo.
+### 1. Base de Datos (Docker)
 
 ```bash
-# 1. Crear archivo .env a partir del template (ya realizado por el asistente)
-# cp .env.template .env
-
-# 2. Iniciar el contenedor de la base de datos
+# Iniciar SQL Server en contenedor
 docker-compose up -d
+
+# Verificar estado
+docker-compose ps
 ```
-*Nota: El primer inicio ejecuta automáticamente `meditrack_init.sql` que crea las tablas, agrega columnas faltantes (si actualiza desde una versión anterior) y carga los datos iniciales. Espere unos 45 segundos antes de ejecutar la aplicación.*
 
-*Para actualizar una base de datos existente, simplemente reinicie el contenedor con `docker-compose down && docker-compose up -d` - el script detectará y agregará automáticamente las columnas/tablas faltantes.*
+> **Nota:** El primer inicio ejecuta automáticamente `meditrack_init.sql` que crea las tablas y carga datos iniciales. Espere ~45 segundos antes de usar la app.
 
-#### Instalación y Ejecución
+### 2. Compilar y Ejecutar
+
 ```bash
-# 1. Compilar el proyecto
+# Compilar
 ./mvnw clean compile
 
-# 2. Ejecutar la aplicación
+# Ejecutar
 ./mvnw javafx:run
 ```
 
-#### Ejecución de Pruebas
+> En Windows: usar `mvnw.cmd` en lugar de `./mvnw`
+
+### 3. Ejecutar Pruebas
+
 ```bash
 ./mvnw test
 ```
 
 ---
 
-### 📂 Documentación Técnica
-Para una inmersión profunda en el desarrollo, consulta nuestras guías:
+## 📂 Estructura del Proyecto
 
-*   📘 [**Arquitectura**](./docs/ARCHITECTURE.md): Estructura de paquetes, estrategia de IDs y transaccionalidad.
-*   📋 [**Requerimientos Funcionales**](./docs/FUNCTIONAL_REQUIREMENTS.md): Estado actual de implementación de los módulos.
-*   🎨 [**Guía de Diseño**](./docs/UI_GUIDE.md): Paleta de colores y componentes UI.
-*   🧪 [**Testing y CI**](./docs/TESTING_CI.md): Estrategia de pruebas y automatización.
+```
+src/main/java/com/utp/meditrackapp/
+├── application/        # Casos de uso y orquestación
+├── core/               # Config, utilidades, servicios compartidos
+├── domain/             # Entidades, puertos y lógica de negocio
+├── features/           # Módulos por funcionalidad
+│   ├── attentions/     # Atención y dispensación
+│   ├── auth/           # Login y sesión
+│   ├── catalogs/       # Roles, categorías, movimientos
+│   ├── dashboard/      # Panel principal y reportes
+│   ├── inventory/      # Inventario de sede
+│   ├── patients/       # Gestión de pacientes
+│   ├── products/       # Catálogo de productos
+│   ├── sedes/          # Gestión de sedes
+│   └── users/          # Gestión de usuarios
+├── infrastructure/     # Adaptadores JDBC y persistencia
+└── shared/             # Componentes compartidos (sidebar, navbar)
+
+src/main/resources/com/utp/meditrackapp/
+├── *.fxml              # Vistas JavaFX
+├── styles/
+│   ├── global.css      # Estilos compartidos
+│   └── dashboard.css   # Estilos del dashboard
+└── templates/pdf/      # Plantillas de reportes
+```
 
 ---
+
+## 📖 Documentación Técnica
+
+| Documento | Descripción |
+| :--- | :--- |
+| 📘 [Arquitectura](./docs/ARCHITECTURE.md) | Estructura de paquetes, IDs secuenciales y transaccionalidad |
+| 📋 [Requerimientos](./docs/FUNCTIONAL_REQUIREMENTS.md) | Estado de implementación por módulo |
+| 🎨 [Guía de Diseño](./docs/UI_GUIDE.md) | Paleta de colores, componentes y convenciones UI |
+| 🧪 [Testing y CI](./docs/TESTING_CI.md) | Estrategia de pruebas y automatización |
+
+---
+
 <p align="center">
-  Diseñado con 💙 para la mejora de la Salud Pública | 2026
+  <sub>Diseñado con 💙 para la mejora de la Salud Pública</sub><br>
+  <sub>© 2026 MediTrack</sub>
 </p>
