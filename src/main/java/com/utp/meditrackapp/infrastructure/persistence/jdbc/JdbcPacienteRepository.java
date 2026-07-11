@@ -75,7 +75,7 @@ public class JdbcPacienteRepository implements PacienteRepository {
         }
 
         String[] terms = query.trim().split("\\s+");
-        StringBuilder sql = new StringBuilder("SELECT * FROM pacientes WHERE is_activo = 1");
+        StringBuilder sql = new StringBuilder("SELECT TOP 5 * FROM pacientes WHERE is_activo = 1");
         for (int i = 0; i < terms.length; i++) {
             sql.append(" AND (numero_documento LIKE ? OR nombres LIKE ? OR apellidos LIKE ?)");
         }

@@ -292,6 +292,11 @@ public class AtencionController {
                 showAlert(Alert.AlertType.INFORMATION, "Sin resultados", "No se encontraron pacientes con: " + query);
                 return;
             }
+            if (pacientes.size() >= 5) {
+                showAlert(Alert.AlertType.INFORMATION, "Búsqueda limitada",
+                    "Se mostraron las primeras 5 coincidencias para \"" + query + "\".\n"
+                    + "Sea más específico (use DNI o nombre completo) para refinar.");
+            }
             if (pacientes.size() == 1) {
                 cargarAtencionesPaciente(pacientes.get(0));
             } else {
@@ -312,8 +317,11 @@ public class AtencionController {
             .collect(Collectors.toList());
         ChoiceDialog<String> dialog = new ChoiceDialog<>(opciones.get(0), opciones);
         dialog.setTitle("Seleccionar Paciente");
-        dialog.setHeaderText("Se encontraron múltiples pacientes:");
-        dialog.setContentText("Seleccione:");
+        String hint = pacientes.size() >= 5
+            ? "Se encontraron múltiples pacientes (máx. 5 coincidencias mostradas)."
+            : "Se encontraron " + pacientes.size() + " pacientes:";
+        dialog.setHeaderText(hint);
+        dialog.setContentText("Seleccione uno:");
         dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         dialog.initOwner(rootPane.getScene().getWindow());
         Optional<String> result = dialog.showAndWait();
@@ -506,6 +514,11 @@ public class AtencionController {
             if (pacientes.isEmpty()) {
                 showAlert(Alert.AlertType.INFORMATION, "Sin resultados", "No se encontraron pacientes con: " + query);
                 return;
+            }
+            if (pacientes.size() >= 5) {
+                showAlert(Alert.AlertType.INFORMATION, "Búsqueda limitada",
+                    "Se mostraron las primeras 5 coincidencias para \"" + query + "\".\n"
+                    + "Sea más específico (use DNI o nombre completo) para refinar.");
             }
             if (pacientes.size() == 1) {
                 selectPacienteDisp(pacientes.get(0));
