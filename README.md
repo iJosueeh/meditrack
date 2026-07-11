@@ -1,95 +1,64 @@
 <h1 align="center">🏥 MediTrack</h1>
 <p align="center">
-  <strong>Sistema Especializado de Gestión de Inventario para Postas de Salud</strong>
+  <em>Sistema de Gestión de Inventario para Postas de Salud</em>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk" alt="Java">
-  <img src="https://img.shields.io/badge/JavaFX-21-blue?style=for-the-badge" alt="JavaFX">
-  <img src="https://img.shields.io/badge/Maven-Build-green?style=for-the-badge&logo=apache-maven" alt="Maven">
-  <img src="https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-brightgreen?style=for-the-badge&logo=github-actions" alt="CI/CD">
+  <img src="https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk" alt="Java">
+  <img src="https://img.shields.io/badge/JavaFX-21-blue?style=flat-square" alt="JavaFX">
+  <img src="https://img.shields.io/badge/AtlantaFX-Primer-6C63FF?style=flat-square" alt="AtlantaFX">
+  <img src="https://img.shields.io/badge/SQL%20Server-CC2927?style=flat-square&logo=microsoft-sql-server&logoColor=white" alt="SQL Server">
+  <img src="https://img.shields.io/badge/Maven-3.9-C71A36?style=flat-square&logo=apache-maven&logoColor=white" alt="Maven">
 </p>
 
 ---
 
-### 📝 Descripción
-**MediTrack** es una solución robusta diseñada específicamente para la administración eficiente de recursos médicos en **Postas de Salud**. Su objetivo es garantizar la disponibilidad constante de suministros críticos, optimizar la trazabilidad de lotes y facilitar la toma de decisiones mediante una interfaz intuitiva de alta fidelidad visual.
+## 📝 Descripción
 
----
+MediTrack administra recursos médicos en postas de salud. Garantiza disponibilidad de suministros, trazabilidad de lotes y toma de decisiones mediante una interfaz de escritorio moderna.
 
-### ✨ Características Destacadas
+## 🛠️ Stack
 
-| Característica | Detalle |
-| :--- | :--- |
-| **📦 Catálogo de Productos** | Registro completo de medicamentos con códigos DIGEMID, categorías y unidades de medida. |
-| **🧪 Dispensación Inteligente** | Algoritmo **FEFO** (First Expire, First Out) automático para asegurar el uso eficiente de lotes. |
-| **💊 Transacciones ACID** | Motor de movimientos de inventario (Entradas/Salidas/Atenciones) con integridad total de datos. |
-| **👥 Gestión de Pacientes** | Registro clínico y consulta de historial de atenciones integrado en el flujo de dispensación. |
-| **🆔 IDs Secuenciales** | Sistema de identificadores legibles y descriptivos por sede (`CAT-001`, `PAC-001-000001`). |
-| **🛡️ Seguridad & Usuarios** | Control de acceso basado en roles (RBAC) con identificación dinámica de jefaturas. |
-| **📊 Dashboard Dinámico** | Métricas en tiempo real de salud de inventario, stock crítico y actividad diaria. |
-| **🏢 Gestión de Sedes** | Control centralizado de múltiples postas médicas y sus responsables. |
-| **🖥️ Interfaz Moderna** | Experiencia de usuario optimizada con *AtlantaFX* (Primer Theme) y soporte completo para **UTF-8**. |
+- ☕ **Core:** Java 21 (Eclipse Adoptium)
+- 🎨 **UI:** JavaFX 21 + AtlantaFX (Primer Theme)
+- 🎯 **Iconos:** Ikonli (FontAwesome 5)
+- 🗄️ **Base de datos:** SQL Server (Docker)
+- 🔨 **Build:** Maven + GitHub Actions
 
----
+## 🚀 Inicio Rápido
 
-### 🛠️ Stack Tecnológico
-
-- **Core:** Java 21 (LTS)
-- **UI:** JavaFX 21 + **AtlantaFX** (Fluent/Minimalist Design)
-- **Iconos:** Ikonli (FontAwesome 5 Packs)
-- **Database:** SQL Server (Docker Container)
-- **Testing:** JUnit 5 (Pruebas de Integración y Lógica)
-- **Build & CI:** Maven + GitHub Actions
-
----
-
-### 🚀 Guía de Inicio Rápido
-
-#### Requisitos
-- [JDK 21+](https://adoptium.net/)
-- [Maven 3.8+](https://maven.apache.org/download.cgi)
-- [Docker & Docker Compose](https://www.docker.com/)
-
-#### Configuración de la Base de Datos (Docker)
-Este proyecto utiliza SQL Server en un contenedor Docker para facilitar el desarrollo.
+**Requisitos:** JDK 21+, Maven 3.8+, Docker
 
 ```bash
-# 1. Crear archivo .env a partir del template (ya realizado por el asistente)
-# cp .env.template .env
-
-# 2. Iniciar el contenedor de la base de datos
+# 1. Levantar SQL Server
 docker-compose up -d
-```
-*Nota: El primer inicio ejecuta automáticamente `meditrack_init.sql` que crea las tablas, agrega columnas faltantes (si actualiza desde una versión anterior) y carga los datos iniciales. Espere unos 45 segundos antes de ejecutar la aplicación.*
 
-*Para actualizar una base de datos existente, simplemente reinicie el contenedor con `docker-compose down && docker-compose up -d` - el script detectará y agregará automáticamente las columnas/tablas faltantes.*
-
-#### Instalación y Ejecución
-```bash
-# 1. Compilar el proyecto
+# 2. Compilar y ejecutar
 ./mvnw clean compile
-
-# 2. Ejecutar la aplicación
 ./mvnw javafx:run
 ```
 
-#### Ejecución de Pruebas
-```bash
-./mvnw test
+> 💡 En Windows usar `mvnw.cmd`. El primer inicio tarda ~45s en inicializar la BD.
+
+## 📂 Estructura
+
+```
+src/main/java/.../meditrackapp/
+├── 📦 application/        # Casos de uso
+├── ⚙️  core/               # Config y utilidades
+├── 🧩 domain/             # Entidades y lógica de negocio
+├── 📋 features/           # Módulos (auth, inventory, patients, users...)
+├── 🔌 infrastructure/     # Persistencia JDBC
+└── 🧩 shared/             # Sidebar, navbar, componentes comunes
 ```
 
----
+## 📖 Documentación
 
-### 📂 Documentación Técnica
-Para una inmersión profunda en el desarrollo, consulta nuestras guías:
-
-*   📘 [**Arquitectura**](./docs/ARCHITECTURE.md): Estructura de paquetes, estrategia de IDs y transaccionalidad.
-*   📋 [**Requerimientos Funcionales**](./docs/FUNCTIONAL_REQUIREMENTS.md): Estado actual de implementación de los módulos.
-*   🎨 [**Guía de Diseño**](./docs/UI_GUIDE.md): Paleta de colores y componentes UI.
-*   🧪 [**Testing y CI**](./docs/TESTING_CI.md): Estrategia de pruebas y automatización.
+- 📘 [Arquitectura](./docs/ARCHITECTURE.md)
+- 📋 [Requerimientos Funcionales](./docs/FUNCTIONAL_REQUIREMENTS.md)
+- 🎨 [Guía de Diseño UI](./docs/UI_GUIDE.md)
+- 🧪 [Testing y CI](./docs/TESTING_CI.md)
 
 ---
-<p align="center">
-  Diseñado con 💙 para la mejora de la Salud Pública | 2026
-</p>
+
+<p align="center"><sub>© 2026 MediTrack — Diseñado con 💙 para la Salud Pública</sub></p>

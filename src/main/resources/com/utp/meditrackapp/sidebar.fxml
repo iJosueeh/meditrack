@@ -8,9 +8,9 @@
       styleClass="sidebar" spacing="0">
     <!-- User Profile in Sidebar -->
     <VBox styleClass="sidebar-profile">
-        <HBox alignment="CENTER_LEFT" spacing="15">
+        <HBox alignment="CENTER_LEFT" spacing="12">
             <VBox styleClass="profile-avatar-container">
-                <FontIcon iconLiteral="fas-user" iconSize="18" styleClass="icon-accent" />
+                <FontIcon iconLiteral="fas-user" iconSize="16" styleClass="icon-accent" />
             </VBox>
             <VBox alignment="CENTER_LEFT" spacing="2">
                 <Label fx:id="userNameLabel" text="Cargando..." styleClass="profile-name" />
@@ -21,84 +21,86 @@
     
     <Separator orientation="HORIZONTAL" styleClass="small" />
 
-    <VBox spacing="2" VBox.vgrow="ALWAYS">
-        <padding><Insets top="15" /></padding>
-        
-        <!-- OPERACIONES -->
-        <Label fx:id="lblOperaciones" text="OPERACIONES" styleClass="text-caption, text-bold, text-muted">
-            <padding><Insets left="15" bottom="5" /></padding>
-        </Label>
-        
-        <Button fx:id="btnDashboard" text="Panel de Control" onAction="#onGoToDashboard" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-th-large" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-        
-        <Button fx:id="btnAttentions" text="Registro de Atenciones" onAction="#onGoToAttentions" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-heartbeat" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-        
-        <Button fx:id="btnInventory" text="Inventario de Sede" onAction="#onGoToInventory" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-box" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
+    <ScrollPane fitToWidth="true" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+        <VBox spacing="2" VBox.vgrow="ALWAYS">
+            <padding><Insets top="15" bottom="10" /></padding>
+            
+            <!-- OPERACIONES -->
+            <Label fx:id="lblOperaciones" text="OPERACIONES" styleClass="text-caption, text-bold, text-muted">
+                <padding><Insets left="20" bottom="5" /></padding>
+            </Label>
+            
+            <Button fx:id="btnDashboard" text="Panel Principal" onAction="#onGoToDashboard" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-th-large" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
+            
+            <Button fx:id="btnAttentions" text="Atención y Dispensación" onAction="#onGoToAttentions" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-heartbeat" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
+            
+            <Button fx:id="btnInventory" text="Inventario de Sede" onAction="#onGoToInventory" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-box" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
 
-        <Region fx:id="sepOpRegion" prefHeight="15" />
+            <Region fx:id="sepOpRegion" prefHeight="12" />
 
-        <!-- MANTENIMIENTO -->
-        <Label fx:id="lblMantenimiento" text="MANTENIMIENTO" styleClass="text-caption, text-bold, text-muted">
-            <padding><Insets left="15" bottom="5" /></padding>
-        </Label>
-        
-        <Button fx:id="btnPatients" text="Gestión de Pacientes" onAction="#onGoToPatients" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-user-injured" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-        
-        <Button fx:id="btnCatalog" text="Gestión de Sedes" onAction="#onGoToCatalog" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-hotel" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-        
-        <Button fx:id="btnUsers" text="Configuración de Usuarios" onAction="#onGoToUsers" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-users-cog" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
+            <!-- CATÁLOGOS -->
+            <Label fx:id="lblMantenimiento" text="CATÁLOGOS" styleClass="text-caption, text-bold, text-muted">
+                <padding><Insets left="20" bottom="5" /></padding>
+            </Label>
+            
+            <Button fx:id="btnPatients" text="Gestión de Pacientes" onAction="#onGoToPatients" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-user-injured" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
+            
+            <Button fx:id="btnCatalog" text="Gestión de Sedes" onAction="#onGoToCatalog" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-hotel" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
+            
+            <Button fx:id="btnUsers" text="Gestión de Usuarios" onAction="#onGoToUsers" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-users-cog" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
 
-        <Button fx:id="btnCategorias" text="Catálogo de Categorías" onAction="#onGoToCategorias" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-tags" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
+            <Button fx:id="btnCategorias" text="Catálogo de Categorías" onAction="#onGoToCategorias" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-tags" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
 
-        <Button fx:id="btnProductos" text="Catálogo de Productos" onAction="#onGoToProductos" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-pills" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
+            <Button fx:id="btnProductos" text="Catálogo de Productos" onAction="#onGoToProductos" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-pills" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
 
-        <Button fx:id="btnRoles" text="Gestión de Roles" onAction="#onGoToRoles" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-user-shield" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
+            <Button fx:id="btnRoles" text="Gestión de Roles" onAction="#onGoToRoles" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-user-shield" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
 
-        <Button fx:id="btnMovCatalog" text="Catálogos de Movimiento" onAction="#onGoToMovCatalog" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-list-alt" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
+            <Button fx:id="btnMovCatalog" text="Catálogo de Movimientos" onAction="#onGoToMovCatalog" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-list-alt" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
 
-        <Region fx:id="sepManRegion" prefHeight="15" />
+            <Region fx:id="sepManRegion" prefHeight="12" />
 
-        <!-- REPORTES Y OTROS -->
-        <Label fx:id="lblSistema" text="SISTEMA" styleClass="text-caption, text-bold, text-muted">
-            <padding><Insets left="15" bottom="5" /></padding>
-        </Label>
+            <!-- SISTEMA -->
+            <Label fx:id="lblSistema" text="SISTEMA" styleClass="text-caption, text-bold, text-muted">
+                <padding><Insets left="20" bottom="5" /></padding>
+            </Label>
 
-        <Button fx:id="btnReports" text="Reportes y Auditoría" onAction="#onGoToReports" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-file-pdf" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-        
-        <Button text="Mi Perfil" onAction="#onGoToProfile" styleClass="nav-button" maxWidth="Infinity">
-            <graphic><FontIcon iconLiteral="fas-id-card" iconSize="16" styleClass="nav-icon" /></graphic>
-        </Button>
-        
-        <Region VBox.vgrow="ALWAYS" />
-        
-        <Separator orientation="HORIZONTAL" styleClass="small">
-            <padding><Insets top="10" bottom="10" /></padding>
-        </Separator>
-        
-        <Button text="Cerrar Sesión" onAction="#onLogout" styleClass="nav-button" maxWidth="Infinity" style="-fx-text-fill: -color-danger-fg;">
-            <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="16" style="-fx-icon-color: -color-danger-fg;" /></graphic>
-        </Button>
-    </VBox>
+            <Button fx:id="btnReports" text="Reportes y Auditoría" onAction="#onGoToReports" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-file-pdf" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
+            
+            <Button text="Mi Perfil" onAction="#onGoToProfile" styleClass="nav-button" maxWidth="Infinity">
+                <graphic><FontIcon iconLiteral="fas-id-card" iconSize="14" styleClass="nav-icon" /></graphic>
+            </Button>
+            
+            <Region VBox.vgrow="ALWAYS" />
+            
+            <Separator orientation="HORIZONTAL" styleClass="small">
+                <padding><Insets top="10" bottom="10" /></padding>
+            </Separator>
+            
+            <Button text="Cerrar Sesión" onAction="#onLogout" styleClass="nav-button" maxWidth="Infinity" style="-fx-text-fill: -color-danger-fg;">
+                <graphic><FontIcon iconLiteral="fas-sign-out-alt" iconSize="14" style="-fx-icon-color: -color-danger-fg;" /></graphic>
+            </Button>
+        </VBox>
+    </ScrollPane>
 </VBox>

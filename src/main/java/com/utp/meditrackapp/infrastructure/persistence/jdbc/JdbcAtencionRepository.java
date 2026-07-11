@@ -2,6 +2,7 @@ package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
 import com.utp.meditrackapp.core.models.enums.EntidadPrefix;
+import com.utp.meditrackapp.core.util.DateTimeProvider;
 import com.utp.meditrackapp.core.util.IdGenerator;
 import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.entities.Atencion;
@@ -31,7 +32,7 @@ public class JdbcAtencionRepository implements AtencionRepository {
                 atencion.setId(IdGenerator.generateSedeDependentId(conn, "atenciones", EntidadPrefix.ATENCION, atencion.getSedeId(), 6));
             }
 
-            String sql = "INSERT INTO atenciones (id, sede_id, paciente_id, usuario_id, numero_receta, medico, fecha_atencion) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+            String sql = "INSERT INTO atenciones (id, sede_id, paciente_id, usuario_id, numero_receta, medico, fecha_atencion) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, atencion.getId());
                 ps.setString(2, atencion.getSedeId());
@@ -39,6 +40,7 @@ public class JdbcAtencionRepository implements AtencionRepository {
                 ps.setString(4, atencion.getUsuarioId());
                 ps.setString(5, atencion.getNumeroReceta());
                 ps.setString(6, atencion.getMedico());
+                ps.setTimestamp(7, Timestamp.valueOf(DateTimeProvider.now()));
                 ps.executeUpdate();
             }
         } catch (SQLException e) {

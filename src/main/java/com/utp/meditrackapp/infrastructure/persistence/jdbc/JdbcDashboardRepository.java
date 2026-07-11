@@ -1,6 +1,7 @@
 package com.utp.meditrackapp.infrastructure.persistence.jdbc;
 
 import com.utp.meditrackapp.core.config.DatabaseConfig;
+import com.utp.meditrackapp.core.util.DateTimeProvider;
 import com.utp.meditrackapp.core.validation.SedeAccessValidator;
 import com.utp.meditrackapp.domain.ports.out.DashboardRepository;
 
@@ -56,7 +57,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
         String sedeId = SedeAccessValidator.getSedeParaConsulta();
         
         StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(*) as total FROM lotes WHERE fecha_vencimiento <= DATEADD(day, ?, GETDATE()) AND fecha_vencimiento >= GETDATE()"
+            "SELECT COUNT(*) as total FROM lotes WHERE fecha_vencimiento <= DATEADD(day, ?, ?) AND fecha_vencimiento >= ?"
         );
         
         if (sedeId != null) {
@@ -65,8 +66,11 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
         try (Connection conn = dbConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            java.sql.Timestamp now = Timestamp.valueOf(DateTimeProvider.now());
             int i = 1;
             ps.setInt(i++, dias);
+            ps.setTimestamp(i++, now);
+            ps.setTimestamp(i++, now);
             if (sedeId != null) {
                 ps.setString(i++, sedeId);
             }
@@ -140,7 +144,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
         String sedeId = SedeAccessValidator.getSedeParaConsulta();
         
         StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(*) as total FROM movimientos WHERE fecha_registro >= DATEADD(day, -?, GETDATE())"
+            "SELECT COUNT(*) as total FROM movimientos WHERE fecha_registro >= DATEADD(day, -?, ?)"
         );
         
         if (sedeId != null) {
@@ -151,6 +155,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int i = 1;
             ps.setInt(i++, dias);
+            ps.setTimestamp(i++, Timestamp.valueOf(DateTimeProvider.now()));
             if (sedeId != null) {
                 ps.setString(i++, sedeId);
             }
@@ -173,7 +178,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
             "  SUM(CASE WHEN m.tipo_id = 'MOV-T-01' THEN m.cantidad ELSE 0 END) - " +
             "  SUM(CASE WHEN m.tipo_id = 'MOV-T-02' THEN m.cantidad ELSE 0 END) as total " +
             "FROM movimientos m " +
-            "WHERE m.fecha_registro >= DATEADD(month, -?, GETDATE()) "
+            "WHERE m.fecha_registro >= DATEADD(month, -?, ?) "
         );
         
         if (sedeId != null) {
@@ -186,6 +191,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int i = 1;
             ps.setInt(i++, meses);
+            ps.setTimestamp(i++, Timestamp.valueOf(DateTimeProvider.now()));
             if (sedeId != null) {
                 ps.setString(i++, sedeId);
             }
