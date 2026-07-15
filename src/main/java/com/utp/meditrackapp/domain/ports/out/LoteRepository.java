@@ -39,6 +39,11 @@ public interface LoteRepository {
     boolean existsByNumeroLoteProductoSede(String numeroLote, String productoId, String sedeId);
 
     /**
+     * Verifica si existe al menos un lote para el producto en cualquier sede.
+     */
+    boolean existsByProducto(String productoId);
+
+    /**
      * Versión sin Connection para operaciones simples que manejan su propia conexión.
      */
     Lote save(Lote lote);

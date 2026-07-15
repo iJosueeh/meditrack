@@ -49,12 +49,22 @@ public class ProductoAdapter {
         return r;
     }
 
+    public String eliminarProducto(String id) {
+        String r = useCase.eliminar(id);
+        if ("OK".equals(r)) cache.invalidate(CacheType.PRODUCTOS);
+        return r;
+    }
+
     public List<Categoria> listarCategorias() {
         return cache.get(CacheType.CATEGORIAS, () -> useCase.listarCategorias());
     }
 
     public int obtenerStockTotal(String sedeId, String productoId) {
         return stockUseCase.obtenerStockTotal(sedeId, productoId);
+    }
+
+    public boolean productoTieneLotes(String productoId) {
+        return stockUseCase.tieneLotes(productoId);
     }
 
     public Map<String, Integer> obtenerStockTotalPorSede(String sedeId) {

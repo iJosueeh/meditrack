@@ -44,6 +44,13 @@ public class CalcularStockUseCase {
     }
 
     /**
+     * Verifica si un producto tiene lotes (inventario) en cualquier sede.
+     */
+    public boolean tieneLotes(String productoId) {
+        return loteRepository.existsByProducto(productoId);
+    }
+
+    /**
      * Calcula el ítems de stock crítico para una sede.
      * Combina stock bajo y lotes por vencer.
      *
