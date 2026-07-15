@@ -132,16 +132,21 @@ public class ProductoController {
 
         colAcciones.setCellFactory(column -> new TableCell<>() {
             private final Button editBtn = new Button();
-            private final Button deleteBtn = new Button();
+            private final Button deactivateBtn = new Button();
+            private final Button permanentDeleteBtn = new Button();
             private final boolean canWrite = sessionManager.tienePermiso("M2_SEDES");
             {
                 editBtn.setGraphic(new FontIcon("fas-edit"));
                 editBtn.getStyleClass().addAll("button", "flat", "accent", "sm");
                 editBtn.setOnAction(e -> openEditModal(getTableRow().getItem()));
 
-                deleteBtn.setGraphic(new FontIcon("fas-trash"));
-                deleteBtn.getStyleClass().addAll("button", "flat", "danger", "sm");
-                deleteBtn.setOnAction(e -> confirmDelete(getTableRow().getItem()));
+                deactivateBtn.setGraphic(new FontIcon("fas-toggle-off"));
+                deactivateBtn.getStyleClass().addAll("button", "flat", "warning", "sm");
+                deactivateBtn.setOnAction(e -> confirmDelete(getTableRow().getItem()));
+
+                permanentDeleteBtn.setGraphic(new FontIcon("fas-trash"));
+                permanentDeleteBtn.getStyleClass().addAll("button", "flat", "danger", "sm");
+                permanentDeleteBtn.setOnAction(e -> confirmPermanentDelete(getTableRow().getItem()));
             }
 
             @Override protected void updateItem(Void item, boolean empty) {
@@ -151,7 +156,8 @@ public class ProductoController {
                     if (!canWrite) {
                         setGraphic(null);
                     } else {
-                        HBox box = new HBox(10, editBtn, deleteBtn);
+                        HBox box = new HBox(8, editBtn, deactivateBtn, permanentDeleteBtn);
+                        box.getStyleClass().add("actions-cell");
                         box.setAlignment(Pos.CENTER);
                         setGraphic(box);
                     }
@@ -375,16 +381,51 @@ public class ProductoController {
         }
 
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Confirmar Eliminación");
+        dialog.setTitle("Confirmar Desactivación");
         dialog.setHeaderText("¿Está seguro de desactivar el producto \"" + p.getNombre() + "\"?");
-        dialog.setContentText("Esta acción no se puede deshacer. Escriba 'ELIMINAR' para confirmar:");
+        dialog.setContentText("El producto quedará inactivo. Escriba 'DESACTIVAR' para confirmar:");
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+        if (result.isPresent() && "DESACTIVAR".equals(result.get().trim().toUpperCase())) {
             try {
                 productoAdapter.desactivarProducto(p.getId());
                 loadData();
             } catch (Exception e) {
                 showAlert(Alert.AlertType.ERROR, "Error", "No se pudo desactivar el producto.");
+            }
+        }
+    }
+
+    private void confirmPermanentDelete(Producto p) {
+        if (p == null) return;
+        if (!sessionManager.tienePermiso("M2_SEDES")) {
+            showAlert(Alert.AlertType.WARNING, "Sin permisos", "No tiene permisos para eliminar productos.");
+            return;
+        }
+
+        // Verificar si el producto tiene inventario en CUALQUIER sede
+        try {
+            if (productoAdapter.productoTieneLotes(p.getId())) {
+                showAlert(Alert.AlertType.WARNING, "Inventario Activo",
+                    "El producto \"" + p.getNombre() + "\" tiene registros de inventario en una o más sedes. No se puede eliminar.");
+                return;
+            }
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo verificar el inventario del producto.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Confirmar Eliminación Permanente");
+        dialog.setHeaderText("¿Está seguro de ELIMINAR permanentemente el producto \"" + p.getNombre() + "\"?");
+        dialog.setContentText("Esta acción es IRREVERSIBLE. Escriba 'ELIMINAR' para confirmar:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && "ELIMINAR".equals(result.get().trim().toUpperCase())) {
+            try {
+                productoAdapter.eliminarProducto(p.getId());
+                loadData();
+                showAlert(Alert.AlertType.INFORMATION, "Éxito", "Producto eliminado permanentemente.");
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo eliminar el producto.");
             }
         }
     }

@@ -11,5 +11,6 @@ public interface ProductoRepository {
     Producto save(Producto producto);
     Producto update(Producto producto);
     void desactivar(String id);
+    void eliminar(String id);
     boolean existeCodigoDigemid(String codigoDigemid);
 }

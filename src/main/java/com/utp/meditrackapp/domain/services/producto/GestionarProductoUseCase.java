@@ -68,6 +68,18 @@ public class GestionarProductoUseCase {
         }
     }
 
+    public String eliminar(String id) {
+        Optional<Producto> opt = productoRepository.findById(id);
+        if (opt.isEmpty()) return "Producto no encontrado.";
+
+        try {
+            productoRepository.eliminar(id);
+            return "OK";
+        } catch (Exception e) {
+            return "Error al eliminar producto: " + e.getMessage();
+        }
+    }
+
     public List<Categoria> listarCategorias() {
         return categoriaRepository.findAll();
     }

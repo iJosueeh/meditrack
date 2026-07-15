@@ -149,6 +149,18 @@ public class JdbcProductoRepository implements ProductoRepository {
     }
 
     @Override
+    public void eliminar(String id) {
+        String sql = "DELETE FROM productos WHERE id = ?";
+        try (Connection conn = DatabaseConfig.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public boolean existeCodigoDigemid(String codigoDigemid) {
         String sql = "SELECT COUNT(*) FROM productos WHERE codigo_digemid = ?";
         try (Connection conn = DatabaseConfig.getInstance().getConnection();

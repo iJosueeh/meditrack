@@ -65,7 +65,7 @@
                                 <TableColumn fx:id="colPrecio" text="PRECIO UNIT." prefWidth="100" />
                                 <TableColumn fx:id="colStock" text="STOCK ACTUAL" prefWidth="100" />
                                 <TableColumn fx:id="colEstado" text="ESTADO" prefWidth="100" />
-                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="150" sortable="false" />
+                                <TableColumn fx:id="colAcciones" text="ACCIONES" prefWidth="120" minWidth="110" maxWidth="160" sortable="false" />
                             </columns>
                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                             <placeholder>
